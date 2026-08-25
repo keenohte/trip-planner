@@ -1,0 +1,24 @@
+project_id = "trip-hub"
+
+[api]
+enabled = true
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+double_confirm_changes = true
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+

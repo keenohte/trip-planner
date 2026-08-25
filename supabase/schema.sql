@@ -1,0 +1,3 @@
+-- The database schema is migration-managed.
+-- Apply the files in supabase/migrations with `supabase db push` or through
+-- the Supabase SQL editor. Do not apply this pointer file as a second schema.

@@ -1,0 +1,4 @@
+import {Idea} from '@/lib/data';
+const label={love:'❤️',interested:'👍',pass:'❌'} as const;
+function VoteSet({value}:{value:Idea['yourVote']}){return <div className="vote-group">{(['love','interested','pass'] as const).map(v=><button key={v} className={'vote '+(value===v?'active':'')}>{label[v]}</button>)}</div>}
+export function IdeaCard({idea,showVotes=true}:{idea:Idea;showVotes?:boolean}){return <article className="card"><div className="photo">Photo / cover</div><div className="cardbody"><h3>{idea.title}</h3><div className="meta">{idea.city}{idea.neighborhood?` · ${idea.neighborhood}`:''}<br/>{idea.types.join(' · ')}</div>{showVotes&&<div className="votes"><div><small>You</small><VoteSet value={idea.yourVote}/></div><div><small>Partner</small><VoteSet value={idea.partnerVote}/></div></div>}</div></article>}
