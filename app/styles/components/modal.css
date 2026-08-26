@@ -1,26 +1,126 @@
-/* Read-only detail hierarchy shared by idea and schedule-activity modals. */
+/* Modal shell and shared read-only detail hierarchy. */
 
 @layer components {
+  .idea-modal:not(.is-editing) {
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .idea-modal-media {
+    height: var(--detail-media-height);
+    border-radius: var(--radius-control);
+    background: var(--surface-sunken);
+  }
+
+  .idea-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+  }
+
+  .idea-modal-content h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+  }
+
   .idea-modal-summary {
-    padding-bottom: var(--space-4);
-    border-bottom: var(--border-width) solid var(--border-subtle);
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    border: 0;
   }
 
-  .idea-modal-summary .chip-list { margin-top: var(--space-2); }
-
-  .idea-modal-summary + .idea-modal-facts {
-    padding-top: var(--space-4);
-    border-top: 0;
+  .idea-modal-summary-meta {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
   }
 
-  .idea-modal-summary + .idea-modal-location-section,
-  .idea-modal-summary + .idea-modal-links {
-    padding-top: var(--space-4);
+  .idea-modal-location {
+    min-width: 0;
+    flex: 1;
+    margin: 0;
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .idea-modal-facts strong,
-  .idea-modal-location-section strong {
+  .idea-modal-summary .chip-list {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  .detail-panel {
+    display: grid;
+    margin: 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-control);
+    background: var(--surface-subtle);
+  }
+
+  .detail-row {
+    display: grid;
+    grid-template-columns: var(--detail-label-width) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-12);
+    margin: 0;
+  }
+
+  .detail-row + .detail-row {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .detail-row__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+  }
+
+  .detail-row__label svg {
+    width: var(--space-4);
+    height: var(--space-4);
+    flex: 0 0 auto;
+  }
+
+  .detail-row__value {
+    min-width: 0;
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    line-height: var(--leading-tight);
+    white-space: pre-wrap;
+  }
+
+  .detail-link-list,
+  .detail-link-list > span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .detail-link-list a {
+    color: var(--text-primary);
+    text-underline-offset: 2px;
+  }
+
+  .idea-modal-content > .idea-map-embed,
+  .idea-modal-content > .idea-map-placeholder {
+    height: var(--detail-map-height);
+    margin-top: 0;
+    border-radius: var(--radius-control);
   }
 
   .image-upload-control {
@@ -35,7 +135,7 @@
 
     .idea-modal-shell {
       width: 100%;
-      height: 88svh;
+      height: var(--modal-drawer-height);
     }
 
     .idea-modal-shell::before {
@@ -61,13 +161,30 @@
       overscroll-behavior: contain;
     }
 
-    .idea-modal-close {
-      display: none;
+    .idea-modal-content {
+      gap: var(--space-4);
+      padding-top: var(--space-4);
     }
 
-    .idea-modal.is-editing {
-      padding: 0;
+    .idea-modal-content h2 { font-size: var(--text-xl); }
+    .idea-modal-summary { gap: var(--space-1); }
+
+    .idea-modal-location,
+    .detail-row__value { font-size: var(--text-xs); }
+
+    .detail-row { gap: var(--space-6); }
+
+    .detail-row + .detail-row {
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
     }
+
+    .idea-modal-content > .idea-map-embed,
+    .idea-modal-content > .idea-map-placeholder { height: var(--detail-map-height-mobile); }
+
+    .idea-modal-close { display: none; }
+
+    .idea-modal.is-editing { padding: 0; }
 
     .idea-modal > .modal-idea-form {
       height: 100%;

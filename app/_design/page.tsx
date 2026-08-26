@@ -1,7 +1,8 @@
-import { Heart, ImageIcon, MapPin, Plus, Sparkles, UserRound } from 'lucide-react';
+import { CalendarClock, Heart, ImageIcon, Link2, MapPin, NotebookText, Plus, Sparkles, UserRound } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Card, CardBody, CardFooter, CardMedia, CardMeta, CardTitle, Chip, ChipList } from '@/components/ui/Card';
 import { Field, Input, SearchInput, Select, Textarea } from '@/components/ui/FormControls';
+import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
 
 /* Kitchen sink. Every component, every variant, every state, adjacent.
    Inconsistency is invisible when two buttons live on different screens
@@ -166,6 +167,18 @@ export default function DesignPage() {
               <ChipList items={['food']} />
             </CardBody>
           </Card>
+        </div>
+      </section>
+
+      <section>
+        <h2>Detail panel</h2>
+        <div style={{ maxWidth: 702, marginTop: 16 }}>
+          <DetailPanel>
+            <DetailRow icon={<CalendarClock aria-hidden="true" />} label="Schedule">Oct 25, 9:00 AM → Oct 25, 11:00 AM</DetailRow>
+            <DetailRow icon={<NotebookText aria-hidden="true" />} label="Notes">Arrive early to explore the surrounding neighborhood.</DetailRow>
+            <DetailRow icon={<Link2 aria-hidden="true" />} label="Links"><a href="#detail-panel">Website</a></DetailRow>
+            <DetailRow icon={<MapPin aria-hidden="true" />} label="Location">Gion, Kyoto, Japan</DetailRow>
+          </DetailPanel>
         </div>
       </section>
 

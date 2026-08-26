@@ -134,6 +134,11 @@
     --textarea-min: 132px;
     --avatar-vote: 26px;
     --avatar-profile: 42px;
+    --modal-drawer-height: 88svh;
+    --detail-label-width: 80px;
+    --detail-media-height: 320px;
+    --detail-map-height: 240px;
+    --detail-map-height-mobile: 200px;
 
     /* ---- LEGACY ALIASES ----
        Temporary shims so app/styles/legacy.css keeps rendering

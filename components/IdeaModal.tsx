@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarClock, ExternalLink, ImageIcon, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { CalendarClock, ImageIcon, Link2, MapPin, MoreHorizontal, NotebookText, Pencil, Trash2 } from 'lucide-react';
 import { IdeaForm } from '@/app/ideas/IdeaForm';
 import { deleteIdea } from '@/app/ideas/actions';
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed';
@@ -9,6 +9,7 @@ import { ModalFrame } from '@/components/ModalFrame';
 import { VoteControls } from '@/components/VoteControls';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
 import { Chip } from '@/components/ui/Card';
+import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
 import { formatBookingDateTime } from '@/lib/datetime';
 import type { Idea } from '@/lib/ideas';
 
@@ -29,17 +30,24 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
         </div>
       </div>
       <div className="idea-modal-content">
-        <div className="idea-modal-summary">
+        <header className="idea-modal-summary">
           <h2 id="idea-modal-title">{idea.title}</h2>
-          {location && <p className="idea-modal-location">{location}</p>}
-          {idea.types.length > 0 && <div className="chip-list">{idea.types.map((type) => <Chip key={type}>{type}</Chip>)}</div>}
-        </div>
-        {(idea.scheduledAt || idea.notes) && <div className="idea-modal-facts">
-          {idea.scheduledAt && <div><strong>Schedule</strong><span><CalendarClock size={14} aria-hidden="true" />{formatBookingDateTime(idea.scheduledAt, timezone)}{idea.scheduledEndAt && <> → {formatBookingDateTime(idea.scheduledEndAt, timezone)}</>}</span></div>}
-          {idea.notes && <div><strong>Notes</strong><span>{idea.notes}</span></div>}
-        </div>}
-        {idea.mapsUrl && <div className="idea-modal-location-section"><div><strong>Location</strong></div>{displayAddress && <span>{displayAddress}</span>}<GoogleMapEmbed address={mapQuery} mapsUrl={idea.mapsUrl} /></div>}
-        {links.length > 0 && <div className="idea-modal-links">{links.map(([label, url]) => <a href={url} target="_blank" rel="noreferrer" key={label}>{label}<ExternalLink size={13} aria-hidden="true" /></a>)}</div>}
+          {(location || idea.types.length > 0) && <div className="idea-modal-summary-meta">
+            {location && <p className="idea-modal-location">{location}</p>}
+            {idea.types.length > 0 && <div className="chip-list">{idea.types.map((type) => <Chip key={type}>{type}</Chip>)}</div>}
+          </div>}
+        </header>
+        {(idea.scheduledAt || idea.notes || links.length > 0 || (idea.mapsUrl && displayAddress)) && <DetailPanel>
+          {idea.scheduledAt && <DetailRow icon={<CalendarClock aria-hidden="true" />} label="Schedule">
+            {formatBookingDateTime(idea.scheduledAt, timezone)}{idea.scheduledEndAt && <> → {formatBookingDateTime(idea.scheduledEndAt, timezone)}</>}
+          </DetailRow>}
+          {idea.notes && <DetailRow icon={<NotebookText aria-hidden="true" />} label="Notes">{idea.notes}</DetailRow>}
+          {links.length > 0 && <DetailRow icon={<Link2 aria-hidden="true" />} label="Links">
+            <span className="detail-link-list">{links.map(([label, url], index) => <span key={label}>{index > 0 && <span aria-hidden="true">·</span>}<a href={url} target="_blank" rel="noreferrer">{label}</a></span>)}</span>
+          </DetailRow>}
+          {idea.mapsUrl && displayAddress && <DetailRow icon={<MapPin aria-hidden="true" />} label="Location">{displayAddress}</DetailRow>}
+        </DetailPanel>}
+        {idea.mapsUrl && <GoogleMapEmbed address={mapQuery} mapsUrl={idea.mapsUrl} />}
       </div>
     </>}
   </ModalFrame>;
