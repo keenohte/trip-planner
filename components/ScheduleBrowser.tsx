@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { BedDouble, CalendarDays, Clock3, ImageIcon, Plane, Plus, Ticket, TrainFront } from 'lucide-react';
 import { IdeaModal } from '@/components/IdeaModal';
+import { BookingModal } from '@/components/BookingModal';
 import { ScheduleActivityModal } from '@/components/ScheduleActivityModal';
 import { Button } from '@/components/ui/Button';
-import { Card, CardBody, CardButton, CardMedia, CardTitle, ChipList } from '@/components/ui/Card';
+import { CardBody, CardButton, CardMedia, CardTitle, ChipList } from '@/components/ui/Card';
 import { formatScheduleTime } from '@/lib/datetime';
 import type { Idea } from '@/lib/ideas';
+import type { Booking } from '@/lib/bookings';
 import type { ScheduleGroup, ScheduleItem } from '@/lib/schedule';
 import type { ScheduleActivity } from '@/lib/schedule-activities';
 
@@ -51,10 +53,12 @@ function dayLabel(iso: string, timezone: string) {
 
 export function ScheduleBrowser({ groups, timezone }: { groups: ScheduleGroup[]; timezone: string }) {
   const [idea, setIdea] = useState<Idea | null>(null);
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [activity, setActivity] = useState<ScheduleActivity | null | undefined>(undefined);
 
   const open = (item: ScheduleItem) => {
     if (item.idea) setIdea(item.idea);
+    else if (item.booking) setBooking(item.booking);
     else if (item.activity) setActivity(item.activity);
   };
 
@@ -88,28 +92,19 @@ export function ScheduleBrowser({ groups, timezone }: { groups: ScheduleGroup[];
               </div>
 
               <div className="schedule-day__cards">
-                {group.items.map((item) =>
-                  item.source === 'booking' ? (
-                    <Card row key={`${item.source}-${item.id}`}>
-                      <CardMedia aspect="square">
-                        <ItemMedia item={item} />
-                      </CardMedia>
-                      <ItemBody item={item} />
-                    </Card>
-                  ) : (
-                    <CardButton
-                      row
-                      key={`${item.source}-${item.id}`}
-                      onClick={() => open(item)}
-                      aria-label={`Open ${item.title}`}
-                    >
-                      <CardMedia aspect="square">
-                        <ItemMedia item={item} />
-                      </CardMedia>
-                      <ItemBody item={item} />
-                    </CardButton>
-                  ),
-                )}
+                {group.items.map((item) => (
+                  <CardButton
+                    row
+                    key={`${item.source}-${item.id}`}
+                    onClick={() => open(item)}
+                    aria-label={`Open ${item.title}`}
+                  >
+                    <CardMedia aspect="square">
+                      <ItemMedia item={item} />
+                    </CardMedia>
+                    <ItemBody item={item} />
+                  </CardButton>
+                ))}
               </div>
             </section>
           ))}
@@ -125,6 +120,7 @@ export function ScheduleBrowser({ groups, timezone }: { groups: ScheduleGroup[];
       )}
 
       {idea && <IdeaModal idea={idea} timezone={timezone} onClose={() => setIdea(null)} />}
+      {booking && <BookingModal booking={booking} timezone={timezone} onClose={() => setBooking(null)} />}
       {activity !== undefined && (
         <ScheduleActivityModal activity={activity ?? undefined} timezone={timezone} onClose={() => setActivity(undefined)} />
       )}

@@ -18,15 +18,15 @@
   :root {
     /* ---- PRIMITIVES — do not reference in components ---- */
 
-    /* neutral ramp: cool, near-achromatic (hue 250) */
+    /* neutral ramp: pure achromatic grey (no hue cast) */
     --raw-n-000: #ffffff;                 /* pure white          */
     --raw-n-025: #f6f6f6;                 /* subtle text surface */
-    --raw-n-050: oklch(0.967 0.003 250);  /* #F3F4F6             */
-    --raw-n-100: oklch(0.942 0.005 250);  /* #E9ECEF             */
-    --raw-n-200: oklch(0.898 0.006 250);  /* #DADEE1             */
-    --raw-n-300: oklch(0.840 0.008 250);  /* #C7CBD0             */
-    --raw-n-600: oklch(0.535 0.014 250);  /* #676E75             */
-    --raw-n-900: oklch(0.255 0.022 250);  /* #1B242D             */
+    --raw-n-050: oklch(0.967 0 0);        /* #F4F4F4             */
+    --raw-n-100: oklch(0.942 0 0);        /* #ECECEC             */
+    --raw-n-200: oklch(0.898 0 0);        /* #DDDDDD             */
+    --raw-n-300: oklch(0.840 0 0);        /* #CACACA             */
+    --raw-n-600: oklch(0.535 0 0);        /* #6D6D6D             */
+    --raw-n-900: oklch(0.255 0 0);        /* #232323             */
 
     /* petrol — interactive chrome */
     --raw-petrol-700: oklch(0.370 0.066 210); /* #004953         */
@@ -107,10 +107,9 @@
     --radius-feature: 28px;
     --radius-pill: 999px;
 
-    /* type — six sizes, three weights */
+    /* type — five sizes, three weights */
     --text-xs: 12px;
-    --text-sm: 13px;
-    --text-base: 15px;
+    --text-base: 14px;
     --text-lg: 18px;
     --text-xl: 24px;
     --text-2xl: 32px;
@@ -126,8 +125,8 @@
     --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
     /* elevation — two. Most surfaces use a border and no shadow. */
-    --shadow-sm: 0 4px 16px rgb(27 36 45 / 0.06);
-    --shadow-lg: 0 20px 48px rgb(27 36 45 / 0.14);
+    --shadow-sm: 0 4px 16px rgb(35 35 35 / 0.06);
+    --shadow-lg: 0 20px 48px rgb(35 35 35 / 0.14);
 
     --focus-ring: 0 0 0 3px rgb(23 93 103 / 0.35);
     --target-min: 44px;
@@ -166,6 +165,6 @@
     --color-sky: var(--primary-soft);
     --color-sage: var(--mutual-soft);
     --color-lavender: var(--traveler-b-bg);
-    --color-scroll-line: rgb(27 36 45 / 0.16);
+    --color-scroll-line: rgb(35 35 35 / 0.16);
   }
 }

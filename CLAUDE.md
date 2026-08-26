@@ -44,7 +44,7 @@ The scales are deliberately small and complete:
 
 - spacing: `4 8 12 16 24 32 48` — nothing between
 - radius: `control(12) card(20) feature(28) pill(999)` — four, total
-- type: `xs(12) sm(13) base(15) lg(18) xl(24) 2xl(32)` — six
+- type: `xs(12) base(14) lg(18) xl(24) 2xl(32)` — five
 - weight: `400 600 700` — three
 - shadow: `sm lg` — two
 

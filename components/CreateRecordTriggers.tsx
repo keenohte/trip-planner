@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { BookingForm } from '@/app/bookings/BookingForm';
 import { NoteForm } from '@/app/notes/NoteForm';
 import { WishlistForm } from '@/app/wishlist/WishlistForm';
+import { BookingModal } from '@/components/BookingModal';
 import { CreateFormModal } from '@/components/CreateFormModal';
 
 function Trigger({ className, children, render }: { className: string; children: ReactNode; render: (close: () => void) => ReactNode }) {
@@ -13,7 +13,8 @@ function Trigger({ className, children, render }: { className: string; children:
 }
 
 export function NewBookingTrigger({ timezone, className, children }: { timezone: string; className: string; children: ReactNode }) {
-  return <Trigger className={className} render={(close) => <BookingForm tripTimezone={timezone} presentation="modal" onCancel={close} onSaved={close} />}>{children}</Trigger>;
+  const [open, setOpen] = useState(false);
+  return <><button className={className} type="button" onClick={() => setOpen(true)}>{children}</button>{open && <BookingModal timezone={timezone} onClose={() => setOpen(false)} />}</>;
 }
 
 export function NewWishlistTrigger({ className, children }: { className: string; children: ReactNode }) {

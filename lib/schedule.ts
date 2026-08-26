@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { getBookings, type Booking } from '@/lib/bookings';
 import { dateKey } from '@/lib/datetime';
 import { getIdeas, type Idea } from '@/lib/ideas';
 import { getScheduleActivities, type ScheduleActivity } from '@/lib/schedule-activities';
@@ -16,6 +16,7 @@ export type ScheduleItem = {
   timezone: string;
   imageUrl: string | null;
   idea: Idea | null;
+  booking: Booking | null;
   activity: ScheduleActivity | null;
   href: string;
 };
@@ -29,16 +30,15 @@ function tripDayNumber(key:string,startDate:string|null,endDate:string|null){
 }
 
 export async function getSchedule(trip:CurrentTrip):Promise<ScheduleGroup[]>{
-  const supabase=await createClient();
-  const [ideas,{data:bookings},activities]=await Promise.all([
+  const [ideas,bookings,activities]=await Promise.all([
     getIdeas(trip.id),
-    supabase.from('bookings').select('id, title, type, starts_at, ends_at, timezone, city_route, provider').eq('trip_id',trip.id).not('starts_at','is',null),
+    getBookings(trip.id, trip.timezone),
     getScheduleActivities(trip.id),
   ]);
   const items:ScheduleItem[]=[
-    ...ideas.filter((idea)=>idea.isConfirmed&&idea.scheduledAt).map((idea)=>({id:idea.id,source:'idea' as const,title:idea.title,startsAt:idea.scheduledAt!,endsAt:idea.scheduledEndAt,type:idea.types[0]??'Idea',types:idea.types,detail:[idea.city,idea.country].filter(Boolean).join(', ')||null,timezone:trip.timezone,imageUrl:idea.imageUrl,idea,activity:null,href:`/ideas/${idea.id}`})),
-    ...(bookings??[]).map((booking)=>({id:booking.id,source:'booking' as const,title:booking.title,startsAt:booking.starts_at as string,endsAt:booking.ends_at,type:booking.type,types:[booking.type],detail:[booking.city_route,booking.provider].filter(Boolean).join(' · ')||null,timezone:booking.timezone||trip.timezone,imageUrl:null,idea:null,activity:null,href:`/bookings/${booking.id}`})),
-    ...activities.map((activity)=>({id:activity.id,source:'activity' as const,title:activity.title,startsAt:activity.startsAt,endsAt:activity.endsAt,type:'Activity',types:['Activity'],detail:[activity.city,activity.country].filter(Boolean).join(', ')||null,timezone:trip.timezone,imageUrl:activity.imageUrl,idea:null,activity,href:'/schedule'})),
+    ...ideas.filter((idea)=>idea.isConfirmed&&idea.scheduledAt).map((idea)=>({id:idea.id,source:'idea' as const,title:idea.title,startsAt:idea.scheduledAt!,endsAt:idea.scheduledEndAt,type:idea.types[0]??'Idea',types:idea.types,detail:[idea.city,idea.country].filter(Boolean).join(', ')||null,timezone:trip.timezone,imageUrl:idea.imageUrl,idea,booking:null,activity:null,href:`/ideas/${idea.id}`})),
+    ...bookings.filter((booking)=>booking.startsAt).map((booking)=>({id:booking.id,source:'booking' as const,title:booking.title,startsAt:booking.startsAt!,endsAt:booking.endsAt,type:booking.type,types:[booking.type],detail:[booking.cityRoute,booking.provider].filter(Boolean).join(' · ')||null,timezone:booking.timezone,imageUrl:null,idea:null,booking,activity:null,href:'/bookings'})),
+    ...activities.map((activity)=>({id:activity.id,source:'activity' as const,title:activity.title,startsAt:activity.startsAt,endsAt:activity.endsAt,type:'Activity',types:['Activity'],detail:[activity.city,activity.country].filter(Boolean).join(', ')||null,timezone:trip.timezone,imageUrl:activity.imageUrl,idea:null,booking:null,activity,href:'/schedule'})),
   ].sort((a,b)=>new Date(a.startsAt).getTime()-new Date(b.startsAt).getTime());
   const groups=new Map<string,ScheduleGroup>();
   for(const item of items){const key=dateKey(item.startsAt,item.timezone);const group=groups.get(key);if(group)group.items.push(item);else groups.set(key,{key,startsAt:item.startsAt,timezone:item.timezone,dayNumber:tripDayNumber(key,trip.startDate,trip.endDate),items:[item]});}

@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   icons: { icon: '/trip-hub-icon.svg' },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#F3F4F6' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#F4F4F4' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

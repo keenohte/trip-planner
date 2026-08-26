@@ -58,7 +58,7 @@ export default function DesignPage() {
 
       <section>
         <h2>Chips</h2>
-        <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+        <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-base)' }}>
           Categories are neutral. Colour is reserved for state.
         </p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
@@ -72,7 +72,7 @@ export default function DesignPage() {
 
       <section>
         <h2>Vote states — the app&rsquo;s subject</h2>
-        <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+        <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-base)' }}>
           Gold appears here and nowhere else.
         </p>
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 16 }}>
@@ -100,7 +100,7 @@ export default function DesignPage() {
           ['Travellers', ['--traveler-a-bg', '--traveler-a-fg', '--traveler-b-bg', '--traveler-b-fg']],
         ] as const).map(([group, vars]) => (
           <div key={group} style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>{group}</div>
+            <div style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 8 }}>{group}</div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {vars.map((v) => (
                 <div key={v} style={{ display: 'grid', gap: 6, fontSize: 'var(--text-xs)' }}>
@@ -185,7 +185,7 @@ export default function DesignPage() {
       <section>
         <h2>Type scale</h2>
         <div style={{ display: 'grid', gap: 8, marginTop: 16 }}>
-          {(['2xl', 'xl', 'lg', 'base', 'sm', 'xs'] as const).map((s) => (
+          {(['2xl', 'xl', 'lg', 'base', 'xs'] as const).map((s) => (
             <div key={s} style={{ fontSize: `var(--text-${s})` }}>
               {s} — Planning a trip together
             </div>

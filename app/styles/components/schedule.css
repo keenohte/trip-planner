@@ -74,11 +74,11 @@
     align-items: center;
     gap: var(--space-2);
     color: var(--text-muted);
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
   }
   .schedule-card__detail {
     color: var(--text-muted);
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
   }
 
   /* Bookings are reference, not a destination — no hover affordance. */
@@ -94,7 +94,7 @@
   @media (max-width: 560px) {
     .schedule { gap: var(--space-6); }
     .schedule-day { --rail-w: 36px; --rail-gap: var(--space-2); }
-    .schedule-day__number { width: 34px; height: 34px; font-size: var(--text-sm); }
+    .schedule-day__number { width: 34px; height: 34px; font-size: var(--text-xs); }
     .card--row { gap: var(--space-3); padding: var(--space-3); }
     .card--row .card__media { width: 76px; height: 76px; }
     .schedule-card__detail { font-size: var(--text-xs); }

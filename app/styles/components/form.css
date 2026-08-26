@@ -12,7 +12,7 @@
   .field__label,
   .form-field > label {
     color: var(--text-primary);
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
     font-weight: var(--weight-medium);
     line-height: var(--leading-tight);
   }

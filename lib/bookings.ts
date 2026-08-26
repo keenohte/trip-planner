@@ -13,6 +13,9 @@ export type Booking = {
   provider: string | null;
   confirmation: string | null;
   bookingUrl: string | null;
+  mapsUrl: string | null;
+  locationAddress: string | null;
+  websiteUrl: string | null;
   notes: string | null;
   createdBy: string;
   createdAt: string;
@@ -30,12 +33,15 @@ type BookingRow = {
   provider: string | null;
   confirmation: string | null;
   booking_url: string | null;
+  maps_url: string | null;
+  location_address: string | null;
+  website_url: string | null;
   notes: string | null;
   created_by: string;
   created_at: string;
 };
 
-const fields = 'id, trip_id, type, title, starts_at, ends_at, timezone, city_route, provider, confirmation, booking_url, notes, created_by, created_at';
+const fields = 'id, trip_id, type, title, starts_at, ends_at, timezone, city_route, provider, confirmation, booking_url, maps_url, location_address, website_url, notes, created_by, created_at';
 
 function mapBooking(row: BookingRow, tripTimezone: string): Booking {
   return {
@@ -50,6 +56,9 @@ function mapBooking(row: BookingRow, tripTimezone: string): Booking {
     provider: row.provider,
     confirmation: row.confirmation,
     bookingUrl: row.booking_url,
+    mapsUrl: row.maps_url,
+    locationAddress: row.location_address,
+    websiteUrl: row.website_url,
     notes: row.notes,
     createdBy: row.created_by,
     createdAt: row.created_at,

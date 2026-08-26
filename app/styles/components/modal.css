@@ -26,6 +26,17 @@
     line-height: var(--leading-tight);
   }
 
+  .booking-modal-content { padding-top: 0; }
+
+  .booking-modal-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .booking-modal-heading .idea-kebab { flex: 0 0 auto; }
+
   .idea-modal-summary {
     display: grid;
     gap: var(--space-2);

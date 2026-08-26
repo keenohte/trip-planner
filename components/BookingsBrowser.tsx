@@ -33,6 +33,8 @@ export function BookingsBrowser({ bookings, timezone }: { bookings: Booking[]; t
       booking.cityRoute,
       booking.provider,
       booking.confirmation,
+      booking.locationAddress,
+      booking.websiteUrl,
       booking.notes,
     ]
       .filter(Boolean)
