@@ -4,6 +4,7 @@ import { useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DateTimePicker } from '@/components/DateTimePicker';
 import { ModalFormLayout } from '@/components/ModalFormLayout';
+import { Field, Input, Select, Textarea } from '@/components/ui/FormControls';
 import { bookingTypes } from '@/lib/booking-types';
 import type { Booking } from '@/lib/bookings';
 import { formatDateTimeInput } from '@/lib/datetime';
@@ -20,13 +21,13 @@ export function BookingForm({ booking, tripTimezone, presentation = 'page', onCa
 
   const fields = <>
     {booking && <input type="hidden" name="bookingId" value={booking.id} />}
-    <div className="form-field"><label htmlFor="booking-title">Title <span aria-hidden="true">*</span></label><input id="booking-title" name="title" required maxLength={160} defaultValue={booking?.title ?? ''} placeholder="Asiana OZ221" /></div>
-    <div className="form-columns"><div className="form-field"><label htmlFor="booking-type">Type</label><select id="booking-type" name="type" defaultValue={booking?.type ?? 'flight'}>{bookingTypes.map((type) => <option value={type} key={type}>{label(type)}</option>)}</select></div><div className="form-field"><label htmlFor="booking-route">City or route</label><input id="booking-route" name="cityRoute" defaultValue={booking?.cityRoute ?? ''} placeholder="JFK → ICN" /></div></div>
-    <div className="form-field"><label htmlFor="booking-provider">Provider</label><input id="booking-provider" name="provider" defaultValue={booking?.provider ?? ''} placeholder="Asiana Airlines" /></div>
-    <div className="form-columns date-time-fields"><div className="form-field"><label htmlFor="booking-start">Start date</label><DateTimePicker id="booking-start" name="startsAt" initialValue={formatDateTimeInput(booking?.startsAt ?? null, timezone)} /></div><div className="form-field"><label htmlFor="booking-end">End date</label><DateTimePicker id="booking-end" name="endsAt" initialValue={formatDateTimeInput(booking?.endsAt ?? null, timezone)} /></div></div>
-    <div className="form-field"><label htmlFor="booking-timezone">Timezone</label><input id="booking-timezone" name="timezone" defaultValue={timezone} placeholder="Asia/Tokyo" /><small>Use an IANA timezone. A start time adds this booking to Schedule.</small></div>
-    <div className="form-columns"><div className="form-field"><label htmlFor="booking-confirmation">Confirmation number</label><input id="booking-confirmation" name="confirmation" defaultValue={booking?.confirmation ?? ''} /></div><div className="form-field"><label htmlFor="booking-link">Booking link</label><input id="booking-link" name="bookingUrl" type="url" defaultValue={booking?.bookingUrl ?? ''} placeholder="https://…" /></div></div>
-    <div className="form-field"><label htmlFor="booking-notes">Notes</label><textarea id="booking-notes" name="notes" rows={5} defaultValue={booking?.notes ?? ''} placeholder="Terminal, check-in instructions, cancellation details…" /></div>
+    <Field htmlFor="booking-title" label="Title" required><Input id="booking-title" name="title" required maxLength={160} defaultValue={booking?.title ?? ''} placeholder="Asiana OZ221" /></Field>
+    <div className="form-columns"><Field htmlFor="booking-type" label="Type"><Select id="booking-type" name="type" defaultValue={booking?.type ?? 'flight'}>{bookingTypes.map((type) => <option value={type} key={type}>{label(type)}</option>)}</Select></Field><Field htmlFor="booking-route" label="City or route"><Input id="booking-route" name="cityRoute" defaultValue={booking?.cityRoute ?? ''} placeholder="JFK → ICN" /></Field></div>
+    <Field htmlFor="booking-provider" label="Provider"><Input id="booking-provider" name="provider" defaultValue={booking?.provider ?? ''} placeholder="Asiana Airlines" /></Field>
+    <div className="form-columns date-time-fields"><Field htmlFor="booking-start" label="Start date"><DateTimePicker id="booking-start" name="startsAt" initialValue={formatDateTimeInput(booking?.startsAt ?? null, timezone)} /></Field><Field htmlFor="booking-end" label="End date"><DateTimePicker id="booking-end" name="endsAt" initialValue={formatDateTimeInput(booking?.endsAt ?? null, timezone)} /></Field></div>
+    <Field htmlFor="booking-timezone" label="Timezone" hint="Use an IANA timezone. A start time adds this booking to Schedule."><Input id="booking-timezone" name="timezone" defaultValue={timezone} placeholder="Asia/Tokyo" /></Field>
+    <div className="form-columns"><Field htmlFor="booking-confirmation" label="Confirmation number"><Input id="booking-confirmation" name="confirmation" defaultValue={booking?.confirmation ?? ''} /></Field><Field htmlFor="booking-link" label="Booking link"><Input id="booking-link" name="bookingUrl" type="url" defaultValue={booking?.bookingUrl ?? ''} placeholder="https://…" /></Field></div>
+    <Field htmlFor="booking-notes" label="Notes"><Textarea id="booking-notes" name="notes" rows={5} defaultValue={booking?.notes ?? ''} placeholder="Terminal, check-in instructions, cancellation details…" /></Field>
   </>;
 
   if (presentation === 'modal') return <ModalFormLayout action={formAction} error={state.error} pending={isPending} onCancel={() => onCancel?.()}>{fields}</ModalFormLayout>;

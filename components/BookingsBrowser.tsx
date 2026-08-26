@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, SlidersHorizontal, X } from 'lucide-react';
 import { NewBookingTrigger } from '@/components/CreateRecordTriggers';
 import { BookingCard } from '@/components/BookingCard';
 import { Button } from '@/components/ui/Button';
+import { SearchInput, Select } from '@/components/ui/FormControls';
 import { useCloseDetailsOnOutside } from '@/lib/use-close-details';
 import type { Booking } from '@/lib/bookings';
 
@@ -79,44 +80,42 @@ export function BookingsBrowser({ bookings, timezone }: { bookings: Booking[]; t
               </div>
               <label>
                 Type
-                <select value={type} onChange={(event) => setType(event.target.value)}>
+                <Select value={type} onChange={(event) => setType(event.target.value)}>
                   <option value="all">All types</option>
                   {types.map((value) => (
                     <option value={value} key={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label>
                 Provider
-                <select value={provider} onChange={(event) => setProvider(event.target.value)}>
+                <Select value={provider} onChange={(event) => setProvider(event.target.value)}>
                   <option value="all">All providers</option>
                   {providers.map((value) => (
                     <option value={value} key={value}>{value}</option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label>
                 Schedule
-                <select value={timing} onChange={(event) => setTiming(event.target.value as TimingFilter)}>
+                <Select value={timing} onChange={(event) => setTiming(event.target.value as TimingFilter)}>
                   <option value="all">Any schedule</option>
                   <option value="scheduled">Date added</option>
                   <option value="unscheduled">Date missing</option>
-                </select>
+                </Select>
               </label>
               <div className="filter__count">Showing {filtered.length} of {bookings.length}</div>
             </div>
           </details>
 
-          <label className="search">
-            <Search size={17} aria-hidden="true" />
-            <span className="sr-only">Search bookings</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />
+          <div className="search">
+            <SearchInput aria-label="Search bookings" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />
             {query && (
               <button className="search__clear" type="button" onClick={() => setQuery('')} aria-label="Clear search">
                 <X size={14} aria-hidden="true" />
               </button>
             )}
-          </label>
+          </div>
 
           <NewBookingTrigger className="btn btn--primary" timezone={timezone}>
             <Plus size={18} aria-hidden="true" />

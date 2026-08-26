@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { Field, Input } from '@/components/ui/FormControls';
 
 export function SignInForm({ nextPath = '/' }: { nextPath?: string }) {
   const [email, setEmail] = useState('');
@@ -27,17 +28,18 @@ export function SignInForm({ nextPath = '/' }: { nextPath?: string }) {
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
-      <label htmlFor="email">Email address</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        required
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="you@example.com"
-      />
+      <Field htmlFor="email" label="Email address" required>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="you@example.com"
+        />
+      </Field>
       <button className="primary-button" disabled={isSubmitting} type="submit">
         {isSubmitting ? 'Sending link…' : 'Email me a sign-in link'}
       </button>
@@ -45,4 +47,3 @@ export function SignInForm({ nextPath = '/' }: { nextPath?: string }) {
     </form>
   );
 }
-

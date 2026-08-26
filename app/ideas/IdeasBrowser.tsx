@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, SlidersHorizontal, X } from 'lucide-react';
 import { IdeaModal } from '@/components/IdeaModal';
 import { PersistedIdeaCard } from '@/components/PersistedIdeaCard';
 import { NewIdeaTrigger } from '@/components/NewIdeaTrigger';
 import { Button } from '@/components/ui/Button';
+import { SearchInput, Select } from '@/components/ui/FormControls';
 import { useCloseDetailsOnOutside } from '@/lib/use-close-details';
 import type { Idea } from '@/lib/ideas';
 
@@ -89,29 +90,29 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
               </div>
               <label>
                 City
-                <select value={city} onChange={(event) => setCity(event.target.value)}>
+                <Select value={city} onChange={(event) => setCity(event.target.value)}>
                   <option value="all">All cities</option>
                   {cities.map((value) => (
                     <option value={value} key={value}>{value}</option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label>
                 Type
-                <select value={type} onChange={(event) => setType(event.target.value)}>
+                <Select value={type} onChange={(event) => setType(event.target.value)}>
                   <option value="all">All types</option>
                   {types.map((value) => (
                     <option value={value} key={value}>{value}</option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label>
                 Added by
-                <select value={addedBy} onChange={(event) => setAddedBy(event.target.value)}>
+                <Select value={addedBy} onChange={(event) => setAddedBy(event.target.value)}>
                   <option value="all">Either traveler</option>
                   <option value="me">Me</option>
                   <option value="partner">Partner</option>
-                </select>
+                </Select>
               </label>
               <div className="filter__count">
                 Showing {filtered.length} of {ideas.length}
@@ -119,16 +120,14 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
             </div>
           </details>
 
-          <label className="search">
-            <Search size={17} aria-hidden="true" />
-            <span className="sr-only">Search ideas</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />
+          <div className="search">
+            <SearchInput aria-label="Search ideas" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />
             {query && (
               <button className="search__clear" type="button" onClick={() => setQuery('')} aria-label="Clear search">
                 <X size={14} aria-hidden="true" />
               </button>
             )}
-          </label>
+          </div>
 
           {variant === 'ideas' && (
             <NewIdeaTrigger timezone={timezone}>

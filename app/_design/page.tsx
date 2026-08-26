@@ -1,6 +1,7 @@
 import { Heart, ImageIcon, MapPin, Plus, Sparkles, UserRound } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Card, CardBody, CardFooter, CardMedia, CardMeta, CardTitle, Chip, ChipList } from '@/components/ui/Card';
+import { Field, Input, SearchInput, Select, Textarea } from '@/components/ui/FormControls';
 
 /* Kitchen sink. Every component, every variant, every state, adjacent.
    Inconsistency is invisible when two buttons live on different screens
@@ -26,6 +27,31 @@ export default function DesignPage() {
         </div>
         <div style={{ marginTop: 12, maxWidth: 320 }}>
           <Button variant="primary" block>Full width (mobile)</Button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Form controls</h2>
+        <div style={{ display: 'grid', gap: 16, maxWidth: 560, marginTop: 16 }}>
+          <Field htmlFor="design-title" label="Title" required>
+            <Input id="design-title" placeholder="Fushimi Inari Taisha" />
+          </Field>
+          <Field htmlFor="design-type" label="Type" hint="Choose the closest match.">
+            <Select id="design-type" defaultValue="sight">
+              <option value="sight">Sight</option>
+              <option value="food">Food</option>
+            </Select>
+          </Field>
+          <Field htmlFor="design-notes" label="Notes">
+            <Textarea id="design-notes" placeholder="Anything useful for both travelers…" />
+          </Field>
+          <SearchInput aria-label="Search example" placeholder="Search…" />
+          <Field htmlFor="design-readonly" label="Read only">
+            <Input id="design-readonly" readOnly value="Shared trip value" />
+          </Field>
+          <Field htmlFor="design-error" label="Error">
+            <Input id="design-error" aria-invalid="true" defaultValue="Invalid value" />
+          </Field>
         </div>
       </section>
 
@@ -66,7 +92,7 @@ export default function DesignPage() {
       <section>
         <h2>Palette</h2>
         {([
-          ['Surfaces', ['--canvas', '--surface', '--surface-sunken', '--border-subtle', '--border-strong']],
+          ['Surfaces', ['--canvas', '--surface', '--surface-subtle', '--surface-sunken', '--border-subtle', '--border-strong']],
           ['Text', ['--text-primary', '--text-muted']],
           ['Actions', ['--primary', '--primary-hover', '--primary-soft', '--danger']],
           ['State — the app\u2019s subject', ['--love', '--love-soft', '--mutual', '--mutual-ink', '--mutual-soft']],

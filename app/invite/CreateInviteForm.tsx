@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { createPartnerInvite, type InviteState } from './actions';
+import { Input } from '@/components/ui/FormControls';
 
 const initialState: InviteState = { error: null, inviteUrl: null };
 
@@ -28,7 +29,7 @@ export function CreateInviteForm({ tripId }: { tripId: string }) {
         </form>
       ) : (
         <div className="invite-result">
-          <input aria-label="Partner invite URL" readOnly value={state.inviteUrl} />
+          <Input aria-label="Partner invite URL" readOnly value={state.inviteUrl} />
           <button className="chip" onClick={copyInvite} type="button">
             {copied ? 'Copied' : 'Copy link'}
           </button>
@@ -38,4 +39,3 @@ export function CreateInviteForm({ tripId }: { tripId: string }) {
     </div>
   );
 }
-

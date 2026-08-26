@@ -20,6 +20,7 @@
 
     /* neutral ramp: cool, near-achromatic (hue 250) */
     --raw-n-000: #ffffff;                 /* pure white          */
+    --raw-n-025: #f6f6f6;                 /* subtle text surface */
     --raw-n-050: oklch(0.967 0.003 250);  /* #F3F4F6             */
     --raw-n-100: oklch(0.942 0.005 250);  /* #E9ECEF             */
     --raw-n-200: oklch(0.898 0.006 250);  /* #DADEE1             */
@@ -54,6 +55,7 @@
     /* surfaces */
     --canvas: var(--raw-n-050);
     --surface: var(--raw-n-000);
+    --surface-subtle: var(--raw-n-025);
     --surface-sunken: var(--raw-n-100);
 
     /* text */
@@ -129,6 +131,7 @@
 
     --focus-ring: 0 0 0 3px rgb(23 93 103 / 0.35);
     --target-min: 44px;
+    --textarea-min: 132px;
     --avatar-vote: 26px;
     --avatar-profile: 42px;
 
