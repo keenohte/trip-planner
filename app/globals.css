@@ -1,17 +1,4 @@
-/* Layer order decides who wins — later layers beat earlier ones
-   regardless of selector specificity. This is what lets the new
-   component files override legacy without !important. */
+/* Layer order decides who wins — later layers beat earlier ones.
+   Stylesheets are imported directly by app/layout.tsx so Next.js
+   keeps them attached across App Router navigation. */
 @layer tokens, base, legacy, components, overrides;
-
-@import './styles/tokens.css';
-@import './styles/base.css';
-@import './styles/legacy.css';
-
-@import './styles/components/button.css';
-@import './styles/components/card.css';
-@import './styles/components/chip.css';
-@import './styles/components/grid.css';
-@import './styles/components/tabs.css';
-@import './styles/components/toolbar.css';
-@import './styles/components/schedule.css';
-@import './styles/components/vote.css';

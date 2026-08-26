@@ -25,8 +25,9 @@ components/ui/                     Button, Card and friends
 app/_design/page.tsx               kitchen sink (dev only)
 ```
 
-`app/globals.css` is an import manifest and a layer declaration. Do not put
-rules in it.
+`app/globals.css` declares layer order only. `app/layout.tsx` imports every
+global stylesheet directly so Next.js keeps them attached across route
+navigation. Do not put component rules in `globals.css`.
 
 ## Tokens
 

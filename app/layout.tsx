@@ -2,6 +2,17 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import '@daypicker/react/style.css';
 import './globals.css';
+import './styles/tokens.css';
+import './styles/base.css';
+import './styles/legacy.css';
+import './styles/components/button.css';
+import './styles/components/card.css';
+import './styles/components/chip.css';
+import './styles/components/grid.css';
+import './styles/components/tabs.css';
+import './styles/components/toolbar.css';
+import './styles/components/schedule.css';
+import './styles/components/vote.css';
 import { Nav } from '@/components/Nav';
 
 /* Previously the stylesheet asked for "Inter" by name without ever

@@ -12,7 +12,7 @@ components/ui/
 app/_design/page.tsx
 ```
 
-`app/globals.css` is only the cascade-layer and import manifest. Do not add component rules to it. `app/styles/legacy.css` contains frozen pre-system styling and should shrink as remaining screens migrate.
+`app/globals.css` only declares cascade-layer order. `app/layout.tsx` imports every global stylesheet directly so Next.js keeps the styles attached across route navigation. Do not add component rules to `globals.css`. `app/styles/legacy.css` contains frozen pre-system styling and should shrink as remaining screens migrate.
 
 ## Principles
 
