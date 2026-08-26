@@ -107,6 +107,8 @@ Known dead code (pre-Supabase, unreferenced): `components/IdeaCard.tsx` and
 When you migrate a screen, delete its rules from `legacy.css` in the same
 change. That file only shrinks. It is the progress bar.
 
+Any change adding a migration under supabase/migrations/ must be run against the database before the code that depends on it is used. A committed migration file is not an applied migration.
+
 ## Verification
 
 Run `npm run build` after meaningful changes. Check `/_design` in dev for

@@ -92,6 +92,76 @@
     cursor: pointer;
   }
 
+  /* --- Customizable select (Chrome 134+, Edge 134+, Safari 27+) ---
+     Opting into `appearance: base-select` turns the OS-rendered popup
+     into a normal element tree we can style with our own tokens.
+
+     This is pure progressive enhancement: a browser without support
+     ignores the whole block and renders an ordinary native <select> —
+     still accessible, still keyboard-navigable, nothing broken. Do NOT
+     replace this with a JS listbox to make Firefox match; the fallback
+     is the point. */
+  @supports (appearance: base-select) {
+    .field-control--select,
+    .field-control--select::picker(select) {
+      appearance: base-select;
+    }
+
+    /* The closed control keeps every .field-control style it already
+       had; we only restate what base-select resets. */
+    .field-control--select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      text-align: left;
+    }
+
+    .field-control--select::picker-icon {
+      color: var(--text-muted);
+      transition: transform 0.15s ease;
+    }
+    .field-control--select:open::picker-icon { transform: rotate(180deg); }
+
+    .field-control--select::picker(select) {
+      width: anchor-size(width);
+      max-height: 280px;
+      overflow-y: auto;
+      padding: var(--space-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-control);
+      background: var(--surface);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .field-control--select option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--space-2);
+      color: var(--text-primary);
+      font-size: var(--text-base);
+      cursor: pointer;
+    }
+    .field-control--select option:hover,
+    .field-control--select option:focus {
+      background: var(--surface-sunken);
+      outline: none;
+    }
+    .field-control--select option:checked {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: var(--weight-medium);
+    }
+    /* The tick the browser inserts into the selected option. */
+    .field-control--select option::checkmark {
+      order: 1;
+      margin-left: auto;
+      color: var(--primary);
+    }
+  }
+
   .field-control-shell {
     position: relative;
     display: block;

@@ -80,14 +80,13 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
               <SlidersHorizontal size={18} aria-hidden="true" />
             </summary>
             <div className="filter__popover">
-              <div className="filter__header">
-                <strong>Filters</strong>
-                {hasFilters && (
+              {hasFilters && (
+                <div className="filter__header">
                   <button className="filter__clear" type="button" onClick={clearFilters}>
                     Clear all
                   </button>
-                )}
-              </div>
+                </div>
+              )}
               <label>
                 City
                 <Select value={city} onChange={(event) => setCity(event.target.value)}>
@@ -114,9 +113,6 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
                   <option value="partner">Partner</option>
                 </Select>
               </label>
-              <div className="filter__count">
-                Showing {filtered.length} of {ideas.length}
-              </div>
             </div>
           </details>
 

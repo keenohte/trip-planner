@@ -72,14 +72,13 @@ export function BookingsBrowser({ bookings, timezone }: { bookings: Booking[]; t
               <SlidersHorizontal size={18} aria-hidden="true" />
             </summary>
             <div className="filter__popover">
-              <div className="filter__header">
-                <strong>Filters</strong>
-                {hasFilters && (
+              {hasFilters && (
+                <div className="filter__header">
                   <button className="filter__clear" type="button" onClick={clearFilters}>
                     Clear all
                   </button>
-                )}
-              </div>
+                </div>
+              )}
               <label>
                 Type
                 <Select value={type} onChange={(event) => setType(event.target.value)}>
@@ -106,7 +105,6 @@ export function BookingsBrowser({ bookings, timezone }: { bookings: Booking[]; t
                   <option value="unscheduled">Date missing</option>
                 </Select>
               </label>
-              <div className="filter__count">Showing {filtered.length} of {bookings.length}</div>
             </div>
           </details>
 
