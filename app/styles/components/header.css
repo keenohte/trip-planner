@@ -4,4 +4,15 @@
   .app-header {
     padding-top: calc(var(--space-12) + var(--space-1));
   }
+
+  @media (max-width: 850px) {
+    .shell {
+      padding-right: calc(var(--space-4) + var(--space-1));
+      padding-left: calc(var(--space-4) + var(--space-1));
+    }
+
+    .app-header {
+      padding-top: calc(var(--space-4) + var(--space-1));
+    }
+  }
 }
