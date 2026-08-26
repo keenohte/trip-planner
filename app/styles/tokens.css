@@ -129,6 +129,8 @@
 
     --focus-ring: 0 0 0 3px rgb(23 93 103 / 0.35);
     --target-min: 44px;
+    --avatar-vote: 26px;
+    --avatar-profile: 42px;
 
     /* ---- LEGACY ALIASES ----
        Temporary shims so app/styles/legacy.css keeps rendering

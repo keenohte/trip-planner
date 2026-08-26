@@ -1,0 +1,40 @@
+/* Shared traveler portraits. Color remains as a subtle fallback and ring so
+   the established blue/male and pink/female association stays visible. */
+
+@layer components {
+  .traveler-avatar {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border: calc(var(--border-width) * 2) solid var(--surface);
+    border-radius: var(--radius-pill);
+  }
+
+  .traveler-avatar img {
+    object-fit: cover;
+  }
+
+  .traveler-avatar--male { background: var(--traveler-a-bg); }
+  .traveler-avatar--female { background: var(--traveler-b-bg); }
+
+  .traveler-avatar--vote {
+    width: var(--avatar-vote);
+    height: var(--avatar-vote);
+  }
+
+  .traveler-avatar--profile {
+    width: var(--avatar-profile);
+    height: var(--avatar-profile);
+    border-width: var(--border-width);
+    border-color: var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+  }
+
+  @media (max-width: 850px) {
+    .traveler-avatar--profile {
+      width: var(--target-min);
+      height: var(--target-min);
+    }
+  }
+}

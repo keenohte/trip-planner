@@ -33,6 +33,7 @@ export function PersistedIdeaCard({ idea, onOpen }: { idea: Idea; onOpen: (idea:
         <VoteControls
           ideaId={idea.id}
           viewerId={idea.viewerId}
+          viewerTraveler={idea.viewerTraveler}
           currentVote={idea.currentVote}
           partnerVote={idea.partnerVote}
         />

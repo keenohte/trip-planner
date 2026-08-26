@@ -2,7 +2,44 @@
 
 @layer components {
   .app-header {
+    isolation: isolate;
     padding-top: calc(var(--space-12) + var(--space-1));
+    border-bottom: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .app-header::before,
+  .app-header::after {
+    position: absolute;
+    right: calc(50% - 50vw);
+    left: calc(50% - 50vw);
+    z-index: -1;
+    content: '';
+    pointer-events: none;
+  }
+
+  .app-header::before {
+    top: 0;
+    bottom: 0;
+    background: var(--canvas);
+  }
+
+  .app-header::after {
+    bottom: 0;
+    height: var(--border-width);
+    background: var(--border-subtle);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .app-header.is-scrolled {
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+
+  .app-header.is-scrolled::after {
+    opacity: 1;
   }
 
   @media (max-width: 850px) {

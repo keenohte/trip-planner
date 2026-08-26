@@ -3,7 +3,7 @@
    This is where the app spends its colour. Four states:
      none    nothing
      yours   rose heart, filled
-     theirs  plum avatar — a nudge that it is your turn
+     theirs  partner portrait — a nudge that it is your turn
      mutual  both traveler avatars. */
 
 @layer components {
@@ -37,22 +37,8 @@
   }
   .card__overlay .vote__heart[aria-pressed='true'] { color: var(--love); }
 
-  .vote__avatar {
-    display: grid;
-    width: 26px;
-    height: 26px;
-    place-items: center;
-    border: 2px solid var(--surface);
-    border-radius: var(--radius-pill);
-    background: var(--traveler-b-bg);
-    color: var(--traveler-b-fg);
-  }
-  .vote__avatar--you {
-    background: var(--traveler-a-bg);
-    color: var(--traveler-a-fg);
-  }
   .vote__avatars { display: flex; align-items: center; }
-  .vote__avatar + .vote__avatar { margin-left: -8px; }
+  .vote__avatars .traveler-avatar + .traveler-avatar { margin-left: calc(var(--space-2) * -1); }
 
   .vote__error {
     position: absolute;

@@ -2,21 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, UserRound } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { voteState, voteLabel } from '@/lib/vote-state';
 import type { VoteValue } from '@/lib/ideas';
+import { TravelerAvatar } from '@/components/ui/TravelerAvatar';
+import type { Traveler } from '@/lib/travelers';
 
 type VoteControlsProps = {
   ideaId: string;
   viewerId: string;
+  viewerTraveler: Traveler;
   currentVote: VoteValue | null;
   partnerVote: VoteValue | null;
   /** Show both traveler avatars for a mutual pick. Off in dense grids. */
   showMutual?: boolean;
 };
 
-export function VoteControls({ ideaId, viewerId, currentVote, partnerVote, showMutual = true }: VoteControlsProps) {
+export function VoteControls({ ideaId, viewerId, viewerTraveler, currentVote, partnerVote, showMutual = true }: VoteControlsProps) {
   const router = useRouter();
   const [liked, setLiked] = useState(currentVote !== null && currentVote !== 'pass');
   const [pending, setPending] = useState(false);
@@ -51,19 +54,15 @@ export function VoteControls({ ideaId, viewerId, currentVote, partnerVote, showM
     <div className="vote" onClick={(event) => event.stopPropagation()}>
       {state === 'mutual' && showMutual && (
         <span className="vote__avatars" title={voteLabel.mutual}>
-          <span className="vote__avatar vote__avatar--you">
-            <UserRound size={13} aria-hidden="true" />
-          </span>
-          <span className="vote__avatar">
-            <UserRound size={13} aria-hidden="true" />
-          </span>
+          <TravelerAvatar traveler="male" />
+          <TravelerAvatar traveler="female" />
           <span className="sr-only">{voteLabel.mutual}</span>
         </span>
       )}
 
       {state === 'theirs' && (
-        <span className="vote__avatar" title={voteLabel.theirs}>
-          <UserRound size={13} aria-hidden="true" />
+        <span title={voteLabel.theirs}>
+          <TravelerAvatar traveler={viewerTraveler === 'male' ? 'female' : 'male'} />
           <span className="sr-only">{voteLabel.theirs}</span>
         </span>
       )}

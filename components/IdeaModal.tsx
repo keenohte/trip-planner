@@ -24,7 +24,7 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
       <div className="idea-modal-media">
         {idea.imageUrl ? <img src={idea.imageUrl} alt="" /> : <div className="idea-modal-placeholder"><ImageIcon size={34} strokeWidth={1.6} aria-hidden="true" /></div>}
         <div className="idea-modal-media-actions card__overlay">
-          <VoteControls ideaId={idea.id} viewerId={idea.viewerId} currentVote={idea.currentVote} partnerVote={idea.partnerVote} />
+          <VoteControls ideaId={idea.id} viewerId={idea.viewerId} viewerTraveler={idea.viewerTraveler} currentVote={idea.currentVote} partnerVote={idea.partnerVote} />
           <DismissibleDetails className="idea-kebab" summary={<MoreHorizontal size={20} aria-hidden="true" />} summaryLabel="Idea actions"><div><button type="button" onClick={() => setEditing(true)}><Pencil size={14} aria-hidden="true" />Edit</button><form action={deleteIdea}><input type="hidden" name="ideaId" value={idea.id} /><button className="danger-menu-action" type="submit"><Trash2 size={14} aria-hidden="true" />Delete</button></form></div></DismissibleDetails>
         </div>
       </div>

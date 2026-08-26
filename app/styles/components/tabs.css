@@ -112,13 +112,6 @@
       color: var(--text-on-fill);
     }
 
-    .user-menu-mobile .avatar-fpo {
-      width: var(--target-min);
-      height: var(--target-min);
-      border: var(--border-width) solid var(--border-subtle);
-      background: var(--surface-sunken);
-    }
-
     .user-menu-mobile .user-menu-popover {
       top: auto;
       right: 0;

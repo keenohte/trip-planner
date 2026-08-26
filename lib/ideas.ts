@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { travelerForRole, type Traveler } from '@/lib/travelers';
 
 export type VoteValue = 'love' | 'interested' | 'pass';
 
@@ -24,6 +25,7 @@ export type Idea = {
   scheduledEndAt: string | null;
   addedByMe: boolean;
   viewerId: string;
+  viewerTraveler: Traveler;
   currentVote: VoteValue | null;
   partnerVote: VoteValue | null;
   isConfirmed: boolean;
@@ -57,8 +59,11 @@ export function isPositiveVote(vote: VoteValue | null) {
   return vote === 'interested';
 }
 
-function mapIdea(row: IdeaRow, userId: string, memberIds: string[], imageUrl: string | null): Idea {
+type TripMemberRow = { user_id: string; role: 'owner' | 'member' };
+
+function mapIdea(row: IdeaRow, userId: string, members: TripMemberRow[], imageUrl: string | null): Idea {
   const votes = row.idea_votes ?? [];
+  const memberIds = members.map((member) => member.user_id);
   const currentVote = votes.find((vote) => vote.user_id === userId)?.vote ?? null;
   const partnerId = memberIds.find((memberId) => memberId !== userId);
   const partnerVote = partnerId ? votes.find((vote) => vote.user_id === partnerId)?.vote ?? null : null;
@@ -87,6 +92,7 @@ function mapIdea(row: IdeaRow, userId: string, memberIds: string[], imageUrl: st
     scheduledEndAt: row.scheduled_end_at,
     addedByMe: row.created_by === userId,
     viewerId: userId,
+    viewerTraveler: travelerForRole(members.find((member) => member.user_id === userId)?.role),
     currentVote,
     partnerVote,
     isConfirmed: mutuallyPositive,
@@ -113,14 +119,13 @@ export async function getIdeas(tripId: string): Promise<Idea[]> {
       .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
       .eq('trip_id', tripId)
       .order('created_at', { ascending: false }),
-    supabase.from('trip_members').select('user_id').eq('trip_id', tripId).order('created_at'),
+    supabase.from('trip_members').select('user_id, role').eq('trip_id', tripId).order('created_at'),
   ]);
   if (error || !authData.user) return [];
 
   const rows = (data ?? []) as IdeaRow[];
-  const memberIds = (members ?? []).map((member) => member.user_id);
   const imageUrls = await signedImageUrls(rows.flatMap((row) => (row.cover_url ? [row.cover_url] : [])));
-  return rows.map((row) => mapIdea(row, authData.user.id, memberIds, row.cover_url ? imageUrls.get(row.cover_url) ?? null : null));
+  return rows.map((row) => mapIdea(row, authData.user.id, (members ?? []) as TripMemberRow[], row.cover_url ? imageUrls.get(row.cover_url) ?? null : null));
 }
 
 export async function getIdea(tripId: string, ideaId: string): Promise<Idea | null> {
@@ -133,14 +138,13 @@ export async function getIdea(tripId: string, ideaId: string): Promise<Idea | nu
       .eq('trip_id', tripId)
       .eq('id', ideaId)
       .maybeSingle(),
-    supabase.from('trip_members').select('user_id').eq('trip_id', tripId).order('created_at'),
+    supabase.from('trip_members').select('user_id, role').eq('trip_id', tripId).order('created_at'),
   ]);
   if (error || !data || !authData.user) return null;
 
   const row = data as IdeaRow;
-  const memberIds = (members ?? []).map((member) => member.user_id);
   const imageUrls = await signedImageUrls(row.cover_url ? [row.cover_url] : []);
-  return mapIdea(row, authData.user.id, memberIds, row.cover_url ? imageUrls.get(row.cover_url) ?? null : null);
+  return mapIdea(row, authData.user.id, (members ?? []) as TripMemberRow[], row.cover_url ? imageUrls.get(row.cover_url) ?? null : null);
 }
 
 export async function getIdeaCount(tripId: string): Promise<number> {

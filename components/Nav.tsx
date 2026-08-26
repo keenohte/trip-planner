@@ -4,6 +4,7 @@ import { UserMenu } from './UserMenu';
 import { HeaderScrollState } from './HeaderScrollState';
 import { getCurrentTrip } from '@/lib/trips';
 import { createClient } from '@/lib/supabase/server';
+import { travelerForRole } from '@/lib/travelers';
 
 function formatDate(date: string | null) {
   if (!date) return null;
@@ -14,6 +15,7 @@ export async function Nav() {
   const [trip, supabase] = await Promise.all([getCurrentTrip(), createClient()]);
   const { data: { user } } = await supabase.auth.getUser();
   const dates = trip ? [formatDate(trip.startDate), formatDate(trip.endDate)].filter(Boolean).join(' – ') : null;
+  const traveler = travelerForRole(trip?.role);
 
-  return <header className="app-header"><HeaderScrollState /><div className="top"><Link className="brand" href="/" aria-label="Trip Hub home"><h1><span>Trip to:</span> {trip?.name ?? 'Trip Hub'}</h1>{trip && <div className="trip-dates">{dates || 'Dates not set'} <span aria-hidden="true">·</span> {trip.timezone}</div>}</Link>{user?.email && <UserMenu email={user.email} />}</div>{trip && user?.email && <NavTabs email={user.email} timezone={trip.timezone} />}</header>;
+  return <header className="app-header"><HeaderScrollState /><div className="top"><Link className="brand" href="/" aria-label="Trip Hub home"><h1><span>Trip to:</span> {trip?.name ?? 'Trip Hub'}</h1>{trip && <div className="trip-dates">{dates || 'Dates not set'} <span aria-hidden="true">·</span> {trip.timezone}</div>}</Link>{user?.email && <UserMenu email={user.email} traveler={traveler} />}</div>{trip && user?.email && <NavTabs email={user.email} timezone={trip.timezone} traveler={traveler} />}</header>;
 }

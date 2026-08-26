@@ -5,6 +5,7 @@ import './globals.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/legacy.css';
+import './styles/components/avatar.css';
 import './styles/components/button.css';
 import './styles/components/card.css';
 import './styles/components/chip.css';
