@@ -22,6 +22,6 @@ export function WishlistForm({ item, presentation = 'page', onCancel, onSaved }:
     <div className="form-columns"><Field htmlFor="wishlist-country" label="Country"><Input id="wishlist-country" name="country" defaultValue={item?.country ?? ''} placeholder="Japan" /></Field><Field htmlFor="wishlist-area" label="City or area"><Input id="wishlist-area" name="cityArea" defaultValue={item?.cityArea ?? ''} placeholder="Tokyo" /></Field></div>
     <Field htmlFor="wishlist-notes" label="Notes"><Textarea id="wishlist-notes" name="notes" rows={5} defaultValue={item?.notes ?? ''} placeholder="Sizes, shops, or anything else to remember…" /></Field>
   </>;
-  if (presentation === 'modal') return <ModalFormLayout action={action} error={state.error} pending={pending} onCancel={() => onCancel?.()}>{fields}</ModalFormLayout>;
+  if (presentation === 'modal') return <ModalFormLayout action={action} error={state.error} pending={pending} onCancel={() => onCancel?.()} title={item ? 'Edit wishlist item' : 'Add wishlist item'}>{fields}</ModalFormLayout>;
   return <form className="idea-form compact-form" action={action}>{fields}{state.error && <p className="auth-error" role="alert">{state.error}</p>}<div className="form-actions"><a className="secondary-link" href="/wishlist">Cancel</a><button className="primary-button" disabled={pending} type="submit">{pending ? 'Saving…' : 'Save'}</button></div></form>;
 }

@@ -32,6 +32,6 @@ export function IdeaForm({ idea, timezone, presentation = 'page', onCancel, onSa
     </div></details>
   </>;
 
-  if (modal) return <ModalFormLayout action={formAction} error={state.error} pending={isPending} onCancel={() => onCancel?.()}>{fields}</ModalFormLayout>;
+  if (modal) return <ModalFormLayout action={formAction} error={state.error} pending={isPending} onCancel={() => onCancel?.()} title={idea ? 'Edit idea' : 'Add idea'}>{fields}</ModalFormLayout>;
   return <form className="idea-form" action={formAction}>{fields}{state.error && <p className="auth-error" role="alert">{state.error}</p>}<div className="form-actions"><a className="secondary-link" href={idea ? `/ideas/${idea.id}` : '/ideas'}>Cancel</a><button className="primary-button" disabled={isPending} type="submit">{isPending ? 'Saving…' : 'Save'}</button></div></form>;
 }

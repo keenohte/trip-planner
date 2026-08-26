@@ -6,6 +6,7 @@ import { IdeaForm } from '@/app/ideas/IdeaForm';
 import { deleteIdea } from '@/app/ideas/actions';
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed';
 import { ModalFrame } from '@/components/ModalFrame';
+import { MODAL_FORM_TITLE_ID } from '@/components/ModalFormLayout';
 import { VoteControls } from '@/components/VoteControls';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
 import { Chip } from '@/components/ui/Card';
@@ -20,7 +21,7 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
   const mapQuery = displayAddress || idea.title;
   const links = [['Website', idea.websiteUrl], ['Social', idea.socialUrl]].filter((entry): entry is [string, string] => Boolean(entry[1]));
 
-  return <ModalFrame className={editing ? 'is-editing' : ''} onClose={onClose} labelledBy={editing ? undefined : 'idea-modal-title'}>
+  return <ModalFrame className={editing ? 'is-editing' : ''} onClose={onClose} labelledBy={editing ? MODAL_FORM_TITLE_ID : 'idea-modal-title'}>
     {editing ? <IdeaForm idea={idea} timezone={timezone} presentation="modal" onCancel={() => setEditing(false)} onSaved={onClose} /> : <>
       <div className="idea-modal-media">
         {idea.imageUrl ? <img src={idea.imageUrl} alt="" /> : <div className="idea-modal-placeholder"><ImageIcon size={34} strokeWidth={1.6} aria-hidden="true" /></div>}

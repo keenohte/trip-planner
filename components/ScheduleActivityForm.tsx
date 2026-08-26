@@ -17,7 +17,7 @@ export function ScheduleActivityForm({ activity, timezone, onCancel, onSaved }: 
   const router = useRouter();
   useEffect(() => { if (state.saved) { router.refresh(); onSaved(); } }, [onSaved, router, state.saved]);
 
-  return <ModalFormLayout action={action} error={state.error} pending={pending} onCancel={onCancel} className="activity-form">
+  return <ModalFormLayout action={action} error={state.error} pending={pending} onCancel={onCancel} className="activity-form" title={activity ? 'Edit activity' : 'Add activity'}>
     {activity && <input type="hidden" name="activityId" value={activity.id} />}
     <Field htmlFor="activity-title" label="Title" required><Input id="activity-title" name="title" required maxLength={160} defaultValue={activity?.title ?? ''} placeholder="Morning walk" /></Field>
     <div className="form-columns form-columns-three"><Field htmlFor="activity-country" label="Country"><Input id="activity-country" name="country" defaultValue={activity?.country ?? ''} placeholder="Japan" /></Field><Field htmlFor="activity-city" label="City"><Input id="activity-city" name="city" defaultValue={activity?.city ?? ''} placeholder="Kyoto" /></Field><Field htmlFor="activity-neighborhood" label="Neighborhood"><Input id="activity-neighborhood" name="neighborhood" defaultValue={activity?.neighborhood ?? ''} placeholder="Gion" /></Field></div>

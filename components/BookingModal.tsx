@@ -7,6 +7,7 @@ import { deleteBooking } from '@/app/bookings/actions';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed';
 import { ModalFrame } from '@/components/ModalFrame';
+import { MODAL_FORM_TITLE_ID } from '@/components/ModalFormLayout';
 import { Chip } from '@/components/ui/Card';
 import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
 import type { Booking } from '@/lib/bookings';
@@ -26,7 +27,7 @@ export function BookingModal({ booking, timezone, onClose }: { booking?: Booking
   const hasDetails = Boolean(booking && (booking.startsAt || booking.provider || booking.confirmation || booking.notes || links.length > 0 || (booking.mapsUrl && address)));
 
   return (
-    <ModalFrame className={editing ? 'is-editing' : 'booking-modal'} onClose={onClose} labelledBy={!editing ? 'booking-modal-title' : undefined}>
+    <ModalFrame className={editing ? 'is-editing' : 'booking-modal'} onClose={onClose} labelledBy={editing ? MODAL_FORM_TITLE_ID : 'booking-modal-title'}>
       {editing ? (
         <BookingForm booking={booking} tripTimezone={timezone} onCancel={() => booking ? setEditing(false) : onClose()} onSaved={onClose} />
       ) : booking && (

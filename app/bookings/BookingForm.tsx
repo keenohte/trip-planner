@@ -31,5 +31,5 @@ export function BookingForm({ booking, tripTimezone, onCancel, onSaved }: { book
     <Field htmlFor="booking-notes" label="Notes"><Textarea id="booking-notes" name="notes" rows={5} defaultValue={booking?.notes ?? ''} placeholder="Terminal, check-in instructions, cancellation details…" /></Field>
   </>;
 
-  return <ModalFormLayout action={formAction} error={state.error} pending={isPending} onCancel={onCancel}>{fields}</ModalFormLayout>;
+  return <ModalFormLayout action={formAction} error={state.error} pending={isPending} onCancel={onCancel} title={booking ? 'Edit booking' : 'Add booking'}>{fields}</ModalFormLayout>;
 }

@@ -209,3 +209,30 @@
     }
   }
 }
+
+@layer components {
+  /* Title row for form modals. Sits outside .idea-form-scroll so it stays
+     pinned while fields scroll, mirroring the action row at the bottom. */
+  .modal-form__header {
+    flex: 0 0 auto;
+    padding: var(--space-4) var(--space-6) 0;
+    background: var(--surface);
+  }
+
+  .modal-form__title {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+  }
+
+  /* No collision reserve needed: the close control is positioned outside
+     the modal on desktop and hidden entirely below 650px. */
+
+  @media (max-width: 650px) {
+    /* Match .idea-form-scroll exactly, or the title won't line up with
+       the fields beneath it. */
+    .modal-form__header {
+      padding: var(--space-3) calc(var(--space-4) + var(--space-1)) 0;
+    }
+  }
+}

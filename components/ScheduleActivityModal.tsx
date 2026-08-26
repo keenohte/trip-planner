@@ -5,6 +5,7 @@ import { CalendarClock, ImageIcon, MoreHorizontal, NotebookText, Pencil, Trash2 
 import { deleteScheduleActivity } from '@/app/schedule/actions';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
 import { ModalFrame } from '@/components/ModalFrame';
+import { MODAL_FORM_TITLE_ID } from '@/components/ModalFormLayout';
 import { ScheduleActivityForm } from '@/components/ScheduleActivityForm';
 import { Chip } from '@/components/ui/Card';
 import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
@@ -16,7 +17,7 @@ export function ScheduleActivityModal({ activity, timezone, onClose }: { activit
   const location = activity ? [activity.city, activity.country, activity.neighborhood].filter(Boolean).join(', ') : '';
 
   return (
-    <ModalFrame className={editing ? 'is-editing' : ''} onClose={onClose} labelledBy={!editing ? 'activity-modal-title' : undefined}>
+    <ModalFrame className={editing ? 'is-editing' : ''} onClose={onClose} labelledBy={editing ? MODAL_FORM_TITLE_ID : 'activity-modal-title'}>
       {editing ? (
         <ScheduleActivityForm activity={activity} timezone={timezone} onCancel={() => activity ? setEditing(false) : onClose()} onSaved={onClose} />
       ) : activity && <>

@@ -18,6 +18,6 @@ export function NoteForm({ note, presentation = 'page', onCancel, onSaved }: { n
     <Field htmlFor="note-title" label="Title" required><Input id="note-title" name="title" required maxLength={160} defaultValue={note?.title ?? ''} placeholder="Transit tips" /></Field>
     <Field htmlFor="note-body" label="Note"><Textarea id="note-body" name="body" rows={12} defaultValue={note?.body ?? ''} placeholder="Write anything both travelers may need…" /></Field>
   </>;
-  if (presentation === 'modal') return <ModalFormLayout action={action} error={state.error} pending={pending} onCancel={() => onCancel?.()}>{fields}</ModalFormLayout>;
+  if (presentation === 'modal') return <ModalFormLayout action={action} error={state.error} pending={pending} onCancel={() => onCancel?.()} title={note ? 'Edit note' : 'Add note'}>{fields}</ModalFormLayout>;
   return <form className="idea-form compact-form" action={action}>{fields}{state.error && <p className="auth-error" role="alert">{state.error}</p>}<div className="form-actions"><a className="secondary-link" href={note ? `/notes/${note.id}` : '/notes'}>Cancel</a><button className="primary-button" disabled={pending} type="submit">{pending ? 'Saving…' : 'Save'}</button></div></form>;
 }
