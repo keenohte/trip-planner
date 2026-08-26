@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -23,11 +23,17 @@ export function VoteControls({ ideaId, viewerId, viewerTraveler, currentVote, pa
   const router = useRouter();
   const [liked, setLiked] = useState(currentVote !== null && currentVote !== 'pass');
   const [pending, setPending] = useState(false);
+  const [pop, setPop] = useState(false);
+  const popTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLiked(currentVote !== null && currentVote !== 'pass');
   }, [currentVote]);
+
+  useEffect(() => () => {
+    if (popTimer.current) clearTimeout(popTimer.current);
+  }, []);
 
   const state = voteState(liked ? 'interested' : null, partnerVote);
 
@@ -45,6 +51,11 @@ export function VoteControls({ ideaId, viewerId, viewerTraveler, currentVote, pa
       setError('Your choice could not be saved. Please try again.');
     } else {
       setLiked(!liked);
+      if (!liked) {
+        setPop(true);
+        if (popTimer.current) clearTimeout(popTimer.current);
+        popTimer.current = setTimeout(() => setPop(false), 400);
+      }
       router.refresh();
     }
     setPending(false);
@@ -68,14 +79,14 @@ export function VoteControls({ ideaId, viewerId, viewerTraveler, currentVote, pa
       )}
 
       <button
-        className="vote__heart"
+        className={`vote__heart${pop ? ' vote__heart--pop' : ''}`}
         type="button"
         aria-pressed={liked}
         aria-label={liked ? 'Remove your like' : 'Like this idea'}
         disabled={pending}
         onClick={toggleInterest}
       >
-        <Heart size={21} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
+        <Heart aria-hidden="true" />
       </button>
 
       {error && <p className="vote__error" role="alert">{error}</p>}

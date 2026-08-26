@@ -22,20 +22,41 @@
     border: 0;
     border-radius: var(--radius-pill);
     background: transparent;
-    color: var(--text-muted);
     cursor: pointer;
-    transition: color 0.15s ease, transform 0.15s ease;
   }
-  .vote__heart:hover:not(:disabled) { color: var(--love); transform: scale(1.08); }
-  .vote__heart[aria-pressed='true'] { color: var(--love); }
   .vote__heart:disabled { opacity: 0.55; cursor: wait; }
 
-  /* On top of a photo the heart needs its own contrast, not the card's. */
-  .card__overlay .vote__heart {
-    color: var(--surface);
-    filter: drop-shadow(0 1px 2px rgb(35 35 35 / 0.45));
+  /* Stroke is ALWAYS white; only the fill changes. That is what keeps
+     the heart readable against a bright sky and a dark interior alike,
+     and it makes the liked state read as a fill rather than a wholesale
+     colour swap. CSS beats lucide's fill="none" presentation attribute.
+
+     NOTE: a white stroke assumes a photo behind it. If a heart is ever
+     needed on a plain surface, add a modifier — do not weaken this rule. */
+  .vote__heart svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--surface);
+    stroke-width: 2;
+    fill: var(--media-scrim);
+    filter: drop-shadow(0 1px 2px rgb(28 28 28 / 0.28));
+    transition: fill 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.7, 0.3, 1.2);
   }
-  .card__overlay .vote__heart[aria-pressed='true'] { color: var(--love); }
+
+  .vote__heart[aria-pressed='true'] svg { fill: var(--love); }
+
+  .vote__heart:hover:not(:disabled) svg { transform: scale(1.1); }
+  .vote__heart:active:not(:disabled) svg { transform: scale(0.92); }
+
+  /* Fires on like only — celebrating a removal would be odd.
+     base.css disables this under prefers-reduced-motion. */
+  .vote__heart--pop svg { animation: heart-pop 0.38s ease; }
+  @keyframes heart-pop {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(0.86); }
+    65%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
 
   .vote__avatars { display: flex; align-items: center; }
   .vote__avatars .traveler-avatar + .traveler-avatar { margin-left: calc(var(--space-2) * -1); }

@@ -73,17 +73,17 @@ export default function DesignPage() {
       <section>
         <h2>Vote states — the app&rsquo;s subject</h2>
         <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-base)' }}>
-          Gold appears here and nowhere else.
+          Gold appears here and nowhere else. Shown on a photo-like backdrop, which is the only place hearts appear.
         </p>
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 16 }}>
           {([
-            ['none', <span key="n" className="vote"><span className="vote__heart" style={{ pointerEvents: 'none' }}><Heart size={21} /></span></span>],
-            ['theirs', <span key="t" className="vote"><span className="vote__avatar"><UserRound size={13} /></span><span className="vote__heart" style={{ pointerEvents: 'none' }}><Heart size={21} /></span></span>],
-            ['yours', <span key="y" className="vote"><span className="vote__heart" aria-pressed="true" style={{ pointerEvents: 'none', color: 'var(--love)' }}><Heart size={21} fill="currentColor" /></span></span>],
-            ['mutual', <span key="m" className="vote"><span className="vote__mutual"><Sparkles size={13} />Both</span><span className="vote__heart" aria-pressed="true" style={{ pointerEvents: 'none', color: 'var(--love)' }}><Heart size={21} fill="currentColor" /></span></span>],
+            ['none', <span key="n" className="vote"><span className="vote__heart"><Heart /></span></span>],
+            ['theirs', <span key="t" className="vote"><span className="vote__avatar"><UserRound size={13} /></span><span className="vote__heart"><Heart /></span></span>],
+            ['yours', <span key="y" className="vote"><span className="vote__heart" aria-pressed="true"><Heart /></span></span>],
+            ['mutual', <span key="m" className="vote"><span className="vote__mutual"><Sparkles size={13} />Both</span><span className="vote__heart" aria-pressed="true"><Heart /></span></span>],
           ] as const).map(([label, node]) => (
             <div key={label} style={{ display: 'grid', gap: 6, justifyItems: 'center' }}>
-              <div style={{ display: 'grid', placeItems: 'center', minHeight: 48, padding: '0 8px', background: 'var(--surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-control)' }}>{node}</div>
+              <div style={{ display: 'grid', placeItems: 'center', minHeight: 56, padding: '0 8px', background: 'linear-gradient(135deg, #8fa8b8, #d8d2c4)', borderRadius: 'var(--radius-control)' }}>{node}</div>
               <code style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{label}</code>
             </div>
           ))}

@@ -68,6 +68,10 @@
     --border-subtle: var(--raw-n-200);
     --border-strong: var(--raw-n-300);
 
+    /* scrim behind controls that sit on photography, so they stay
+       legible against both a bright sky and a dark interior */
+    --media-scrim: rgb(28 28 28 / 0.48);
+
     /* actions — one colour for every interactive affordance */
     --primary: var(--raw-petrol-600);
     --primary-hover: var(--raw-petrol-700);
