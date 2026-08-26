@@ -1,102 +1,190 @@
-# Trip Hub lightweight design system
+# Trip Hub design system
 
-This foundation takes visual cues from the supplied mobile travel reference without copying its screens. Page structure and interaction flows should follow the Trip Hub product specs and the approved Figma mocks.
+Trip Hub uses the **Overcast** visual system: a cool daylight-neutral canvas, crisp white surfaces, and deep petrol interactive chrome. Color is intentionally restrained so travel photography and the travelers' decisions remain the focus.
 
-## Design character
+The implementation source of truth lives in:
 
-- **Warm and optimistic:** a cream canvas and restrained travel-inspired pastels keep planning inviting.
-- **Operationally clear:** important actions and travel details use deep indigo, high-contrast treatment.
-- **Soft, not decorative:** rounded surfaces and gentle elevation create hierarchy without adding visual noise.
-- **Compact on mobile:** pills, cards, and controls remain thumb-friendly while conserving vertical space.
-- **Content first:** photography may provide delight, but critical information must never depend on an image.
+```
+app/styles/tokens.css
+app/styles/base.css
+app/styles/components/*.css
+components/ui/
+app/_design/page.tsx
+```
 
-## Semantic color tokens
+`app/globals.css` is only the cascade-layer and import manifest. Do not add component rules to it. `app/styles/legacy.css` contains frozen pre-system styling and should shrink as remaining screens migrate.
 
-| Token | Value | Purpose |
-|---|---:|---|
-| `--color-canvas` | `#f3f0e7` | App background |
-| `--color-surface` | `#fffefa` | Cards, forms, floating navigation |
-| `--color-ink` | `#20283a` | Primary text |
-| `--color-muted` | `#6d6c66` | Secondary copy and metadata |
-| `--color-border` | `#dfdbcf` | Quiet separation |
-| `--color-primary` | `#2f3f60` | Navigation, primary actions, focus hierarchy |
-| `--color-accent` | `#bd6048` | New-item actions and warm emphasis |
-| `--color-accent-soft` | `#f4d8cf` | Accent backgrounds |
-| `--color-sky` | `#c9e4eb` | Travel and transit highlights |
-| `--color-sage` | `#d2e5d2` | Confirmed and positive states |
-| `--color-butter` | `#f0dda9` | Attention and priority highlights |
-| `--color-lavender` | `#dad8ec` | Experiences and secondary categories |
-| `--color-danger` | `#9a3f2d` | Destructive actions and errors |
+## Principles
 
-Pastels are background accents only. Text placed on them must use `--color-ink` or another accessible dark color.
+- **Content first:** photography, titles, and useful trip details lead.
+- **One interaction color:** petrol identifies navigation, actions, focus, and other interactive affordances.
+- **Color communicates state:** rose means Love; gold is reserved for mutual agreement.
+- **Consistent components:** a Button or Card keeps the same visual contract wherever it appears.
+- **Quiet hierarchy:** most surfaces use a subtle border, with elevation reserved for cards and temporary floating UI.
+- **Responsive by default:** controls remain touch-friendly and layouts collapse without changing their meaning.
 
-## Typography
+## Tokens
 
-- UI and body: native system sans-serif for speed and cross-platform clarity.
-- Headings: the native rounded system stack where available.
-- Page title: `32–40px`, tightly tracked, bold.
-- Section title: `22–28px`, bold.
-- Card title: `16–18px`, bold.
-- Body: `15px / 1.55`.
-- Metadata: `12–13px`; uppercase is reserved for short eyebrows only.
-- `12px` is the normal minimum. `10px` is reserved for exceptional, non-essential captions.
+All raw values are defined in `app/styles/tokens.css`. New UI must use semantic tokens rather than raw hex, RGB, spacing, radius, or shadow values.
 
-## Spacing and shape
+### Color
 
-- Spacing scale: `4, 8, 12, 16, 24, 32, 48px`.
-- Control radius: `12px`.
-- Card radius: `20px`.
-- Feature/hero radius: `28px`.
-- Pill radius: `999px`.
-- Minimum interactive height: `44px`.
-- Use one primary surface per content group; avoid nested bordered cards without clear hierarchy.
+| Semantic token | Purpose |
+|---|---|
+| `--canvas` | Cool neutral app background |
+| `--surface` | Cards, forms, menus, and raised content |
+| `--surface-sunken` | Recessed and quiet control backgrounds |
+| `--text-primary` | Primary text and high-emphasis icons |
+| `--text-muted` | Secondary text and metadata |
+| `--text-on-fill` | Text placed on strong filled controls |
+| `--border-subtle` | Default separators and borders |
+| `--border-strong` | Higher-emphasis boundaries |
+| `--primary` | Interactive petrol |
+| `--primary-hover` | Hover and pressed interactive state |
+| `--primary-soft` | Low-emphasis interactive background |
+| `--danger` | Destructive actions and errors |
+| `--love` / `--love-soft` | A traveler's Love vote |
+| `--mutual` / `--mutual-ink` / `--mutual-soft` | Mutual agreement only |
+| `--traveler-a-*` / `--traveler-b-*` | Traveler avatar treatments only |
 
-## Elevation
+Interested and Pass remain neutral. Category chips are also neutral: taxonomy must not compete visually with vote state.
 
-- Most surfaces use a border and no shadow.
-- Cards may use `--shadow-sm` for quiet separation.
-- Floating navigation and temporary menus use `--shadow-lg`.
-- Hover elevation is desktop-only feedback and must not be required to understand interactivity.
+Gold is the product's payoff color. Do not use mutual tokens for ordinary decoration, navigation, hover states, or generic success messages.
 
-## Core UI patterns
+### Spacing
 
-### Buttons
+Use the complete spacing scale:
 
-- The system uses the public shadcn/ui button variant model, adapted to the app's plain CSS and tokens rather than importing its Tailwind implementation.
-- Default/primary: deep indigo fill and white label; use one primary action per region.
-- Outline/secondary: surface fill with a quiet border for Cancel, Upload file, and supporting actions.
-- Ghost/icon: transparent or quiet circular surface for compact actions such as View all and menus.
-- Destructive: quiet red outline by default and placed away from the primary save action.
-- Default height is `40px`, radius is `10px`, horizontal padding is `14px`, and labels are `13px / 700`.
-- Every variant shares hover, active, disabled, and keyboard-focus feedback. Icon-only controls retain an accessible name.
+| Token | Value |
+|---|---:|
+| `--space-1` | 4px |
+| `--space-2` | 8px |
+| `--space-3` | 12px |
+| `--space-4` | 16px |
+| `--space-6` | 24px |
+| `--space-8` | 32px |
+| `--space-12` | 48px |
 
-### Cards
+### Shape and elevation
 
-- White surface, 20px radius, quiet border.
-- Keep the title and the most useful operational metadata visible without opening details.
-- Category chips use pastel backgrounds with dark text.
+| Token | Purpose |
+|---|---|
+| `--radius-control` | Inputs and buttons |
+| `--radius-card` | Standard cards |
+| `--radius-feature` | Large feature surfaces |
+| `--radius-pill` | Pills and circular controls |
+| `--shadow-sm` | Quiet card elevation |
+| `--shadow-lg` | Modals, popovers, and floating UI |
+| `--focus-ring` | Shared keyboard focus treatment |
+| `--target-min` | Minimum interactive target size |
 
-### Navigation
+### Typography
 
-- The trip title and desktop tab row remain sticky while page content scrolls.
-- Desktop uses friendly icon-over-label tabs with a restrained active underline.
-- Mobile uses a floating bottom bar for Schedule, New Idea, and the user avatar. The avatar opens account actions and the remaining trip sections.
+Inter is loaded through `next/font` and exposed as `--font-inter`. Both body and display stacks use it with system fallbacks.
 
-### Forms
+| Token | Size |
+|---|---:|
+| `--text-xs` | 12px |
+| `--text-sm` | 13px |
+| `--text-base` | 15px |
+| `--text-lg` | 18px |
+| `--text-xl` | 24px |
+| `--text-2xl` | 32px |
+
+Use only normal, medium, and bold weights through `--weight-normal`, `--weight-medium`, and `--weight-bold`.
+
+## Cascade and file ownership
+
+The global layer order is:
+
+```css
+@layer tokens, base, legacy, components, overrides;
+```
+
+Later layers win regardless of selector specificity. New component rules belong in `@layer components` and in the corresponding file under `app/styles/components/`. Do not append a new styling pass, add another `:root`, or use `!important` to defeat an earlier rule.
+
+Avoid placing a legacy class and a migrated component class on the same element. Their styles combine across layers and can create hidden dependencies. When a screen migrates, remove its obsolete rules from `legacy.css` as part of the same focused change.
+
+## Components
+
+### Button
+
+Use `components/ui/Button.tsx` for buttons and links styled as buttons. Supported variants are named in that component and share consistent hover, active, disabled, and focus behavior.
+
+Do not add one-off `className` or inline-style patches. If a genuinely reusable visual variation is needed, add a named component variant and document it in the `/_design` showcase.
+
+Icon-only buttons require an accessible name and must retain the minimum target size.
+
+### Card
+
+Use the primitives exported by `components/ui/Card.tsx`, including Card, CardMedia, CardBody, CardTitle, CardMeta, CardFooter, CardButton, Chip, and ChipList.
+
+A card should look consistent in every grid. Do not write context selectors such as `.some-grid .card`. Represent meaningful structural differences through a named Card prop or variant.
+
+The information hierarchy is:
+
+1. Image or media
+2. Title
+3. Useful location or schedule metadata
+4. Vote state
+5. Neutral category chips
+
+### Tabs, toolbars, voting, and schedule
+
+- Desktop tabs use the shared horizontal icon-and-label treatment.
+- Toolbars use the shared search, filter, action, and popover patterns.
+- Vote presentation is derived through `lib/vote-state.ts`; do not duplicate vote-state logic in individual views.
+- Schedule cards and their timeline rail use the shared schedule primitives and alignment rules.
+
+## Forms and temporary UI
 
 - Labels sit directly above fields.
-- Optional fields may be progressively disclosed for fast capture.
-- Errors appear next to the form action and use plain language.
+- Use shared spacing and control dimensions.
+- Errors use plain language near the relevant form or its actions.
+- Menus, popovers, and date pickers close when focus moves outside them.
+- Sticky modal actions must not overlap fields or dropdown content.
 
-## Responsive rules
+Modal internals and the date picker remain transitional legacy UI. Reuse their existing shared components until they are deliberately migrated.
 
-- Design at `390px` first, then expand to tablet and desktop.
-- Primary actions become full-width when space is constrained.
-- Two-column metadata collapses to one column below `580px`.
-- Bottom navigation must not cover the final interactive item; page shells include safe padding.
+## Responsive behavior
 
-## Figma handoff rules
+- Start with the narrow/mobile layout, then expand.
+- Preserve a minimum 44px interactive target.
+- Collapse dense metadata and multi-column controls without changing semantics.
+- Mobile navigation must not cover the final interactive content.
+- Do not create page-specific card appearances at different breakpoints.
 
-- Map Figma colors and measurements to semantic tokens instead of adding one-off values.
-- A mock may introduce a new component or layout, but a new token requires a reusable semantic purpose.
-- Preserve established Trip Hub behavior unless a mock explicitly proposes a flow change for review.
+## Migration status
+
+Migrated:
+
+- Ideas and Confirmed
+- Schedule
+- PersistedIdeaCard and BookingCard
+- VoteControls
+- IdeasBrowser and ScheduleBrowser
+- NewIdeaTrigger
+- Desktop tabs
+- Chips in both idea and schedule-activity modals
+
+Still in `legacy.css`:
+
+- Home
+- Bookings, Wishlist, and Notes page shells
+- Mobile tab bar
+- Modal internals
+- Date picker
+
+`components/IdeaCard.tsx` and `lib/data.ts` are known, unreferenced pre-Supabase code. Their removal must be a separate deliberate change. The transitional `className` prop on `NewIdeaTrigger` remains necessary until Nav and Home migrate.
+
+## Verification
+
+After meaningful visual or component changes:
+
+1. Run `npx tsc --noEmit`.
+2. Run `npm run build`.
+3. In development, review `/_design` for component consistency.
+4. Review affected pages at desktop and mobile widths.
+5. Check keyboard focus, hover, active, disabled, and empty states.
+
+The `/_design` route intentionally renders nothing in production.

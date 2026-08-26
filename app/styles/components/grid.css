@@ -1,0 +1,31 @@
+/* Card grids. One definition, used by Ideas, Confirmed and Home. */
+
+@layer components {
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  @media (max-width: 1000px) {
+    .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  }
+
+  .empty-state {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-12) var(--space-6);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-card);
+    text-align: center;
+  }
+  .empty-state p {
+    max-width: 42ch;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+}

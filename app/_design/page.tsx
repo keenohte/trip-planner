@@ -1,0 +1,159 @@
+import { Heart, ImageIcon, MapPin, Plus, Sparkles, UserRound } from 'lucide-react';
+import { Button, ButtonLink } from '@/components/ui/Button';
+import { Card, CardBody, CardFooter, CardMedia, CardMeta, CardTitle, Chip, ChipList } from '@/components/ui/Card';
+
+/* Kitchen sink. Every component, every variant, every state, adjacent.
+   Inconsistency is invisible when two buttons live on different screens
+   and obvious when they are 40px apart.
+
+   Dev only — returns 404 in a production build. View at /_design
+   after `npm run dev`. */
+export default function DesignPage() {
+  if (process.env.NODE_ENV === 'production') return null;
+
+  return (
+    <div style={{ display: 'grid', gap: 48, paddingBlock: 32 }}>
+      <section>
+        <h2>Buttons</h2>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
+          <Button variant="primary">Save changes</Button>
+          <Button variant="secondary">Cancel</Button>
+          <Button variant="danger">Delete idea</Button>
+          <Button variant="primary" disabled>Saving…</Button>
+          <Button variant="secondary" disabled>Disabled</Button>
+          <Button variant="primary" icon aria-label="Add idea"><Plus size={18} /></Button>
+          <ButtonLink href="/ideas" variant="secondary">Link as button</ButtonLink>
+        </div>
+        <div style={{ marginTop: 12, maxWidth: 320 }}>
+          <Button variant="primary" block>Full width (mobile)</Button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Chips</h2>
+        <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+          Categories are neutral. Colour is reserved for state.
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+          {['food', 'outdoors', 'museum', 'beach', 'nightlife'].map((t) => (
+            <Chip key={t}>{t}</Chip>
+          ))}
+          <Chip state="love">Loved</Chip>
+          <Chip state="mutual">Both said yes</Chip>
+        </div>
+      </section>
+
+      <section>
+        <h2>Vote states — the app&rsquo;s subject</h2>
+        <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+          Gold appears here and nowhere else.
+        </p>
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 16 }}>
+          {([
+            ['none', <span key="n" className="vote"><span className="vote__heart" style={{ pointerEvents: 'none' }}><Heart size={21} /></span></span>],
+            ['theirs', <span key="t" className="vote"><span className="vote__avatar"><UserRound size={13} /></span><span className="vote__heart" style={{ pointerEvents: 'none' }}><Heart size={21} /></span></span>],
+            ['yours', <span key="y" className="vote"><span className="vote__heart" aria-pressed="true" style={{ pointerEvents: 'none', color: 'var(--love)' }}><Heart size={21} fill="currentColor" /></span></span>],
+            ['mutual', <span key="m" className="vote"><span className="vote__mutual"><Sparkles size={13} />Both</span><span className="vote__heart" aria-pressed="true" style={{ pointerEvents: 'none', color: 'var(--love)' }}><Heart size={21} fill="currentColor" /></span></span>],
+          ] as const).map(([label, node]) => (
+            <div key={label} style={{ display: 'grid', gap: 6, justifyItems: 'center' }}>
+              <div style={{ display: 'grid', placeItems: 'center', minHeight: 48, padding: '0 8px', background: 'var(--surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-control)' }}>{node}</div>
+              <code style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{label}</code>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2>Palette</h2>
+        {([
+          ['Surfaces', ['--canvas', '--surface', '--surface-sunken', '--border-subtle', '--border-strong']],
+          ['Text', ['--text-primary', '--text-muted']],
+          ['Actions', ['--primary', '--primary-hover', '--primary-soft', '--danger']],
+          ['State — the app\u2019s subject', ['--love', '--love-soft', '--mutual', '--mutual-ink', '--mutual-soft']],
+          ['Travellers', ['--traveler-a-bg', '--traveler-a-fg', '--traveler-b-bg', '--traveler-b-fg']],
+        ] as const).map(([group, vars]) => (
+          <div key={group} style={{ marginTop: 20 }}>
+            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>{group}</div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {vars.map((v) => (
+                <div key={v} style={{ display: 'grid', gap: 6, fontSize: 'var(--text-xs)' }}>
+                  <div style={{ width: 104, height: 56, background: `var(${v})`, border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-control)' }} />
+                  <code style={{ color: 'var(--text-muted)' }}>{v}</code>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <h2>Cards</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20, marginTop: 16 }}>
+          <Card interactive>
+            <CardMedia aspect="wide">
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
+                <ImageIcon size={30} strokeWidth={1.7} />
+              </div>
+            </CardMedia>
+            <CardBody>
+              <CardTitle>Teamlab Planets</CardTitle>
+              <CardMeta><MapPin size={12} />Koto, Tokyo</CardMeta>
+              <ChipList items={['museum', 'art']} />
+            </CardBody>
+          </Card>
+
+          <Card interactive>
+            <CardMedia aspect="wide">
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
+                <ImageIcon size={30} strokeWidth={1.7} />
+              </div>
+            </CardMedia>
+            <CardBody>
+              <CardTitle>A title long enough to truncate cleanly</CardTitle>
+              <CardMeta><MapPin size={12} />Somewhere with a long name, Japan</CardMeta>
+              <ChipList items={['food', 'drinks', 'outdoors', 'view']} />
+            </CardBody>
+            <CardFooter>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Confirmed</span>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardBody>
+              <CardTitle>No media</CardTitle>
+              <CardMeta>Bookings use this shape</CardMeta>
+            </CardBody>
+          </Card>
+        </div>
+
+        <h3 style={{ marginTop: 24 }}>Row variant (schedule)</h3>
+        <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+          <Card row interactive>
+            <CardMedia aspect="square">
+              <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
+                <ImageIcon size={24} strokeWidth={1.6} />
+              </div>
+            </CardMedia>
+            <CardBody>
+              <CardTitle>Dinner at Narisawa</CardTitle>
+              <CardMeta>19:00 → 21:30</CardMeta>
+              <ChipList items={['food']} />
+            </CardBody>
+          </Card>
+        </div>
+      </section>
+
+      <section>
+        <h2>Type scale</h2>
+        <div style={{ display: 'grid', gap: 8, marginTop: 16 }}>
+          {(['2xl', 'xl', 'lg', 'base', 'sm', 'xs'] as const).map((s) => (
+            <div key={s} style={{ fontSize: `var(--text-${s})` }}>
+              {s} — Planning a trip together
+            </div>
+          ))}
+        </div>
+      </section>
+
+    </div>
+  );
+}

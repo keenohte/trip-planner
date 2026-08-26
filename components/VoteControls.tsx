@@ -2,32 +2,37 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Heart, Sparkles, UserRound } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { voteState, voteLabel } from '@/lib/vote-state';
 import type { VoteValue } from '@/lib/ideas';
-import { Heart, UserRound } from 'lucide-react';
 
 type VoteControlsProps = {
   ideaId: string;
   viewerId: string;
   currentVote: VoteValue | null;
   partnerVote: VoteValue | null;
+  /** Show the "you both like this" badge. Off in dense grids. */
+  showMutual?: boolean;
 };
 
-export function VoteControls({ ideaId, viewerId, currentVote, partnerVote }: VoteControlsProps) {
+export function VoteControls({ ideaId, viewerId, currentVote, partnerVote, showMutual = true }: VoteControlsProps) {
   const router = useRouter();
-  const [isInterested, setIsInterested] = useState(currentVote === 'interested');
+  const [liked, setLiked] = useState(currentVote !== null && currentVote !== 'pass');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsInterested(currentVote === 'interested');
+    setLiked(currentVote !== null && currentVote !== 'pass');
   }, [currentVote]);
+
+  const state = voteState(liked ? 'interested' : null, partnerVote);
 
   async function toggleInterest() {
     setPending(true);
     setError(null);
     const supabase = createClient();
-    const { error: voteError } = isInterested
+    const { error: voteError } = liked
       ? await supabase.from('idea_votes').delete().eq('idea_id', ideaId).eq('user_id', viewerId)
       : await supabase
           .from('idea_votes')
@@ -36,29 +41,40 @@ export function VoteControls({ ideaId, viewerId, currentVote, partnerVote }: Vot
     if (voteError) {
       setError('Your choice could not be saved. Please try again.');
     } else {
-      setIsInterested(!isInterested);
+      setLiked(!liked);
       router.refresh();
     }
     setPending(false);
   }
 
   return (
-    <div className="card-vote-controls" onClick={(event) => event.stopPropagation()}>
-      {partnerVote === 'interested' && <div className={`vote-avatars${isInterested ? ' confirmed' : ''}`} aria-label={isInterested ? 'Both travelers like this idea' : 'Your partner likes this idea'}>
-        {isInterested && <span className="vote-avatar vote-avatar-me"><UserRound size={13} aria-hidden="true" /></span>}
-        <span className="vote-avatar vote-avatar-partner"><UserRound size={13} aria-hidden="true" /></span>
-      </div>}
+    <div className="vote" onClick={(event) => event.stopPropagation()}>
+      {state === 'mutual' && showMutual && (
+        <span className="vote__mutual">
+          <Sparkles size={13} aria-hidden="true" />
+          Both
+        </span>
+      )}
+
+      {state === 'theirs' && (
+        <span className="vote__avatar" title={voteLabel.theirs}>
+          <UserRound size={13} aria-hidden="true" />
+          <span className="sr-only">{voteLabel.theirs}</span>
+        </span>
+      )}
+
       <button
-        className={`heart-button${isInterested ? ' active' : ''}`}
+        className="vote__heart"
         type="button"
-        aria-pressed={isInterested}
-        aria-label={isInterested ? 'Unlike idea' : 'Like idea'}
+        aria-pressed={liked}
+        aria-label={liked ? 'Remove your like' : 'Like this idea'}
         disabled={pending}
         onClick={toggleInterest}
       >
-        <Heart size={21} fill={isInterested ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
+        <Heart size={21} fill={liked ? 'currentColor' : 'none'} strokeWidth={2} aria-hidden="true" />
       </button>
-      {error && <p className="vote-error" role="alert">{error}</p>}
+
+      {error && <p className="vote__error" role="alert">{error}</p>}
     </div>
   );
 }

@@ -1,0 +1,104 @@
+/* Schedule — day rail plus a vertical timeline of cards.
+
+   The dot on each card must line up with the rail's line. Rather than
+   hand-computing three negative offsets (the previous version used
+   -61px / -43px / -33px, correct but silently coupled to the grid),
+   the rail geometry lives in two custom properties and the dot derives
+   its position from them. Change --rail-w at a breakpoint and the dots
+   follow. */
+
+@layer components {
+  .schedule { display: grid; gap: var(--space-8); }
+
+  .schedule-day {
+    --rail-w: 64px;
+    --rail-gap: var(--space-6);
+    --dot: 10px;
+
+    display: grid;
+    grid-template-columns: var(--rail-w) minmax(0, 1fr);
+    gap: var(--rail-gap);
+  }
+
+  .schedule-day__rail {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100%;
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+  }
+  .schedule-day__date { margin-bottom: var(--space-2); white-space: nowrap; }
+
+  .schedule-day__number {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--primary);
+    color: var(--text-on-fill);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+  }
+
+  .schedule-day__line {
+    width: 2px;
+    min-height: var(--space-8);
+    flex: 1;
+    margin-top: var(--space-3);
+    background: var(--border-strong);
+  }
+
+  .schedule-day__cards { display: grid; gap: var(--space-3); }
+
+  /* The timeline dot. Offset derived, never hand-tuned. */
+  .schedule-day__cards > * { position: relative; }
+  .schedule-day__cards > *::before {
+    position: absolute;
+    top: 50%;
+    left: calc(-1 * (var(--rail-gap) + var(--rail-w) / 2 + var(--dot) / 2));
+    width: var(--dot);
+    height: var(--dot);
+    transform: translateY(-50%);
+    border-radius: var(--radius-pill);
+    background: var(--border-strong);
+    content: '';
+  }
+
+  .schedule-card__time {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+  .schedule-card__detail {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* Bookings are reference, not a destination — no hover affordance. */
+  .schedule-day__cards .card--static { cursor: default; }
+  .schedule-day__cards .card--static:hover { box-shadow: none; }
+
+  @media (max-width: 800px) {
+    .schedule-day { --rail-w: 48px; --rail-gap: var(--space-3); }
+    .schedule-day__number { width: 40px; height: 40px; font-size: var(--text-base); }
+    .card--row .card__media { width: 96px; height: 96px; }
+  }
+
+  @media (max-width: 560px) {
+    .schedule { gap: var(--space-6); }
+    .schedule-day { --rail-w: 36px; --rail-gap: var(--space-2); }
+    .schedule-day__number { width: 34px; height: 34px; font-size: var(--text-sm); }
+    .card--row { gap: var(--space-3); padding: var(--space-3); }
+    .card--row .card__media { width: 76px; height: 76px; }
+    .schedule-card__detail { font-size: var(--text-xs); }
+    /* Categories are the first thing to go when space runs out. */
+    .schedule-day__cards .chip-list { display: none; }
+  }
+}

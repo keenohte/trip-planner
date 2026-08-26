@@ -1,0 +1,42 @@
+/* Chip — category metadata.
+
+   Deliberately neutral. Categories are metadata, not decisions: in a
+   card grid the eye should travel photo -> title -> vote state, and a
+   four-colour category rainbow competes with the only colour that
+   carries meaning here (mutual agreement). The pastel-per-category
+   system was also position-keyed via :nth-child, so the same tag
+   rendered different colours depending on tag order.
+
+   Colour in this app is reserved for state, not taxonomy. */
+
+@layer components {
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-control);
+    background: var(--surface-sunken);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+  }
+
+  /* State chips — these DO carry colour, because they carry meaning. */
+  .chip[data-state='mutual'] {
+    background: var(--mutual-soft);
+    color: var(--mutual-ink);
+  }
+  .chip[data-state='love'] {
+    background: var(--love-soft);
+    color: var(--danger);
+  }
+
+  .chip-list {
+    display: flex;
+    gap: var(--space-1);
+    overflow: hidden;
+    flex-wrap: nowrap;
+  }
+}

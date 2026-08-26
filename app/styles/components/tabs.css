@@ -1,0 +1,63 @@
+/* Desktop nav — horizontal pills. Active uses --primary, the same
+   colour as every other interactive affordance in the app.
+
+   The previous version tinted each tab icon a different hue by
+   :nth-child, which put six unmanaged accent colours in the header. */
+
+@layer components {
+  .tabs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tabs .tab {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 40px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .tabs .tab::after { display: none; }
+
+  .tabs .tab svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: currentColor;
+  }
+
+  .tabs .tab:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    transform: none;
+  }
+
+  .tabs .tab.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--text-on-fill);
+  }
+  .tabs .tab.active svg { color: currentColor; }
+
+  @media (max-width: 650px) {
+    .tabs { gap: var(--space-1); }
+    .tabs .tab { padding: 0 var(--space-2); font-size: var(--text-xs); }
+    .tabs .tab svg { width: 16px; height: 16px; }
+  }
+}

@@ -8,6 +8,7 @@ import { GoogleMapEmbed } from '@/components/GoogleMapEmbed';
 import { ModalFrame } from '@/components/ModalFrame';
 import { VoteControls } from '@/components/VoteControls';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
+import { Chip } from '@/components/ui/Card';
 import { formatBookingDateTime } from '@/lib/datetime';
 import type { Idea } from '@/lib/ideas';
 
@@ -22,7 +23,7 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
     {editing ? <IdeaForm idea={idea} timezone={timezone} presentation="modal" onCancel={() => setEditing(false)} onSaved={onClose} /> : <>
       <div className="idea-modal-media">
         {idea.imageUrl ? <img src={idea.imageUrl} alt="" /> : <div className="idea-modal-placeholder"><ImageIcon size={34} strokeWidth={1.6} aria-hidden="true" /></div>}
-        <div className="idea-modal-media-actions">
+        <div className="idea-modal-media-actions card__overlay">
           <VoteControls ideaId={idea.id} viewerId={idea.viewerId} currentVote={idea.currentVote} partnerVote={idea.partnerVote} />
           <DismissibleDetails className="idea-kebab" summary={<MoreHorizontal size={20} aria-hidden="true" />} summaryLabel="Idea actions"><div><button type="button" onClick={() => setEditing(true)}><Pencil size={14} aria-hidden="true" />Edit</button><form action={deleteIdea}><input type="hidden" name="ideaId" value={idea.id} /><button className="danger-menu-action" type="submit"><Trash2 size={14} aria-hidden="true" />Delete</button></form></div></DismissibleDetails>
         </div>
@@ -30,7 +31,7 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
       <div className="idea-modal-content">
         <h2 id="idea-modal-title">{idea.title}</h2>
         {location && <p className="idea-modal-location">{location}</p>}
-        {idea.types.length > 0 && <div className="type-list">{idea.types.map((type) => <span className="type-chip" key={type}>{type}</span>)}</div>}
+        {idea.types.length > 0 && <div className="chip-list">{idea.types.map((type) => <Chip key={type}>{type}</Chip>)}</div>}
         {(idea.scheduledAt || idea.notes) && <div className="idea-modal-facts">
           {idea.scheduledAt && <div><strong>Schedule</strong><span><CalendarClock size={14} aria-hidden="true" />{formatBookingDateTime(idea.scheduledAt, timezone)}{idea.scheduledEndAt && <> → {formatBookingDateTime(idea.scheduledEndAt, timezone)}</>}</span></div>}
           {idea.notes && <div><strong>Notes</strong><span>{idea.notes}</span></div>}

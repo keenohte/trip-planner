@@ -5,8 +5,24 @@ import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
 import { IdeaModal } from '@/components/IdeaModal';
 import { PersistedIdeaCard } from '@/components/PersistedIdeaCard';
 import { NewIdeaTrigger } from '@/components/NewIdeaTrigger';
+import { Button } from '@/components/ui/Button';
 import { useCloseDetailsOnOutside } from '@/lib/use-close-details';
 import type { Idea } from '@/lib/ideas';
+
+const copy = {
+  ideas: {
+    title: 'Ideas',
+    subtitle: 'Things to consider. Like one to lock in your pick.',
+    emptyTitle: 'Nothing saved yet',
+    emptyBody: 'Start with the place you are most excited about.',
+  },
+  confirmed: {
+    title: 'Confirmed',
+    subtitle: 'The places you both like.',
+    emptyTitle: 'No confirmed ideas yet',
+    emptyBody: 'An idea lands here when you both like it.',
+  },
+} as const;
 
 export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Idea[]; timezone: string; variant?: 'ideas' | 'confirmed' }) {
   const [city, setCity] = useState('all');
@@ -17,40 +33,131 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
   const filterRef = useRef<HTMLDetailsElement>(null);
   useCloseDetailsOnOutside(filterRef);
   const closeModal = useCallback(() => setSelected(null), []);
+  const text = copy[variant];
 
   useEffect(() => {
-    setSelected((current) => current ? ideas.find((idea) => idea.id === current.id) ?? null : null);
+    setSelected((current) => (current ? ideas.find((idea) => idea.id === current.id) ?? null : null));
   }, [ideas]);
 
-  const cities = useMemo(() => [...new Set(ideas.map((idea) => idea.city).filter((value): value is string => Boolean(value)))].sort(), [ideas]);
+  const cities = useMemo(
+    () => [...new Set(ideas.map((idea) => idea.city).filter((value): value is string => Boolean(value)))].sort(),
+    [ideas],
+  );
   const types = useMemo(() => [...new Set(ideas.flatMap((idea) => idea.types))].sort(), [ideas]);
+
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = ideas.filter((idea) => {
-    const matchesQuery = !normalizedQuery || [idea.title, idea.city, idea.country, idea.neighborhood, ...idea.types].filter(Boolean).join(' ').toLowerCase().includes(normalizedQuery);
-    return matchesQuery && (city === 'all' || idea.city === city) && (type === 'all' || idea.types.includes(type)) && (addedBy === 'all' || (addedBy === 'me' ? idea.addedByMe : !idea.addedByMe));
+    const haystack = [idea.title, idea.city, idea.country, idea.neighborhood, ...idea.types].filter(Boolean).join(' ').toLowerCase();
+    const matchesQuery = !normalizedQuery || haystack.includes(normalizedQuery);
+    return (
+      matchesQuery &&
+      (city === 'all' || idea.city === city) &&
+      (type === 'all' || idea.types.includes(type)) &&
+      (addedBy === 'all' || (addedBy === 'me' ? idea.addedByMe : !idea.addedByMe))
+    );
   });
-  const hasFilters = city !== 'all' || type !== 'all' || addedBy !== 'all';
-  const clearFilters = () => { setCity('all'); setType('all'); setAddedBy('all'); };
 
-  return <>
-    <div className="ideas-page-toolbar">
-      <div><h2>{variant === 'confirmed' ? 'Confirmed' : 'Ideas'}</h2><p>{variant === 'confirmed' ? 'The places and activities you both like.' : 'Things to consider, vote to lock in your pick.'}</p></div>
-      <div className="ideas-toolbar-actions">
-        <details ref={filterRef} className={`filter-menu${hasFilters ? ' has-filters' : ''}`}>
-          <summary aria-label="Filter ideas"><SlidersHorizontal size={18} aria-hidden="true" /></summary>
-          <div className="filter-popover">
-            <div className="filter-popover-title"><strong>Filters</strong>{hasFilters && <button type="button" onClick={clearFilters}>Clear all</button>}</div>
-            <label>City<select value={city} onChange={(event) => setCity(event.target.value)}><option value="all">All cities</option>{cities.map((value) => <option value={value} key={value}>{value}</option>)}</select></label>
-            <label>Type<select value={type} onChange={(event) => setType(event.target.value)}><option value="all">All types</option>{types.map((value) => <option value={value} key={value}>{value}</option>)}</select></label>
-            <label>Added by<select value={addedBy} onChange={(event) => setAddedBy(event.target.value)}><option value="all">Either traveler</option><option value="me">Me</option><option value="partner">Partner</option></select></label>
-            <div className="filter-results">Showing {filtered.length} of {ideas.length}</div>
-          </div>
-        </details>
-        <label className="idea-search"><Search size={17} aria-hidden="true" /><span className="sr-only">Search ideas</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search"><X size={14} aria-hidden="true" /></button>}</label>
-        {variant === 'ideas' && <NewIdeaTrigger className="new-idea-button" timezone={timezone}><Plus size={18} aria-hidden="true" />New</NewIdeaTrigger>}
+  const hasFilters = city !== 'all' || type !== 'all' || addedBy !== 'all';
+  const clearFilters = () => {
+    setCity('all');
+    setType('all');
+    setAddedBy('all');
+  };
+  const isNarrowed = Boolean(query) || hasFilters;
+
+  return (
+    <>
+      <div className="toolbar">
+        <div>
+          <h2 className="toolbar__title">{text.title}</h2>
+          <p className="toolbar__subtitle">{text.subtitle}</p>
+        </div>
+
+        <div className="toolbar__actions">
+          <details ref={filterRef} className={`filter${hasFilters ? ' filter--active' : ''}`}>
+            <summary aria-label="Filter ideas">
+              <SlidersHorizontal size={18} aria-hidden="true" />
+            </summary>
+            <div className="filter__popover">
+              <div className="filter__header">
+                <strong>Filters</strong>
+                {hasFilters && (
+                  <button className="filter__clear" type="button" onClick={clearFilters}>
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <label>
+                City
+                <select value={city} onChange={(event) => setCity(event.target.value)}>
+                  <option value="all">All cities</option>
+                  {cities.map((value) => (
+                    <option value={value} key={value}>{value}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Type
+                <select value={type} onChange={(event) => setType(event.target.value)}>
+                  <option value="all">All types</option>
+                  {types.map((value) => (
+                    <option value={value} key={value}>{value}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Added by
+                <select value={addedBy} onChange={(event) => setAddedBy(event.target.value)}>
+                  <option value="all">Either traveler</option>
+                  <option value="me">Me</option>
+                  <option value="partner">Partner</option>
+                </select>
+              </label>
+              <div className="filter__count">
+                Showing {filtered.length} of {ideas.length}
+              </div>
+            </div>
+          </details>
+
+          <label className="search">
+            <Search size={17} aria-hidden="true" />
+            <span className="sr-only">Search ideas</span>
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />
+            {query && (
+              <button className="search__clear" type="button" onClick={() => setQuery('')} aria-label="Clear search">
+                <X size={14} aria-hidden="true" />
+              </button>
+            )}
+          </label>
+
+          {variant === 'ideas' && (
+            <NewIdeaTrigger timezone={timezone}>
+              <Plus size={18} aria-hidden="true" />
+              New
+            </NewIdeaTrigger>
+          )}
+        </div>
       </div>
-    </div>
-    {filtered.length > 0 ? <div className="ideas-grid">{filtered.map((idea) => <PersistedIdeaCard key={idea.id} idea={idea} onOpen={setSelected} />)}</div> : <section className="empty-state compact-empty"><h3>{query || hasFilters ? 'No matching ideas' : variant === 'confirmed' ? 'No confirmed ideas yet' : 'Nothing saved yet'}</h3><p>{query || hasFilters ? 'Try a broader search or clear your filters.' : variant === 'confirmed' ? 'An idea appears here when both travelers like it.' : 'Start with the place you are most excited about.'}</p>{hasFilters && <button className="secondary-button" type="button" onClick={clearFilters}>Clear filters</button>}</section>}
-    {selected && <IdeaModal idea={selected} timezone={timezone} onClose={closeModal} />}
-  </>;
+
+      {filtered.length > 0 ? (
+        <div className="card-grid">
+          {filtered.map((idea) => (
+            <PersistedIdeaCard key={idea.id} idea={idea} onOpen={setSelected} />
+          ))}
+        </div>
+      ) : (
+        <section className="empty-state">
+          <h3>{isNarrowed ? 'No matching ideas' : text.emptyTitle}</h3>
+          <p>{isNarrowed ? 'Try a broader search or clear your filters.' : text.emptyBody}</p>
+          {hasFilters && (
+            <Button variant="secondary" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          )}
+        </section>
+      )}
+
+      {selected && <IdeaModal idea={selected} timezone={timezone} onClose={closeModal} />}
+    </>
+  );
 }

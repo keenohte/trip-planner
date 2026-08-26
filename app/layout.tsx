@@ -1,7 +1,18 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import '@daypicker/react/style.css';
 import './globals.css';
 import { Nav } from '@/components/Nav';
+
+/* Previously the stylesheet asked for "Inter" by name without ever
+   loading it, so every visitor got a fallback system font. next/font
+   self-hosts the file and exposes it as --font-inter, which
+   app/styles/tokens.css consumes. */
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: { default: 'Trip Hub', template: '%s · Trip Hub' },
@@ -10,6 +21,17 @@ export const metadata: Metadata = {
   icons: { icon: '/trip-hub-icon.svg' },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#f3f0e7' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#F3F4F6' };
 
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><main className="shell"><Nav/>{children}</main></body></html>}
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={inter.variable}>
+      <body>
+        <main className="shell">
+          <Nav />
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}

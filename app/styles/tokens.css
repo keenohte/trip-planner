@@ -1,0 +1,160 @@
+/* ============================================================
+   TOKENS — the only file allowed to contain raw values.
+
+   Direction: "Overcast." A cool daylight neutral so travel
+   photography reads true, one deep petrol for all interactive
+   chrome, and colour spent almost entirely on the one thing
+   this app is actually about: whether the two of you agree.
+
+   Values are authored in OKLCH — perceptually uniform lightness,
+   so the neutral steps look evenly spaced rather than merely
+   measuring evenly. Hex equivalents are noted for Figma.
+
+   Two tiers. PRIMITIVES (--raw-*) exist only to define the
+   SEMANTIC tokens below and must never appear in a component.
+   ============================================================ */
+
+@layer tokens {
+  :root {
+    /* ---- PRIMITIVES — do not reference in components ---- */
+
+    /* neutral ramp: cool, near-achromatic (hue 250) */
+    --raw-n-000: #ffffff;                 /* pure white          */
+    --raw-n-050: oklch(0.967 0.003 250);  /* #F3F4F6             */
+    --raw-n-100: oklch(0.942 0.005 250);  /* #E9ECEF             */
+    --raw-n-200: oklch(0.898 0.006 250);  /* #DADEE1             */
+    --raw-n-300: oklch(0.840 0.008 250);  /* #C7CBD0             */
+    --raw-n-600: oklch(0.535 0.014 250);  /* #676E75             */
+    --raw-n-900: oklch(0.255 0.022 250);  /* #1B242D             */
+
+    /* petrol — interactive chrome */
+    --raw-petrol-700: oklch(0.370 0.066 210); /* #004953         */
+    --raw-petrol-600: oklch(0.440 0.068 210); /* #175D67         */
+    --raw-petrol-100: oklch(0.930 0.022 210); /* #D8ECF0         */
+
+    /* gold — reserved for mutual agreement. Rare by design. */
+    --raw-gold-500: oklch(0.760 0.132 78);  /* #DFA642           */
+    --raw-gold-700: oklch(0.500 0.100 68);  /* #885716           */
+    --raw-gold-100: oklch(0.940 0.045 82);  /* #FAE9CA           */
+
+    /* rose — the Love vote */
+    --raw-rose-500: oklch(0.585 0.175 20);  /* #CF444F           */
+    --raw-rose-100: oklch(0.940 0.040 20);  /* #FFE1E0           */
+
+    /* brick — destructive. Darker and duller than rose on purpose. */
+    --raw-brick-600: oklch(0.470 0.140 28); /* #9A322A           */
+
+    /* traveler tints — avatars only, never type or fills */
+    --raw-teal-100:  oklch(0.900 0.040 215); /* #C1E5EF          */
+    --raw-plum-100:  oklch(0.900 0.045 320); /* #ECD5F1          */
+    --raw-plum-600:  oklch(0.450 0.100 320); /* #6D4177          */
+
+    /* ---- SEMANTIC — this is the whole vocabulary ---- */
+
+    /* surfaces */
+    --canvas: var(--raw-n-050);
+    --surface: var(--raw-n-000);
+    --surface-sunken: var(--raw-n-100);
+
+    /* text */
+    --text-primary: var(--raw-n-900);
+    --text-muted: var(--raw-n-600);
+    --text-on-fill: var(--raw-n-000);
+
+    /* lines */
+    --border-subtle: var(--raw-n-200);
+    --border-strong: var(--raw-n-300);
+
+    /* actions — one colour for every interactive affordance */
+    --primary: var(--raw-petrol-600);
+    --primary-hover: var(--raw-petrol-700);
+    --primary-soft: var(--raw-petrol-100);
+    --danger: var(--raw-brick-600);
+
+    /* vote + agreement state — the app's real subject.
+       `mutual` is the payoff moment: both travellers said yes.
+       Keep it rare. If gold shows up on ordinary chrome it stops
+       meaning anything. */
+    --love: var(--raw-rose-500);
+    --love-soft: var(--raw-rose-100);
+    --mutual: var(--raw-gold-500);
+    --mutual-ink: var(--raw-gold-700);
+    --mutual-soft: var(--raw-gold-100);
+    /* Interested and Pass are deliberately colourless — a lukewarm
+       vote should not compete with a mutual match. */
+
+    /* the two travellers — background tints for avatars */
+    --traveler-a-bg: var(--raw-teal-100);
+    --traveler-a-fg: var(--raw-petrol-700);
+    --traveler-b-bg: var(--raw-plum-100);
+    --traveler-b-fg: var(--raw-plum-600);
+
+    /* spacing — 4, 8, 12, 16, 24, 32, 48 */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+
+    /* radius — four, total */
+    --radius-control: 12px;
+    --radius-card: 20px;
+    --radius-feature: 28px;
+    --radius-pill: 999px;
+
+    /* type — six sizes, three weights */
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-base: 15px;
+    --text-lg: 18px;
+    --text-xl: 24px;
+    --text-2xl: 32px;
+
+    --weight-normal: 400;
+    --weight-medium: 600;
+    --weight-bold: 700;
+
+    --leading-tight: 1.25;
+    --leading-normal: 1.55;
+
+    --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+    /* elevation — two. Most surfaces use a border and no shadow. */
+    --shadow-sm: 0 4px 16px rgb(27 36 45 / 0.06);
+    --shadow-lg: 0 20px 48px rgb(27 36 45 / 0.14);
+
+    --focus-ring: 0 0 0 3px rgb(23 93 103 / 0.35);
+    --target-min: 44px;
+
+    /* ---- LEGACY ALIASES ----
+       Temporary shims so app/styles/legacy.css keeps rendering
+       during migration. Nothing new may reference these. Delete
+       this block when legacy.css is gone. */
+    --bg: var(--canvas);
+    --card: var(--surface);
+    --text: var(--text-primary);
+    --muted: var(--text-muted);
+    --line: var(--border-subtle);
+    --chip: var(--surface-sunken);
+    --accent: var(--primary);
+    --accent-hover: var(--primary-hover);
+    --shadow: var(--shadow-lg);
+    --color-canvas: var(--canvas);
+    --color-surface: var(--surface);
+    --color-ink: var(--text-primary);
+    --color-muted: var(--text-muted);
+    --color-border: var(--border-subtle);
+    --color-primary: var(--primary);
+    --color-danger: var(--danger);
+    --color-accent: var(--love);
+    --color-accent-soft: var(--love-soft);
+    --color-tab-active: var(--primary);
+    --color-sky: var(--primary-soft);
+    --color-sage: var(--mutual-soft);
+    --color-lavender: var(--traveler-b-bg);
+    --color-scroll-line: rgb(27 36 45 / 0.16);
+  }
+}
