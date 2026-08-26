@@ -62,6 +62,7 @@
     --text-on-fill: var(--raw-n-000);
 
     /* lines */
+    --border-width: 1px;
     --border-subtle: var(--raw-n-200);
     --border-strong: var(--raw-n-300);
 

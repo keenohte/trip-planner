@@ -29,9 +29,11 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
         </div>
       </div>
       <div className="idea-modal-content">
-        <h2 id="idea-modal-title">{idea.title}</h2>
-        {location && <p className="idea-modal-location">{location}</p>}
-        {idea.types.length > 0 && <div className="chip-list">{idea.types.map((type) => <Chip key={type}>{type}</Chip>)}</div>}
+        <div className="idea-modal-summary">
+          <h2 id="idea-modal-title">{idea.title}</h2>
+          {location && <p className="idea-modal-location">{location}</p>}
+          {idea.types.length > 0 && <div className="chip-list">{idea.types.map((type) => <Chip key={type}>{type}</Chip>)}</div>}
+        </div>
         {(idea.scheduledAt || idea.notes) && <div className="idea-modal-facts">
           {idea.scheduledAt && <div><strong>Schedule</strong><span><CalendarClock size={14} aria-hidden="true" />{formatBookingDateTime(idea.scheduledAt, timezone)}{idea.scheduledEndAt && <> → {formatBookingDateTime(idea.scheduledEndAt, timezone)}</>}</span></div>}
           {idea.notes && <div><strong>Notes</strong><span>{idea.notes}</span></div>}

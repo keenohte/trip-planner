@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, Sparkles, UserRound } from 'lucide-react';
+import { Heart, UserRound } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { voteState, voteLabel } from '@/lib/vote-state';
 import type { VoteValue } from '@/lib/ideas';
@@ -12,7 +12,7 @@ type VoteControlsProps = {
   viewerId: string;
   currentVote: VoteValue | null;
   partnerVote: VoteValue | null;
-  /** Show the "you both like this" badge. Off in dense grids. */
+  /** Show both traveler avatars for a mutual pick. Off in dense grids. */
   showMutual?: boolean;
 };
 
@@ -50,9 +50,14 @@ export function VoteControls({ ideaId, viewerId, currentVote, partnerVote, showM
   return (
     <div className="vote" onClick={(event) => event.stopPropagation()}>
       {state === 'mutual' && showMutual && (
-        <span className="vote__mutual">
-          <Sparkles size={13} aria-hidden="true" />
-          Both
+        <span className="vote__avatars" title={voteLabel.mutual}>
+          <span className="vote__avatar vote__avatar--you">
+            <UserRound size={13} aria-hidden="true" />
+          </span>
+          <span className="vote__avatar">
+            <UserRound size={13} aria-hidden="true" />
+          </span>
+          <span className="sr-only">{voteLabel.mutual}</span>
         </span>
       )}
 

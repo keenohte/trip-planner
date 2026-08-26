@@ -1,0 +1,25 @@
+/* Read-only detail hierarchy shared by idea and schedule-activity modals. */
+
+@layer components {
+  .idea-modal-summary {
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  .idea-modal-summary .chip-list { margin-top: var(--space-2); }
+
+  .idea-modal-summary + .idea-modal-facts {
+    padding-top: var(--space-4);
+    border-top: 0;
+  }
+
+  .idea-modal-summary + .idea-modal-location-section,
+  .idea-modal-summary + .idea-modal-links {
+    padding-top: var(--space-4);
+  }
+
+  .idea-modal-facts strong,
+  .idea-modal-location-section strong {
+    color: var(--text-muted);
+  }
+}

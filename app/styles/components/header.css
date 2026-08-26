@@ -1,0 +1,7 @@
+/* Persistent trip header. Measurements derive from the shared spacing scale. */
+
+@layer components {
+  .app-header {
+    padding-top: calc(var(--space-12) + var(--space-1));
+  }
+}

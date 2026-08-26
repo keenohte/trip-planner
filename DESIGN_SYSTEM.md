@@ -39,6 +39,7 @@ All raw values are defined in `app/styles/tokens.css`. New UI must use semantic 
 | `--text-on-fill` | Text placed on strong filled controls |
 | `--border-subtle` | Default separators and borders |
 | `--border-strong` | Higher-emphasis boundaries |
+| `--border-width` | Standard hairline width |
 | `--primary` | Interactive petrol |
 | `--primary-hover` | Hover and pressed interactive state |
 | `--primary-soft` | Low-emphasis interactive background |

@@ -9,6 +9,8 @@ import './styles/components/button.css';
 import './styles/components/card.css';
 import './styles/components/chip.css';
 import './styles/components/grid.css';
+import './styles/components/header.css';
+import './styles/components/modal.css';
 import './styles/components/tabs.css';
 import './styles/components/toolbar.css';
 import './styles/components/schedule.css';
