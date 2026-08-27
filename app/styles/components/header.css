@@ -53,3 +53,15 @@
     }
   }
 }
+
+@layer components {
+  /* Keeps the Suspense fallback the same height as the real brand line. */
+  .brand-fallback {
+    margin: 0;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+}

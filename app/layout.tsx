@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import '@daypicker/react/style.css';
@@ -18,6 +19,7 @@ import './styles/components/toolbar.css';
 import './styles/components/schedule.css';
 import './styles/components/vote.css';
 import { Nav } from '@/components/Nav';
+import { NavFallback } from '@/components/NavFallback';
 
 /* Previously the stylesheet asked for "Inter" by name without ever
    loading it, so every visitor got a fallback system font. next/font
@@ -43,7 +45,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <body>
         <main className="shell">
-          <Nav />
+          {/* Nav is async and lives in the root layout, so without a
+              Suspense boundary the whole document waits on it — nothing
+              streams, loading.tsx never shows, and a slow upstream reads
+              as a blank white page. The boundary lets the shell paint
+              immediately and the header fill in. */}
+          <Suspense fallback={<NavFallback />}>
+            <Nav />
+          </Suspense>
           {children}
         </main>
       </body>

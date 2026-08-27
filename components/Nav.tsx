@@ -3,7 +3,7 @@ import { NavTabs } from './NavTabs';
 import { UserMenu } from './UserMenu';
 import { HeaderScrollState } from './HeaderScrollState';
 import { getCurrentTrip } from '@/lib/trips';
-import { createClient } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/auth';
 import { travelerForRole } from '@/lib/travelers';
 
 function formatDate(date: string | null) {
@@ -12,8 +12,7 @@ function formatDate(date: string | null) {
 }
 
 export async function Nav() {
-  const [trip, supabase] = await Promise.all([getCurrentTrip(), createClient()]);
-  const { data: { user } } = await supabase.auth.getUser();
+  const [trip, user] = await Promise.all([getCurrentTrip(), getSessionUser()]);
   const dates = trip ? [formatDate(trip.startDate), formatDate(trip.endDate)].filter(Boolean).join(' – ') : null;
   const traveler = travelerForRole(trip?.role);
 

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/auth';
 import { travelerForRole, type Traveler } from '@/lib/travelers';
 
 export type VoteValue = 'love' | 'interested' | 'pass';
@@ -112,8 +113,8 @@ async function signedImageUrls(paths: string[]) {
 
 export async function getIdeas(tripId: string): Promise<Idea[]> {
   const supabase = await createClient();
-  const [{ data: authData }, { data, error }, { data: members }] = await Promise.all([
-    supabase.auth.getUser(),
+  const [authUser, { data, error }, { data: members }] = await Promise.all([
+    getSessionUser(),
     supabase
       .from('ideas')
       .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
@@ -121,17 +122,17 @@ export async function getIdeas(tripId: string): Promise<Idea[]> {
       .order('created_at', { ascending: false }),
     supabase.from('trip_members').select('user_id, role').eq('trip_id', tripId).order('created_at'),
   ]);
-  if (error || !authData.user) return [];
+  if (error || !authUser) return [];
 
   const rows = (data ?? []) as IdeaRow[];
   const imageUrls = await signedImageUrls(rows.flatMap((row) => (row.cover_url ? [row.cover_url] : [])));
-  return rows.map((row) => mapIdea(row, authData.user.id, (members ?? []) as TripMemberRow[], row.cover_url ? imageUrls.get(row.cover_url) ?? null : null));
+  return rows.map((row) => mapIdea(row, authUser.id, (members ?? []) as TripMemberRow[], row.cover_url ? imageUrls.get(row.cover_url) ?? null : null));
 }
 
 export async function getIdea(tripId: string, ideaId: string): Promise<Idea | null> {
   const supabase = await createClient();
-  const [{ data: authData }, { data, error }, { data: members }] = await Promise.all([
-    supabase.auth.getUser(),
+  const [authUser, { data, error }, { data: members }] = await Promise.all([
+    getSessionUser(),
     supabase
       .from('ideas')
       .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
@@ -140,11 +141,11 @@ export async function getIdea(tripId: string, ideaId: string): Promise<Idea | nu
       .maybeSingle(),
     supabase.from('trip_members').select('user_id, role').eq('trip_id', tripId).order('created_at'),
   ]);
-  if (error || !data || !authData.user) return null;
+  if (error || !data || !authUser) return null;
 
   const row = data as IdeaRow;
   const imageUrls = await signedImageUrls(row.cover_url ? [row.cover_url] : []);
-  return mapIdea(row, authData.user.id, (members ?? []) as TripMemberRow[], row.cover_url ? imageUrls.get(row.cover_url) ?? null : null);
+  return mapIdea(row, authUser.id, (members ?? []) as TripMemberRow[], row.cover_url ? imageUrls.get(row.cover_url) ?? null : null);
 }
 
 export async function getIdeaCount(tripId: string): Promise<number> {
