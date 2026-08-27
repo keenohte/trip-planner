@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutGrid, Map as MapIcon, Plus, SlidersHorizontal, X } from 'lucide-react';
 import { IdeaModal } from '@/components/IdeaModal';
-import { IdeaMap, hasCoordinates } from '@/components/IdeaMap';
+import { IdeaMap } from '@/components/IdeaMap';
 import { PersistedIdeaCard } from '@/components/PersistedIdeaCard';
 import { NewIdeaTrigger } from '@/components/NewIdeaTrigger';
 import { Button } from '@/components/ui/Button';
@@ -60,7 +60,6 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
     );
   });
 
-  const mappable = ideas.filter(hasCoordinates).length;
   const hasFilters = city !== 'all' || type !== 'all' || addedBy !== 'all';
   const clearFilters = () => {
     setCity('all');
@@ -78,18 +77,19 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
         </div>
 
         <div className="toolbar__actions">
-          {mappable > 0 && (
-            <div className="view-toggle" role="group" aria-label="View">
-              <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
-                <LayoutGrid size={16} aria-hidden="true" />
-                <span className="sr-only">List view</span>
-              </button>
-              <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}>
-                <MapIcon size={16} aria-hidden="true" />
-                <span className="sr-only">Map view</span>
-              </button>
-            </div>
-          )}
+          {/* Always rendered. Hiding the toggle when nothing was mappable
+              made an empty dataset indistinguishable from a broken or
+              undeployed feature — the map explains its own emptiness now. */}
+          <div className="view-toggle" role="group" aria-label="View">
+            <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
+              <LayoutGrid size={16} aria-hidden="true" />
+              <span className="sr-only">List view</span>
+            </button>
+            <button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')}>
+              <MapIcon size={16} aria-hidden="true" />
+              <span className="sr-only">Map view</span>
+            </button>
+          </div>
           <details ref={filterRef} className={`filter${hasFilters ? ' filter--active' : ''}`}>
             <summary aria-label="Filter ideas">
               <SlidersHorizontal size={18} aria-hidden="true" />
@@ -150,7 +150,7 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
       </div>
 
       {filtered.length > 0 && view === 'map' ? (
-        <IdeaMap ideas={filtered} onSelect={setSelected} />
+        <IdeaMap ideas={filtered} onOpen={setSelected} showVoting={variant === 'ideas'} />
       ) : filtered.length > 0 ? (
         <div className="card-grid">
           {filtered.map((idea) => (

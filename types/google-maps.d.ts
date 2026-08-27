@@ -5,6 +5,8 @@
    map grows past a handful of calls, swap this file for the real package. */
 
 declare namespace google.maps {
+  function importLibrary(name: string): Promise<unknown>;
+
   class LatLngBounds {
     constructor();
     extend(point: { lat: number; lng: number }): void;
@@ -40,11 +42,19 @@ declare namespace google.maps {
         content?: HTMLElement;
         title?: string;
         zIndex?: number;
+        collisionBehavior?: string;
       });
       map: Map | null;
+      zIndex: number | null;
       addListener(event: string, handler: () => void): void;
     }
   }
+}
+
+interface Window {
+  google?: {
+    maps?: typeof google.maps;
+  };
 }
 
 declare const google: typeof google;
