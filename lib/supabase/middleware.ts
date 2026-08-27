@@ -1,6 +1,17 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabaseConfig, isSupabaseConfigured } from './env';
+import { AUTH_TIMEOUT_MS, QUERY_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout';
+
+/* Middleware runs on nearly every request, and Vercel kills the invocation
+   at ~25s. Without a bound, one degraded Supabase service takes the whole
+   site down with a 504 — which is what happened when Auth went unhealthy
+   while Database, PostgREST and Storage were all fine.
+
+   These calls drive routing and cookie refresh. They are NOT the
+   authorization boundary — Row Level Security is, and it applies to every
+   query regardless of what middleware decides. So on timeout we let the
+   request proceed rather than guessing. No data is exposed either way. */
 
 export async function updateSession(request: NextRequest) {
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth');
@@ -31,10 +42,21 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // getUser validates the session with Supabase Auth and refreshes stale cookies.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getUser validates the session with Supabase Auth and refreshes stale
+  // cookies. `undefined` means Auth did not answer in time — distinct from
+  // `null`, which means a definite "not signed in".
+  const authResult = await withTimeout(
+    supabase.auth.getUser().then((result) => result.data.user),
+    AUTH_TIMEOUT_MS,
+    undefined,
+  );
+  const authUnavailable = authResult === undefined;
+  const user = authResult ?? null;
+
+  // Auth is degraded. Skip every routing decision that depends on knowing
+  // who this is, rather than bouncing a signed-in person to /sign-in or
+  // hanging until Vercel times the whole request out.
+  if (authUnavailable) return response;
 
   function redirectWithSessionCookies(url: URL) {
     const redirect = NextResponse.redirect(url);
@@ -58,11 +80,18 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && !isAuthRoute && !isInviteRoute) {
-    const { data: membership } = await supabase
-      .from('trip_members')
-      .select('trip_id')
-      .limit(1)
-      .maybeSingle();
+    // Same shape as above: `undefined` means we could not find out.
+    // Previously any failure here read as "no trip" and redirected a
+    // legitimate user into onboarding — a slow database should not look
+    // like an empty account.
+    const membership = await withTimeout(
+      supabase.from('trip_members').select('trip_id').limit(1).maybeSingle()
+        .then((result) => result.data ?? null),
+      QUERY_TIMEOUT_MS,
+      undefined,
+    );
+    if (membership === undefined) return response;
+
     const hasTrip = Boolean(membership);
 
     if (!hasTrip && !isOnboardingRoute) {
