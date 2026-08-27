@@ -12,6 +12,7 @@ import './styles/components/card.css';
 import './styles/components/chip.css';
 import './styles/components/grid.css';
 import './styles/components/header.css';
+import './styles/components/map.css';
 import './styles/components/modal.css';
 import './styles/components/form.css';
 import './styles/components/tabs.css';

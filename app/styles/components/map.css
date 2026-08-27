@@ -1,0 +1,91 @@
+/* Map view for the Ideas grid. */
+
+@layer components {
+  .map-frame {
+    width: 100%;
+    height: min(640px, calc(100vh - 260px));
+    min-height: 360px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-card);
+    background: var(--surface-sunken);
+  }
+
+  .map-frame--error {
+    display: grid;
+    place-content: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    text-align: center;
+  }
+
+  .map-note {
+    margin-top: var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+  }
+
+  /* Marker. A label rather than a pin — on a trip map you are scanning
+     for names, and a field of identical teardrops tells you nothing. */
+  .map-pin {
+    display: inline-flex;
+    max-width: 168px;
+    align-items: center;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .map-pin:hover { transform: scale(1.06); border-color: var(--border-strong); }
+
+  /* Liked ideas carry the same rose the heart uses, so the map and the
+     cards agree about what has been chosen. */
+  .map-pin--liked {
+    border-color: var(--love);
+    color: var(--love);
+    font-weight: var(--weight-bold);
+  }
+
+  /* View switch */
+  .view-toggle {
+    display: inline-flex;
+    padding: 2px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+  }
+  .view-toggle button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 36px;
+    padding: 0 var(--space-3);
+    border: 0;
+    border-radius: calc(var(--radius-control) - 3px);
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: var(--text-base);
+    cursor: pointer;
+  }
+  .view-toggle button[aria-pressed='true'] {
+    background: var(--primary);
+    color: var(--text-on-fill);
+  }
+
+  @media (max-width: 650px) {
+    .map-frame { height: min(520px, calc(100vh - 220px)); }
+    .view-toggle button { padding: 0 var(--space-2); }
+  }
+}
