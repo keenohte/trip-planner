@@ -1,6 +1,6 @@
 'use client';
 import { ImageIcon, MapPin } from 'lucide-react';
-import { Card, CardBody, CardMedia, CardMeta, CardTitle, ChipList } from '@/components/ui/Card';
+import { Card, CardBody, CardMedia, CardMeta, CardTitle, CategoryTagList } from '@/components/ui/Card';
 import { VoteControls } from '@/components/VoteControls';
 import type { Idea } from '@/lib/ideas';
 
@@ -26,7 +26,7 @@ export function PersistedIdeaCard({ idea, onOpen }: { idea: Idea; onOpen: (idea:
               {location}
             </CardMeta>
           )}
-          <ChipList items={idea.types} max={2} />
+          <CategoryTagList category={idea.category} tags={idea.tags} max={1} />
         </CardBody>
       </button>
       <div className="card__overlay">

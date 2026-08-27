@@ -6,7 +6,8 @@ import { IdeaModal } from '@/components/IdeaModal';
 import { BookingModal } from '@/components/BookingModal';
 import { ScheduleActivityModal } from '@/components/ScheduleActivityModal';
 import { Button } from '@/components/ui/Button';
-import { CardBody, CardButton, CardMedia, CardTitle, ChipList } from '@/components/ui/Card';
+import { CardBody, CardButton, CardMedia, CardTitle, CategoryTagList, SourceChip } from '@/components/ui/Card';
+import { activityChip, bookingChip } from '@/lib/categories';
 import { formatScheduleTime } from '@/lib/datetime';
 import type { Idea } from '@/lib/ideas';
 import type { Booking } from '@/lib/bookings';
@@ -35,7 +36,9 @@ function ItemBody({ item }: { item: ScheduleItem }) {
     <CardBody>
       <CardTitle>{item.title}</CardTitle>
       {item.detail && <p className="schedule-card__detail">{item.detail}</p>}
-      <ChipList items={item.types} max={3} />
+      {item.source === 'idea' && item.idea
+        ? <CategoryTagList category={item.idea.category} tags={item.idea.tags} max={2} />
+        : <SourceChip meta={item.source === 'booking' ? bookingChip(item.type) : activityChip} />}
       <div className="schedule-card__time">
         <Clock3 size={15} aria-hidden="true" />
         <span>

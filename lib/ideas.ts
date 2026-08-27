@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getSessionUser } from '@/lib/auth';
+import type { IdeaCategory } from '@/lib/categories';
 import { travelerForRole, type Traveler } from '@/lib/travelers';
 
 export type VoteValue = 'love' | 'interested' | 'pass';
@@ -12,6 +13,8 @@ export type Idea = {
   city: string | null;
   neighborhood: string | null;
   types: string[];
+  category: IdeaCategory;
+  tags: string[];
   notes: string | null;
   mapsUrl: string | null;
   locationAddress: string | null;
@@ -44,6 +47,8 @@ type IdeaRow = {
   city: string | null;
   neighborhood: string | null;
   types: string[] | null;
+  category: IdeaCategory | null;
+  tags: string[] | null;
   notes: string | null;
   maps_url: string | null;
   location_address: string | null;
@@ -83,6 +88,8 @@ function mapIdea(row: IdeaRow, userId: string, members: TripMemberRow[], imageUr
     city: row.city,
     neighborhood: row.neighborhood,
     types: row.types ?? [],
+    category: row.category ?? 'activity',
+    tags: row.tags ?? [],
     notes: row.notes,
     mapsUrl: row.maps_url,
     locationAddress: row.location_address,
@@ -123,7 +130,7 @@ export async function getIdeas(tripId: string): Promise<Idea[]> {
     getSessionUser(),
     supabase
       .from('ideas')
-      .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, latitude, longitude, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
+      .select('id, trip_id, title, country, city, neighborhood, types, category, tags, notes, maps_url, location_address, latitude, longitude, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
       .eq('trip_id', tripId)
       .order('created_at', { ascending: false }),
     supabase.from('trip_members').select('user_id, role').eq('trip_id', tripId).order('created_at'),
@@ -141,7 +148,7 @@ export async function getIdea(tripId: string, ideaId: string): Promise<Idea | nu
     getSessionUser(),
     supabase
       .from('ideas')
-      .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, latitude, longitude, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
+      .select('id, trip_id, title, country, city, neighborhood, types, category, tags, notes, maps_url, location_address, latitude, longitude, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
       .eq('trip_id', tripId)
       .eq('id', ideaId)
       .maybeSingle(),

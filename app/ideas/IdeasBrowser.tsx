@@ -9,6 +9,7 @@ import { NewIdeaTrigger } from '@/components/NewIdeaTrigger';
 import { Button } from '@/components/ui/Button';
 import { SearchInput, Select } from '@/components/ui/FormControls';
 import { useCloseDetailsOnOutside } from '@/lib/use-close-details';
+import { categoryMeta, ideaCategories } from '@/lib/categories';
 import type { Idea } from '@/lib/ideas';
 
 const copy = {
@@ -28,7 +29,8 @@ const copy = {
 
 export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Idea[]; timezone: string; variant?: 'ideas' | 'confirmed' }) {
   const [city, setCity] = useState('all');
-  const [type, setType] = useState('all');
+  const [category, setCategory] = useState('all');
+  const [tag, setTag] = useState('all');
   const [addedBy, setAddedBy] = useState('all');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Idea | null>(null);
@@ -46,24 +48,32 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
     () => [...new Set(ideas.map((idea) => idea.city).filter((value): value is string => Boolean(value)))].sort(),
     [ideas],
   );
-  const types = useMemo(() => [...new Set(ideas.flatMap((idea) => idea.types))].sort(), [ideas]);
+  /* Tags are scoped to the selected category: pick Food and the tag list
+     narrows to sushi, noodles, izakaya. That gives the drill-down without
+     maintaining a subcategory tree. */
+  const tags = useMemo(() => {
+    const pool = category === 'all' ? ideas : ideas.filter((idea) => idea.category === category);
+    return [...new Set(pool.flatMap((idea) => idea.tags))].sort();
+  }, [ideas, category]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const filtered = ideas.filter((idea) => {
-    const haystack = [idea.title, idea.city, idea.country, idea.neighborhood, ...idea.types].filter(Boolean).join(' ').toLowerCase();
+    const haystack = [idea.title, idea.city, idea.country, idea.neighborhood, categoryMeta[idea.category].label, ...idea.tags].filter(Boolean).join(' ').toLowerCase();
     const matchesQuery = !normalizedQuery || haystack.includes(normalizedQuery);
     return (
       matchesQuery &&
       (city === 'all' || idea.city === city) &&
-      (type === 'all' || idea.types.includes(type)) &&
+      (category === 'all' || idea.category === category) &&
+      (tag === 'all' || idea.tags.includes(tag)) &&
       (addedBy === 'all' || (addedBy === 'me' ? idea.addedByMe : !idea.addedByMe))
     );
   });
 
-  const hasFilters = city !== 'all' || type !== 'all' || addedBy !== 'all';
+  const hasFilters = city !== 'all' || category !== 'all' || tag !== 'all' || addedBy !== 'all';
   const clearFilters = () => {
     setCity('all');
-    setType('all');
+    setCategory('all');
+    setTag('all');
     setAddedBy('all');
   };
   const isNarrowed = Boolean(query) || hasFilters;
@@ -112,14 +122,25 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
                 </Select>
               </label>
               <label>
-                Type
-                <Select value={type} onChange={(event) => setType(event.target.value)}>
-                  <option value="all">All types</option>
-                  {types.map((value) => (
-                    <option value={value} key={value}>{value}</option>
+                Category
+                <Select value={category} onChange={(event) => { setCategory(event.target.value); setTag('all'); }}>
+                  <option value="all">All categories</option>
+                  {ideaCategories.map((value) => (
+                    <option value={value} key={value}>{categoryMeta[value].label}</option>
                   ))}
                 </Select>
               </label>
+              {tags.length > 0 && (
+                <label>
+                  Tag
+                  <Select value={tag} onChange={(event) => setTag(event.target.value)}>
+                    <option value="all">All tags</option>
+                    {tags.map((value) => (
+                      <option value={value} key={value}>{value}</option>
+                    ))}
+                  </Select>
+                </label>
+              )}
               <label>
                 Added by
                 <Select value={addedBy} onChange={(event) => setAddedBy(event.target.value)}>

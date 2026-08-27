@@ -9,7 +9,7 @@ import { ModalFrame } from '@/components/ModalFrame';
 import { MODAL_FORM_TITLE_ID } from '@/components/ModalFormLayout';
 import { VoteControls } from '@/components/VoteControls';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
-import { Chip } from '@/components/ui/Card';
+import { CategoryTagList } from '@/components/ui/Card';
 import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
 import { formatBookingDateTime } from '@/lib/datetime';
 import type { Idea } from '@/lib/ideas';
@@ -33,9 +33,9 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
       <div className="idea-modal-content">
         <header className="idea-modal-summary">
           <h2 id="idea-modal-title">{idea.title}</h2>
-          {(location || idea.types.length > 0) && <div className="idea-modal-summary-meta">
+          {(location || true) && <div className="idea-modal-summary-meta">
             {location && <p className="idea-modal-location">{location}</p>}
-            {idea.types.length > 0 && <div className="chip-list">{idea.types.map((type) => <Chip key={type}>{type}</Chip>)}</div>}
+            <CategoryTagList category={idea.category} tags={idea.tags} max={4} />
           </div>}
         </header>
         {(idea.scheduledAt || idea.notes || links.length > 0 || (idea.mapsUrl && displayAddress)) && <DetailPanel>

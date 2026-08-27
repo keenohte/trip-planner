@@ -7,6 +7,17 @@ import { distanceKm, formatDistance } from '@/lib/distance';
 import { Chip } from '@/components/ui/Card';
 import { VoteControls } from '@/components/VoteControls';
 import type { Idea } from '@/lib/ideas';
+import type { IdeaCategory } from '@/lib/categories';
+
+/* Lucide paths matching categoryMeta. Duplicated here because marker
+   content is built as DOM and cannot render a React component. */
+const categoryPinPath: Record<IdeaCategory, string> = {
+  food: '<path d="M16 2v20"/><path d="M2 2v7a4 4 0 0 0 8 0V2"/><path d="M6 2v7"/>',
+  drink: '<path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/>',
+  shopping: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  sight: '<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="m2 9 10-6 10 6Z"/>',
+  activity: '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
+};
 
 type Plottable = Idea & { latitude: number; longitude: number };
 
@@ -89,6 +100,14 @@ export function IdeaMap({
       /* Text is set here, at creation. It was previously left empty and
          populated by the selection effect, which does not depend on
          `ready` — so markers built after load never got their labels. */
+      /* Category icon on the pin: a fork says "restaurant" faster than
+         reading the name. Rendered as an inline path because these pins
+         are DOM, not JSX — same icons as categoryMeta. */
+      const mark = document.createElement('span');
+      mark.className = 'map-pin__category';
+      mark.setAttribute('aria-hidden', 'true');
+      mark.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">${categoryPinPath[idea.category]}</svg>`;
+
       const label = document.createElement('span');
       label.className = 'map-pin__label';
       label.textContent = idea.title;
@@ -102,7 +121,7 @@ export function IdeaMap({
 
       const distance = document.createElement('span');
       distance.className = 'map-pin__distance';
-      pin.append(label, heart, distance);
+      pin.append(mark, label, heart, distance);
       if (showVoting && isLiked(idea)) pin.classList.add('map-pin--liked');
       pin.addEventListener('click', (event) => {
         event.stopPropagation();

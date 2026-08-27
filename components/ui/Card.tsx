@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { categoryMeta, type ChipMeta, type IdeaCategory } from '@/lib/categories';
 
 type CardProps = {
   children: ReactNode;
@@ -42,6 +43,47 @@ export function Chip({ children, state }: { children: string; state?: 'mutual' |
     <span className="chip" data-state={state}>
       {children}
     </span>
+  );
+}
+
+/* The primary category, with its icon. Icon rather than colour because
+   colour is reserved for vote state — see chip.css. */
+export function CategoryChip({ category }: { category: IdeaCategory }) {
+  const { label, icon: Icon } = categoryMeta[category];
+  return (
+    <span className="chip chip--category">
+      <Icon size={13} strokeWidth={2} aria-hidden="true" />
+      {label}
+    </span>
+  );
+}
+
+/* Renders a booking or activity with the same shape as a category chip,
+   so Schedule shows one vocabulary instead of three. */
+export function SourceChip({ meta }: { meta: ChipMeta }) {
+  const Icon = meta.icon;
+  return (
+    <div className="chip-list">
+      <span className="chip chip--category">
+        <Icon size={13} strokeWidth={2} aria-hidden="true" />
+        {meta.label}
+      </span>
+    </div>
+  );
+}
+
+/* Category first, then tags. `max` counts tags only — the category is
+   never dropped, since it is the one label every idea is guaranteed to
+   have and the one the eye scans for. */
+export function CategoryTagList({ category, tags, max = 1 }: { category: IdeaCategory; tags: string[]; max?: number }) {
+  const shown = tags.slice(0, max);
+  const extra = tags.length - shown.length;
+  return (
+    <div className="chip-list">
+      <CategoryChip category={category} />
+      {shown.map((tag) => <Chip key={tag}>{tag}</Chip>)}
+      {extra > 0 && <span className="chip">+{extra}</span>}
+    </div>
   );
 }
 

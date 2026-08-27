@@ -59,6 +59,13 @@
   }
 
 
+  .map-pin__category {
+    flex: 0 0 auto;
+    align-self: center;
+    color: var(--text-muted);
+    line-height: 0;
+  }
+
   .map-pin__label {
     overflow: hidden;
     text-overflow: ellipsis;

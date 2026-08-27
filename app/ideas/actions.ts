@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getTripForMutation } from '@/lib/trips';
 import { localDateTimeToIso } from '@/lib/datetime';
+import { ideaCategories, type IdeaCategory } from '@/lib/categories';
 import { isGoogleMapsUrl, resolveGoogleMapsPlace } from '@/lib/google-maps';
 
 export type IdeaFormState = { error: string | null; saved?: boolean };
@@ -49,11 +50,20 @@ async function parseIdeaInput(formData: FormData, timezone: string) {
   const urlError = mapsUrl.error ?? websiteUrl.error ?? socialUrl.error ?? imageUrl.error;
   if (urlError) return { error: urlError } as const;
 
-  const types = text(formData, 'types')
+  const rawCategory = text(formData, 'category');
+  const category = (ideaCategories as readonly string[]).includes(rawCategory)
+    ? (rawCategory as IdeaCategory)
+    : 'activity';
+
+  const tags = text(formData, 'tags')
     .split(',')
-    .map((value) => value.trim())
+    .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
     .slice(0, 10);
+
+  /* `types` is still written so the column stays consistent while it
+     exists. Drop this — and the column — once nothing reads it. */
+  const types = [category, ...tags];
 
   const scheduledAtInput = text(formData, 'scheduledAt');
   const scheduledEndAtInput = text(formData, 'scheduledEndAt');
@@ -74,6 +84,8 @@ async function parseIdeaInput(formData: FormData, timezone: string) {
       city: optionalText(formData, 'city'),
       neighborhood: optionalText(formData, 'neighborhood'),
       types,
+      category,
+      tags,
       notes: optionalText(formData, 'notes'),
       maps_url: mapsUrl.value,
       location_address: place.address,

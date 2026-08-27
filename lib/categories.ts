@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Bike, Landmark, Martini, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, Bike, CalendarDays, Landmark, Martini, Plane, ShoppingBag, Ticket, TrainFront, UtensilsCrossed } from 'lucide-react';
 
 export const ideaCategories = ['food', 'drink', 'shopping', 'sight', 'activity'] as const;
 export type IdeaCategory = (typeof ideaCategories)[number];
@@ -68,3 +68,23 @@ export function splitTypes(types: string[]): { category: IdeaCategory; tags: str
 
   return { category: resolved, tags: [...new Set(tags)] };
 }
+
+/* Schedule mixes ideas, bookings and activities. Bookings already have a
+   clean enum ('flight', 'hotel'…) and activities are always 'Activity',
+   so rather than migrating two more tables we map them into the same
+   {label, icon} shape at display time. One chip vocabulary, no schema
+   churn. */
+export type ChipMeta = { label: string; icon: LucideIcon };
+
+const bookingMeta: Record<string, ChipMeta> = {
+  flight: { label: 'Flight', icon: Plane },
+  hotel: { label: 'Stay', icon: BedDouble },
+  train: { label: 'Train', icon: TrainFront },
+  ticket: { label: 'Ticket', icon: Ticket },
+};
+
+export function bookingChip(type: string): ChipMeta {
+  return bookingMeta[type.toLowerCase()] ?? { label: 'Booking', icon: CalendarDays };
+}
+
+export const activityChip: ChipMeta = { label: 'Activity', icon: Bike };
