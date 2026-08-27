@@ -15,6 +15,8 @@ export type Idea = {
   notes: string | null;
   mapsUrl: string | null;
   locationAddress: string | null;
+  latitude: number | null;
+  longitude: number | null;
   websiteUrl: string | null;
   socialUrl: string | null;
   coverPath: string | null;
@@ -45,6 +47,8 @@ type IdeaRow = {
   notes: string | null;
   maps_url: string | null;
   location_address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   website_url: string | null;
   social_url: string | null;
   cover_url: string | null;
@@ -82,6 +86,8 @@ function mapIdea(row: IdeaRow, userId: string, members: TripMemberRow[], imageUr
     notes: row.notes,
     mapsUrl: row.maps_url,
     locationAddress: row.location_address,
+    latitude: row.latitude,
+    longitude: row.longitude,
     websiteUrl: row.website_url,
     socialUrl: row.social_url,
     coverPath: row.cover_url,
@@ -117,7 +123,7 @@ export async function getIdeas(tripId: string): Promise<Idea[]> {
     getSessionUser(),
     supabase
       .from('ideas')
-      .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
+      .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, latitude, longitude, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
       .eq('trip_id', tripId)
       .order('created_at', { ascending: false }),
     supabase.from('trip_members').select('user_id, role').eq('trip_id', tripId).order('created_at'),
@@ -135,7 +141,7 @@ export async function getIdea(tripId: string, ideaId: string): Promise<Idea | nu
     getSessionUser(),
     supabase
       .from('ideas')
-      .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
+      .select('id, trip_id, title, country, city, neighborhood, types, notes, maps_url, location_address, latitude, longitude, website_url, social_url, cover_url, image_url, scheduled_at, scheduled_end_at, created_by, created_at, idea_votes(user_id, vote)')
       .eq('trip_id', tripId)
       .eq('id', ideaId)
       .maybeSingle(),

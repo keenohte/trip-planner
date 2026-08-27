@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getTripForMutation } from '@/lib/trips';
 import { localDateTimeToIso } from '@/lib/datetime';
-import { isGoogleMapsUrl, resolveGoogleMapsAddress } from '@/lib/google-maps';
+import { isGoogleMapsUrl, resolveGoogleMapsPlace } from '@/lib/google-maps';
 
 export type IdeaFormState = { error: string | null; saved?: boolean };
 
@@ -64,6 +64,8 @@ async function parseIdeaInput(formData: FormData, timezone: string) {
   if (scheduledEndAt && !scheduledAt) return { error: 'Add a start time before adding an end time.' } as const;
   if (scheduledAt && scheduledEndAt && scheduledEndAt < scheduledAt) return { error: 'The end time must be after the start time.' } as const;
 
+  const place = await resolveGoogleMapsPlace(mapsUrl.value);
+
   return {
     error: null,
     values: {
@@ -74,7 +76,9 @@ async function parseIdeaInput(formData: FormData, timezone: string) {
       types,
       notes: optionalText(formData, 'notes'),
       maps_url: mapsUrl.value,
-      location_address: await resolveGoogleMapsAddress(mapsUrl.value),
+      location_address: place.address,
+      latitude: place.latitude,
+      longitude: place.longitude,
       website_url: websiteUrl.value,
       social_url: socialUrl.value,
       image_url: imageUrl.value,

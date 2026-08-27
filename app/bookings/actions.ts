@@ -6,7 +6,7 @@ import { bookingTypes } from '@/lib/booking-types';
 import { isValidTimeZone, localDateTimeToIso } from '@/lib/datetime';
 import { createClient } from '@/lib/supabase/server';
 import { getTripForMutation } from '@/lib/trips';
-import { isGoogleMapsUrl, resolveGoogleMapsAddress } from '@/lib/google-maps';
+import { isGoogleMapsUrl, resolveGoogleMapsPlace } from '@/lib/google-maps';
 
 export type BookingFormState = { error: string | null; saved?: boolean };
 
@@ -54,6 +54,8 @@ async function parseBookingInput(formData: FormData, tripTimezone: string) {
   const urlError = bookingUrl.error ?? mapsUrl.error ?? websiteUrl.error;
   if (urlError) return { error: urlError } as const;
 
+  const place = await resolveGoogleMapsPlace(mapsUrl.value);
+
   return { error: null, values: {
     title,
     type,
@@ -65,7 +67,9 @@ async function parseBookingInput(formData: FormData, tripTimezone: string) {
     confirmation: optionalText(formData, 'confirmation'),
     booking_url: bookingUrl.value,
     maps_url: mapsUrl.value,
-    location_address: await resolveGoogleMapsAddress(mapsUrl.value),
+    location_address: place.address,
+    latitude: place.latitude,
+    longitude: place.longitude,
     website_url: websiteUrl.value,
     notes: optionalText(formData, 'notes'),
   } } as const;

@@ -40,23 +40,79 @@ async function resolveGoogleRedirect(value: string) {
   return current;
 }
 
-export async function resolveGoogleMapsAddress(value: string | null) {
-  if (!value || !isGoogleMapsUrl(value)) return null;
+export type ResolvedPlace = {
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+};
+
+const EMPTY_PLACE: ResolvedPlace = { address: null, latitude: null, longitude: null };
+
+function parseCoordinatePair(value: string | null): { latitude: number; longitude: number } | null {
+  if (!value) return null;
+  const parts = value.split(',').map((part) => part.trim());
+  /* Guard the empty-string case explicitly: Number('') is 0, so "35.0,"
+     would otherwise parse as a valid point at longitude 0 — a pin in the
+     Gulf of Guinea rather than a failed parse. */
+  if (parts.length !== 2 || parts.some((part) => part === '')) return null;
+  const [lat, lng] = parts.map(Number);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { latitude: lat, longitude: lng };
+}
+
+/* Returns the address AND the coordinates.
+   Both were already being computed — coordinatesFromUrl() reads them
+   straight out of the map URL, and the Geocoding response carries
+   geometry.location. Only formatted_address was kept. No extra API
+   calls; when the URL contains coordinates there is no API call at all. */
+export async function resolveGoogleMapsPlace(value: string | null): Promise<ResolvedPlace> {
+  if (!value || !isGoogleMapsUrl(value)) return EMPTY_PLACE;
   try {
     const resolved = await resolveGoogleRedirect(value) ?? new URL(value);
     const fallbackAddress = addressFromUrl(resolved);
-    const lookup = coordinatesFromUrl(resolved) ?? fallbackAddress;
+    const urlCoordinates = coordinatesFromUrl(resolved);
+    const fromUrl = parseCoordinatePair(urlCoordinates);
+
+    const lookup = urlCoordinates ?? fallbackAddress;
     const apiKey = process.env.GOOGLE_MAPS_GEOCODING_API_KEY;
-    if (!apiKey || !lookup) return fallbackAddress;
+    if (!apiKey || !lookup) {
+      return { address: fallbackAddress, latitude: fromUrl?.latitude ?? null, longitude: fromUrl?.longitude ?? null };
+    }
 
     const endpoint = new URL('https://maps.googleapis.com/maps/api/geocode/json');
     endpoint.searchParams.set(/^[-\d.]+,[-\d.]+$/.test(lookup) ? 'latlng' : 'address', lookup);
     endpoint.searchParams.set('key', apiKey);
     const response = await fetch(endpoint, { cache: 'no-store' });
-    if (!response.ok) return fallbackAddress;
-    const payload = await response.json() as { status?: string; results?: Array<{ formatted_address?: string }> };
-    return payload.status === 'OK' ? payload.results?.[0]?.formatted_address ?? fallbackAddress : fallbackAddress;
-  } catch { return null; }
+    if (!response.ok) {
+      return { address: fallbackAddress, latitude: fromUrl?.latitude ?? null, longitude: fromUrl?.longitude ?? null };
+    }
+
+    const payload = await response.json() as {
+      status?: string;
+      results?: Array<{ formatted_address?: string; geometry?: { location?: { lat?: number; lng?: number } } }>;
+    };
+    if (payload.status !== 'OK') {
+      return { address: fallbackAddress, latitude: fromUrl?.latitude ?? null, longitude: fromUrl?.longitude ?? null };
+    }
+
+    const top = payload.results?.[0];
+    const geo = top?.geometry?.location;
+    /* Prefer coordinates from the URL: they point at the exact pin the
+       person shared, whereas geocoding an address can land on a street
+       centroid or the wrong entrance of a large site. */
+    const latitude = fromUrl?.latitude ?? (Number.isFinite(geo?.lat) ? geo!.lat! : null);
+    const longitude = fromUrl?.longitude ?? (Number.isFinite(geo?.lng) ? geo!.lng! : null);
+
+    return { address: top?.formatted_address ?? fallbackAddress, latitude, longitude };
+  } catch {
+    return EMPTY_PLACE;
+  }
+}
+
+/** @deprecated Use resolveGoogleMapsPlace, which also returns coordinates. */
+export async function resolveGoogleMapsAddress(value: string | null) {
+  return (await resolveGoogleMapsPlace(value)).address;
 }
 
 export function googleMapsEmbedUrl(address: string) {
