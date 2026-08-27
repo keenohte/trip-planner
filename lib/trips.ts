@@ -1,6 +1,8 @@
+import { cache } from 'react';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
+import { getSessionUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
-import { AUTH_TIMEOUT_MS, QUERY_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout';
+import { MUTATION_TIMEOUT_MS, QUERY_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout';
 
 export type CurrentTrip = {
   id: string;
@@ -11,22 +13,23 @@ export type CurrentTrip = {
   role: 'owner' | 'member';
 };
 
-export async function getCurrentTrip(): Promise<CurrentTrip | null> {
+/* cache() matters more than the timeout here.
+
+   Without it every caller made its own round trip and independently raced
+   the deadline — so Nav could resolve the trip while the page beside it
+   timed out and rendered the "no trip" hero. One render, two different
+   answers about whether the trip exists. cache() collapses them into a
+   single lookup per render pass, so the whole page agrees.
+
+   `timeoutMs` is a plain number so cache() can key on it; reads and
+   mutations therefore get separate entries, which is what we want. */
+const loadTrip = cache(async (timeoutMs: number): Promise<CurrentTrip | null> => {
   if (!isSupabaseConfigured) return null;
 
-  const supabase = await createClient();
-
-  /* Bounded for the same reason as middleware: this runs on every page
-     render, so an unbounded await here would just move the 504 from the
-     edge to the render. Returning null renders the app shell with no trip
-     data, which is a usable degraded state. */
-  const user = await withTimeout(
-    supabase.auth.getUser().then((result) => result.data.user),
-    AUTH_TIMEOUT_MS,
-    null,
-  );
+  const user = await getSessionUser();
   if (!user) return null;
 
+  const supabase = await createClient();
   const data = await withTimeout(
     supabase
       .from('trip_members')
@@ -36,7 +39,7 @@ export async function getCurrentTrip(): Promise<CurrentTrip | null> {
       .limit(1)
       .maybeSingle()
       .then((result) => (result.error ? null : result.data)),
-    QUERY_TIMEOUT_MS,
+    timeoutMs,
     null,
   );
 
@@ -58,5 +61,12 @@ export async function getCurrentTrip(): Promise<CurrentTrip | null> {
     timezone: trip.timezone,
     role: data.role as CurrentTrip['role'],
   };
-}
+});
+
+/** For rendering. Degrades to null quickly so a page can still paint. */
+export const getCurrentTrip = () => loadTrip(QUERY_TIMEOUT_MS);
+
+/** For server actions. Waits far longer, because reporting "not found"
+    on a write when the record exists is worse than making someone wait. */
+export const getTripForMutation = () => loadTrip(MUTATION_TIMEOUT_MS);
 

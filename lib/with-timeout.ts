@@ -26,5 +26,12 @@ export async function withTimeout<T>(work: PromiseLike<T>, ms: number, fallback:
   }
 }
 
+/* Render path: a person waiting on a page would rather see a degraded
+   shell than a spinner, so bounds here are tight. */
 export const AUTH_TIMEOUT_MS = 3000;
 export const QUERY_TIMEOUT_MS = 2000;
+
+/* Mutation path: someone who clicked Save will happily wait. They will
+   NOT happily see "not found" because a lookup lost a 3s race. Failing
+   fast is right for reads and wrong for writes. */
+export const MUTATION_TIMEOUT_MS = 15000;

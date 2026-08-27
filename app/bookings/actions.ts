@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { bookingTypes } from '@/lib/booking-types';
 import { isValidTimeZone, localDateTimeToIso } from '@/lib/datetime';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentTrip } from '@/lib/trips';
+import { getTripForMutation } from '@/lib/trips';
 import { isGoogleMapsUrl, resolveGoogleMapsAddress } from '@/lib/google-maps';
 
 export type BookingFormState = { error: string | null; saved?: boolean };
@@ -78,8 +78,8 @@ function revalidateBookingPaths() {
 }
 
 export async function createBooking(_state: BookingFormState, formData: FormData): Promise<BookingFormState> {
-  const trip = await getCurrentTrip();
-  if (!trip) return { error: 'No current trip was found.' };
+  const trip = await getTripForMutation();
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
   const input = await parseBookingInput(formData, trip.timezone);
   if (input.error || !input.values) return { error: input.error };
   const supabase = await createClient();
@@ -92,9 +92,10 @@ export async function createBooking(_state: BookingFormState, formData: FormData
 }
 
 export async function updateBooking(_state: BookingFormState, formData: FormData): Promise<BookingFormState> {
-  const trip = await getCurrentTrip();
+  const trip = await getTripForMutation();
   const bookingId = text(formData, 'bookingId');
-  if (!trip || !/^[0-9a-f-]{36}$/i.test(bookingId)) return { error: 'Booking not found.' };
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
+  if (!/^[0-9a-f-]{36}$/i.test(bookingId)) return { error: 'Booking not found.' };
   const input = await parseBookingInput(formData, trip.timezone);
   if (input.error || !input.values) return { error: input.error };
   const supabase = await createClient();
@@ -105,7 +106,7 @@ export async function updateBooking(_state: BookingFormState, formData: FormData
 }
 
 export async function deleteBooking(formData: FormData) {
-  const trip = await getCurrentTrip();
+  const trip = await getTripForMutation();
   const bookingId = text(formData, 'bookingId');
   if (!trip || !/^[0-9a-f-]{36}$/i.test(bookingId)) redirect('/bookings');
   const supabase = await createClient();

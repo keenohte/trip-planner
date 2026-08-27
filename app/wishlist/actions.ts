@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentTrip } from '@/lib/trips';
+import { getTripForMutation } from '@/lib/trips';
 import { wishlistKinds, wishlistPriorities } from '@/lib/wishlist-types';
 
 export type WishlistFormState = { error: string | null; saved?: boolean };
@@ -21,8 +21,8 @@ function parseInput(data: FormData) {
 function refresh(id?: string) { revalidatePath('/wishlist'); if (id) revalidatePath(`/wishlist/${id}`); }
 
 export async function createWishlistItem(_state: WishlistFormState, data: FormData): Promise<WishlistFormState> {
-  const trip = await getCurrentTrip();
-  if (!trip) return { error: 'No current trip was found.' };
+  const trip = await getTripForMutation();
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
   const input = parseInput(data);
   if (input.error || !input.values) return { error: input.error };
   const supabase = await createClient();
@@ -36,9 +36,10 @@ export async function createWishlistItem(_state: WishlistFormState, data: FormDa
 }
 
 export async function updateWishlistItem(_state: WishlistFormState, data: FormData): Promise<WishlistFormState> {
-  const trip = await getCurrentTrip();
+  const trip = await getTripForMutation();
   const id = text(data, 'itemId');
-  if (!trip || !/^[0-9a-f-]{36}$/i.test(id)) return { error: 'Wishlist item not found.' };
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { error: 'Wishlist item not found.' };
   const input = parseInput(data);
   if (input.error || !input.values) return { error: input.error };
   const { error } = await (await createClient()).from('wishlist_items').update(input.values).eq('id', id).eq('trip_id', trip.id);
@@ -49,7 +50,7 @@ export async function updateWishlistItem(_state: WishlistFormState, data: FormDa
 }
 
 export async function deleteWishlistItem(data: FormData) {
-  const trip = await getCurrentTrip();
+  const trip = await getTripForMutation();
   const id = text(data, 'itemId');
   if (!trip || !/^[0-9a-f-]{36}$/i.test(id)) redirect('/wishlist');
   await (await createClient()).from('wishlist_items').delete().eq('id', id).eq('trip_id', trip.id);

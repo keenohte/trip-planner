@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { localDateTimeToIso } from '@/lib/datetime';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentTrip } from '@/lib/trips';
+import { getTripForMutation } from '@/lib/trips';
 
 export type ActivityFormState = { error: string | null; saved?: boolean };
 const allowedImageTypes = new Map([['image/jpeg','jpg'],['image/png','png'],['image/webp','webp'],['image/gif','gif']]);
@@ -46,7 +46,7 @@ function parse(data:FormData,timezone:string) {
 function refresh(id?:string){ revalidatePath('/');revalidatePath('/schedule');if(id)revalidatePath(`/schedule/${id}`); }
 
 export async function createScheduleActivity(_state:ActivityFormState,data:FormData):Promise<ActivityFormState>{
-  const trip=await getCurrentTrip(); if(!trip)return{error:'No current trip was found.'};
+  const trip=await getTripForMutation(); if(!trip)return{error:'Could not reach the server. Please try again.'};
   const input=parse(data,trip.timezone);if(input.error||!input.values)return{error:input.error};
   const supabase=await createClient();const {data:auth}=await supabase.auth.getUser();if(!auth.user)return{error:'Your session expired. Sign in again.'};
   const {data:created,error}=await supabase.from('schedule_activities').insert({...input.values,trip_id:trip.id,created_by:auth.user.id}).select('id').single();
@@ -56,7 +56,7 @@ export async function createScheduleActivity(_state:ActivityFormState,data:FormD
 }
 
 export async function updateScheduleActivity(_state:ActivityFormState,data:FormData):Promise<ActivityFormState>{
-  const trip=await getCurrentTrip();const id=text(data,'activityId');if(!trip||!/^[0-9a-f-]{36}$/i.test(id))return{error:'Activity not found.'};
+  const trip=await getTripForMutation();const id=text(data,'activityId');if(!trip)return{error:'Could not reach the server. Please try again.'};if(!/^[0-9a-f-]{36}$/i.test(id))return{error:'Activity not found.'};
   const input=parse(data,trip.timezone);if(input.error||!input.values)return{error:input.error};
   const supabase=await createClient();const {data:existing,error:findError}=await supabase.from('schedule_activities').select('cover_url').eq('id',id).eq('trip_id',trip.id).maybeSingle();if(findError)return{error:databaseError(findError.message)};if(!existing)return{error:'Activity not found.'};
   const file=photo(data);let path:string|null=null;if(file){const result=await upload(trip.id,id,file);if(result.error||!result.path)return{error:result.error};path=result.path;}
@@ -64,4 +64,4 @@ export async function updateScheduleActivity(_state:ActivityFormState,data:FormD
   if(path&&existing.cover_url)await supabase.storage.from('idea-images').remove([existing.cover_url]);refresh(id);return{error:null,saved:true};
 }
 
-export async function deleteScheduleActivity(data:FormData){const trip=await getCurrentTrip();const id=text(data,'activityId');if(!trip||!/^[0-9a-f-]{36}$/i.test(id))redirect('/schedule');const supabase=await createClient();const {data:existing}=await supabase.from('schedule_activities').select('cover_url').eq('id',id).eq('trip_id',trip.id).maybeSingle();await supabase.from('schedule_activities').delete().eq('id',id).eq('trip_id',trip.id);if(existing?.cover_url)await supabase.storage.from('idea-images').remove([existing.cover_url]);refresh(id);redirect('/schedule');}
+export async function deleteScheduleActivity(data:FormData){const trip=await getTripForMutation();const id=text(data,'activityId');if(!trip||!/^[0-9a-f-]{36}$/i.test(id))redirect('/schedule');const supabase=await createClient();const {data:existing}=await supabase.from('schedule_activities').select('cover_url').eq('id',id).eq('trip_id',trip.id).maybeSingle();await supabase.from('schedule_activities').delete().eq('id',id).eq('trip_id',trip.id);if(existing?.cover_url)await supabase.storage.from('idea-images').remove([existing.cover_url]);refresh(id);redirect('/schedule');}

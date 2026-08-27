@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentTrip } from '@/lib/trips';
+import { getTripForMutation } from '@/lib/trips';
 import { localDateTimeToIso } from '@/lib/datetime';
 import { isGoogleMapsUrl, resolveGoogleMapsAddress } from '@/lib/google-maps';
 
@@ -111,8 +111,8 @@ export async function createIdea(
   _previousState: IdeaFormState,
   formData: FormData,
 ): Promise<IdeaFormState> {
-  const trip = await getCurrentTrip();
-  if (!trip) return { error: 'No current trip was found.' };
+  const trip = await getTripForMutation();
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
 
   const input = await parseIdeaInput(formData, trip.timezone);
   if (input.error || !input.values) return { error: input.error };
@@ -158,9 +158,10 @@ export async function updateIdea(
   _previousState: IdeaFormState,
   formData: FormData,
 ): Promise<IdeaFormState> {
-  const trip = await getCurrentTrip();
+  const trip = await getTripForMutation();
   const ideaId = text(formData, 'ideaId');
-  if (!trip || !/^[0-9a-f-]{36}$/i.test(ideaId)) return { error: 'Idea not found.' };
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
+  if (!/^[0-9a-f-]{36}$/i.test(ideaId)) return { error: 'Idea not found.' };
 
   const input = await parseIdeaInput(formData, trip.timezone);
   if (input.error || !input.values) return { error: input.error };
@@ -207,7 +208,7 @@ export async function updateIdea(
 }
 
 export async function deleteIdea(formData: FormData) {
-  const trip = await getCurrentTrip();
+  const trip = await getTripForMutation();
   const ideaId = text(formData, 'ideaId');
   if (!trip || !/^[0-9a-f-]{36}$/i.test(ideaId)) redirect('/ideas');
 
