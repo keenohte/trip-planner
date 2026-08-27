@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImageIcon, MapPin, MapPinned, X } from 'lucide-react';
 import { loadGoogleMaps, type MapsApi } from '@/lib/google-maps-loader';
 import { distanceKm, formatDistance } from '@/lib/distance';
-import { Chip } from '@/components/ui/Card';
+import { CategoryTagList } from '@/components/ui/Card';
 import { VoteControls } from '@/components/VoteControls';
 import type { Idea } from '@/lib/ideas';
 import type { IdeaCategory } from '@/lib/categories';
@@ -227,9 +227,7 @@ export function IdeaMap({
             <div className="map-preview__text">
               <strong>{preview.title}</strong>
               {location && <span className="map-preview__meta"><MapPin size={12} aria-hidden="true" />{location}</span>}
-              {preview.types.length > 0 && (
-                <span className="chip-list">{preview.types.slice(0, 2).map((type) => <Chip key={type}>{type}</Chip>)}</span>
-              )}
+              <CategoryTagList category={preview.category} tags={preview.tags} max={1} />
             </div>
           </button>
 

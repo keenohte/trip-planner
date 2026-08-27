@@ -5,6 +5,7 @@
   .field,
   .form-field {
     display: grid;
+    align-content: start;
     gap: var(--space-1);
     min-width: 0;
   }
@@ -87,6 +88,10 @@
     resize: vertical;
   }
 
+  /* Native <select> draws its own arrow at the right edge, so text needs
+     room to clear it. Overridden to a normal 12px inside the
+     base-select block below, where the chevron is a real element we
+     position ourselves. */
   .field-control--select {
     padding-right: var(--space-8);
     cursor: pointer;
@@ -114,6 +119,8 @@
       align-items: center;
       justify-content: space-between;
       gap: var(--space-2);
+      /* Symmetrical with the left padding now that the chevron is ours. */
+      padding-right: var(--space-3);
       text-align: left;
     }
 
@@ -232,8 +239,13 @@
 
   .date-time-trigger {
     height: var(--target-min);
-    padding: 0 calc(var(--space-8) + var(--space-2)) 0 var(--space-3);
+    /* 24px control + 12px inset, so the clear button sits the same
+       distance from the edge as every other trailing icon. */
+    padding: 0 calc(var(--space-6) + var(--space-3)) 0 var(--space-3);
   }
+
+  /* Overrides legacy's right: 8px. */
+  .date-time-clear { right: var(--space-3); }
 
   .date-time-footer input[type='time'] {
     min-height: calc(var(--target-min) - var(--space-2));

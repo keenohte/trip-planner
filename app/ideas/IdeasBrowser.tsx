@@ -9,7 +9,7 @@ import { NewIdeaTrigger } from '@/components/NewIdeaTrigger';
 import { Button } from '@/components/ui/Button';
 import { SearchInput, Select } from '@/components/ui/FormControls';
 import { useCloseDetailsOnOutside } from '@/lib/use-close-details';
-import { categoryMeta, ideaCategories } from '@/lib/categories';
+import { categoryMeta, formatTag, ideaCategories } from '@/lib/categories';
 import type { Idea } from '@/lib/ideas';
 
 const copy = {
@@ -136,7 +136,7 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
                   <Select value={tag} onChange={(event) => setTag(event.target.value)}>
                     <option value="all">All tags</option>
                     {tags.map((value) => (
-                      <option value={value} key={value}>{value}</option>
+                      <option value={value} key={value}>{formatTag(value)}</option>
                     ))}
                   </Select>
                 </label>

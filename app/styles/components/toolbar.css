@@ -17,11 +17,12 @@
     position: relative;
     width: 260px;
   }
-  .search .field-control { padding-right: calc(var(--space-8) + var(--space-1)); }
+  /* 24px control + 12px inset, matching every other trailing icon. */
+  .search .field-control { padding-right: calc(var(--space-6) + var(--space-3)); }
   .search__clear {
     position: absolute;
     top: 50%;
-    right: var(--space-2);
+    right: var(--space-3);
     display: grid;
     width: 24px;
     height: 24px;

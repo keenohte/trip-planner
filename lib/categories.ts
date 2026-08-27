@@ -88,3 +88,9 @@ export function bookingChip(type: string): ChipMeta {
 }
 
 export const activityChip: ChipMeta = { label: 'Activity', icon: Bike };
+
+/* For <option> labels and anywhere a real cased string is needed.
+   CSS text-transform does not apply reliably inside a native <select>. */
+export function formatTag(tag: string): string {
+  return tag.replace(/\b\w/g, (character) => character.toUpperCase());
+}
