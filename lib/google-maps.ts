@@ -44,9 +44,54 @@ export type ResolvedPlace = {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  title: string | null;
+  country: string | null;
+  city: string | null;
+  neighborhood: string | null;
 };
 
-const EMPTY_PLACE: ResolvedPlace = { address: null, latitude: null, longitude: null };
+const EMPTY_PLACE: ResolvedPlace = {
+  address: null, latitude: null, longitude: null,
+  title: null, country: null, city: null, neighborhood: null,
+};
+
+type AddressComponent = { long_name?: string; short_name?: string; types?: string[] };
+
+/* The geocoding response has always carried address_components; only
+   formatted_address was being read. Parsing the rest costs no extra
+   call. Locality is the usual city, but Japanese addresses often use
+   the ward-level types instead, so fall through a list. */
+function pick(components: AddressComponent[], types: string[]): string | null {
+  for (const type of types) {
+    const hit = components.find((component) => component.types?.includes(type));
+    if (hit?.long_name) return hit.long_name;
+  }
+  return null;
+}
+
+function partsFromComponents(components: AddressComponent[]) {
+  return {
+    country: pick(components, ['country']),
+    city: pick(components, ['locality', 'postal_town', 'administrative_area_level_2', 'administrative_area_level_1']),
+    neighborhood: pick(components, ['neighborhood', 'sublocality_level_1', 'sublocality', 'ward']),
+  };
+}
+
+/* The place name sits in the URL path — /maps/place/Fushimi+Inari+Taisha/.
+   Free, and more faithful than anything geocoding returns, since it is
+   the name the person actually saw. Coordinate strings and plus-codes
+   are not names, so they are rejected. */
+function titleFromUrl(url: URL): string | null {
+  const match = url.pathname.match(/\/maps\/place\/([^/@]+)/i);
+  if (!match) return null;
+  let value: string;
+  try { value = decodeURIComponent(match[1].replace(/\+/g, ' ')).trim(); }
+  catch { value = match[1].replace(/\+/g, ' ').trim(); }
+  if (!value) return null;
+  if (/^[-\d.]+,\s*[-\d.]+$/.test(value)) return null;
+  if (/^[23456789CFGHJMPQRVWX]{4,}\+[23456789CFGHJMPQRVWX]{2,}/i.test(value)) return null;
+  return value.slice(0, 160);
+}
 
 function parseCoordinatePair(value: string | null): { latitude: number; longitude: number } | null {
   if (!value) return null;
@@ -74,27 +119,36 @@ export async function resolveGoogleMapsPlace(value: string | null): Promise<Reso
     const urlCoordinates = coordinatesFromUrl(resolved);
     const fromUrl = parseCoordinatePair(urlCoordinates);
 
+    const title = titleFromUrl(resolved);
+    const base = {
+      address: fallbackAddress,
+      latitude: fromUrl?.latitude ?? null,
+      longitude: fromUrl?.longitude ?? null,
+      title,
+      country: null,
+      city: null,
+      neighborhood: null,
+    };
+
     const lookup = urlCoordinates ?? fallbackAddress;
     const apiKey = process.env.GOOGLE_MAPS_GEOCODING_API_KEY;
-    if (!apiKey || !lookup) {
-      return { address: fallbackAddress, latitude: fromUrl?.latitude ?? null, longitude: fromUrl?.longitude ?? null };
-    }
+    if (!apiKey || !lookup) return base;
 
     const endpoint = new URL('https://maps.googleapis.com/maps/api/geocode/json');
     endpoint.searchParams.set(/^[-\d.]+,[-\d.]+$/.test(lookup) ? 'latlng' : 'address', lookup);
     endpoint.searchParams.set('key', apiKey);
     const response = await fetch(endpoint, { cache: 'no-store' });
-    if (!response.ok) {
-      return { address: fallbackAddress, latitude: fromUrl?.latitude ?? null, longitude: fromUrl?.longitude ?? null };
-    }
+    if (!response.ok) return base;
 
     const payload = await response.json() as {
       status?: string;
-      results?: Array<{ formatted_address?: string; geometry?: { location?: { lat?: number; lng?: number } } }>;
+      results?: Array<{
+        formatted_address?: string;
+        address_components?: AddressComponent[];
+        geometry?: { location?: { lat?: number; lng?: number } };
+      }>;
     };
-    if (payload.status !== 'OK') {
-      return { address: fallbackAddress, latitude: fromUrl?.latitude ?? null, longitude: fromUrl?.longitude ?? null };
-    }
+    if (payload.status !== 'OK') return base;
 
     const top = payload.results?.[0];
     const geo = top?.geometry?.location;
@@ -104,7 +158,8 @@ export async function resolveGoogleMapsPlace(value: string | null): Promise<Reso
     const latitude = fromUrl?.latitude ?? (Number.isFinite(geo?.lat) ? geo!.lat! : null);
     const longitude = fromUrl?.longitude ?? (Number.isFinite(geo?.lng) ? geo!.lng! : null);
 
-    return { address: top?.formatted_address ?? fallbackAddress, latitude, longitude };
+    const parts = partsFromComponents(top?.address_components ?? []);
+    return { address: top?.formatted_address ?? fallbackAddress, latitude, longitude, title, ...parts };
   } catch {
     return EMPTY_PLACE;
   }

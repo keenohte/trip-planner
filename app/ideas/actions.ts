@@ -39,8 +39,12 @@ function parseUrl(formData: FormData, name: string) {
 }
 
 async function parseIdeaInput(formData: FormData, timezone: string) {
-  const title = text(formData, 'title');
-  if (!title || title.length > 160) return { error: 'Enter a title under 160 characters.' } as const;
+  /* Length is checked here; emptiness is checked AFTER the Maps lookup,
+     because a pasted link can supply the title. Validating first would
+     reject "paste link, hit Save" — the exact flow the autofill exists
+     to enable. */
+  const typedTitle = text(formData, 'title');
+  if (typedTitle.length > 160) return { error: 'Enter a title under 160 characters.' } as const;
 
   const mapsUrl = parseUrl(formData, 'mapsUrl');
   if (mapsUrl.value && !isGoogleMapsUrl(mapsUrl.value)) return { error: 'Enter a Google Maps link.' } as const;
@@ -76,13 +80,22 @@ async function parseIdeaInput(formData: FormData, timezone: string) {
 
   const place = await resolveGoogleMapsPlace(mapsUrl.value);
 
+  /* Fill only blanks. If the client-side lookup already populated these,
+     the values arrive in the form and win. If the person typed something,
+     it wins. Autofill that overwrites typed input is how autofill earns
+     distrust. */
+  const orBlank = (typed: string | null, resolved: string | null) => (typed && typed.trim() ? typed : resolved);
+
+  const title = orBlank(typedTitle, place.title)?.slice(0, 160) ?? '';
+  if (!title) return { error: 'Enter a title, or paste a Google Maps link to fill it in.' } as const;
+
   return {
     error: null,
     values: {
       title,
-      country: optionalText(formData, 'country'),
-      city: optionalText(formData, 'city'),
-      neighborhood: optionalText(formData, 'neighborhood'),
+      country: orBlank(optionalText(formData, 'country'), place.country),
+      city: orBlank(optionalText(formData, 'city'), place.city),
+      neighborhood: orBlank(optionalText(formData, 'neighborhood'), place.neighborhood),
       types,
       category,
       tags,

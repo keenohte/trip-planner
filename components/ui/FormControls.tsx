@@ -3,15 +3,18 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { Search } from 'lucide-react';
 
-export function Field({ htmlFor, label, required = false, hint, children }: {
+export function Field({ htmlFor, label, required = false, hint, span, children }: {
   htmlFor: string;
   label: ReactNode;
   required?: boolean;
   hint?: ReactNode;
+  /* Column span inside .form-grid. A named variant rather than a
+     className prop, so callers cannot restyle a Field arbitrarily. */
+  span?: 2 | 3;
   children: ReactNode;
 }) {
   return (
-    <div className="field">
+    <div className={span ? `field form-grid__${span}` : 'field'}>
       <label className="field__label" htmlFor={htmlFor}>{label}{required && <span aria-hidden="true"> *</span>}</label>
       {children}
       {hint && <small className="field__hint">{hint}</small>}
@@ -21,14 +24,21 @@ export function Field({ htmlFor, label, required = false, hint, children }: {
 
 type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'style'> & {
   leadingIcon?: ReactNode;
+  trailingIcon?: ReactNode;
 };
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ leadingIcon, ...props }, ref) {
-  if (!leadingIcon) return <input className="field-control" ref={ref} {...props} />;
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ leadingIcon, trailingIcon, ...props }, ref) {
+  if (!leadingIcon && !trailingIcon) return <input className="field-control" ref={ref} {...props} />;
+  const control = [
+    'field-control',
+    leadingIcon && 'field-control--leading',
+    trailingIcon && 'field-control--trailing',
+  ].filter(Boolean).join(' ');
   return (
     <span className="field-control-shell">
-      <span className="field-control-shell__leading" aria-hidden="true">{leadingIcon}</span>
-      <input className="field-control field-control--leading" ref={ref} {...props} />
+      {leadingIcon && <span className="field-control-shell__leading" aria-hidden="true">{leadingIcon}</span>}
+      <input className={control} ref={ref} {...props} />
+      {trailingIcon && <span className="field-control-shell__trailing" aria-hidden="true">{trailingIcon}</span>}
     </span>
   );
 });

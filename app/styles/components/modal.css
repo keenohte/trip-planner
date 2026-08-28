@@ -219,6 +219,12 @@
     background: var(--surface);
   }
 
+  .modal-form__subtitle {
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+    font-size: var(--text-base);
+  }
+
   .modal-form__title {
     margin: 0;
     font-size: var(--text-lg);

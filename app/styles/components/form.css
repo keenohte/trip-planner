@@ -291,3 +291,42 @@
     border-radius: var(--radius-control);
   }
 }
+
+@layer components {
+  /* A 6-column grid so fields can REGROUP between breakpoints rather than
+     simply stacking. Desktop: country/city/neighborhood on one row, then
+     category/tags. Mobile: country/city, neighborhood/category, then tags
+     full width. Same DOM order, different grouping. */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .form-grid__2 { grid-column: span 2; }
+  .form-grid__3 { grid-column: span 3; }
+
+  @media (max-width: 650px) {
+    .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .form-grid__2,
+    .form-grid__3 { grid-column: span 1; }
+    /* Tags is the fifth item; with two per row it lands alone, so let it
+       take the full width rather than sitting half-empty. */
+    .form-grid > .form-grid__3:last-child { grid-column: span 2; }
+  }
+
+  .field-control-shell__trailing {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: var(--space-3);
+    display: grid;
+    place-items: center;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .field-control--trailing { padding-right: calc(var(--space-6) + var(--space-3)); }
+
+  .field-spinner { animation: field-spin 0.9s linear infinite; }
+  @keyframes field-spin { to { transform: rotate(360deg); } }
+}

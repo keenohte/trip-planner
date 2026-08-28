@@ -8,13 +8,14 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
    pinned action row at the bottom. */
 export const MODAL_FORM_TITLE_ID = 'modal-form-title';
 
-export function ModalFormLayout({ action, children, error, pending, onCancel, title, className = '', saveLabel = 'Save' }: {
+export function ModalFormLayout({ action, children, error, pending, onCancel, title, subtitle, className = '', saveLabel = 'Save' }: {
   action: (payload: FormData) => void;
   children: ReactNode;
   error?: string | null;
   pending: boolean;
   onCancel: () => void;
   title: string;
+  subtitle?: string;
   className?: string;
   saveLabel?: string;
 }) {
@@ -29,6 +30,7 @@ export function ModalFormLayout({ action, children, error, pending, onCancel, ti
   return <form className={`idea-form modal-idea-form ${className}`.trim()} action={action}>
     <header className="modal-form__header">
       <h2 className="modal-form__title" id={MODAL_FORM_TITLE_ID}>{title}</h2>
+      {subtitle && <p className="modal-form__subtitle">{subtitle}</p>}
     </header>
     <div className={`idea-form-scroll${scrolling ? ' is-scrolling' : ''}`} onScroll={onScroll}>
       <input type="hidden" name="presentation" value="modal" />
