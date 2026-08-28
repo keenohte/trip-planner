@@ -56,4 +56,14 @@
   }
 
   .btn--block { width: 100%; }
+
+  /* Compact size for controls nested inside a 44px field, where a 40px
+     button leaves no breathing room. 32px + 4px padding each side fits
+     exactly. A named size so the next nested control reuses it instead
+     of inventing another one. */
+  .btn--sm {
+    min-height: 32px;
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+  }
 }

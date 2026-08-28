@@ -77,6 +77,7 @@
     --primary-hover: var(--raw-petrol-700);
     --primary-soft: var(--raw-petrol-100);
     --danger: var(--raw-brick-600);
+    --success: var(--raw-green-600);
 
     /* vote + agreement state — the app's real subject.
        `mutual` is the payoff moment: both travellers said yes.

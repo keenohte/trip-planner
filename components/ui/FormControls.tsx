@@ -28,7 +28,11 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'sty
 };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ leadingIcon, trailingIcon, ...props }, ref) {
-  if (!leadingIcon && !trailingIcon) return <input className="field-control" ref={ref} {...props} />;
+  /* The element tree must NOT change shape when an icon prop toggles.
+     Returning a bare <input> in one branch and a wrapped one in the other
+     made React remount the input when the lookup spinner appeared —
+     destroying the value the person had just pasted. The shell is always
+     rendered; only its children are conditional. */
   const control = [
     'field-control',
     leadingIcon && 'field-control--leading',
@@ -36,9 +40,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input({ l
   ].filter(Boolean).join(' ');
   return (
     <span className="field-control-shell">
-      {leadingIcon && <span className="field-control-shell__leading" aria-hidden="true">{leadingIcon}</span>}
+      {leadingIcon ? <span className="field-control-shell__leading" aria-hidden="true">{leadingIcon}</span> : null}
       <input className={control} ref={ref} {...props} />
-      {trailingIcon && <span className="field-control-shell__trailing" aria-hidden="true">{trailingIcon}</span>}
+      {trailingIcon ? <span className="field-control-shell__trailing" aria-hidden="true">{trailingIcon}</span> : null}
     </span>
   );
 });
@@ -67,7 +71,7 @@ export function ImageInput({ id, name, fileId, defaultValue, placeholder, accept
   return (
     <div className="field-upload">
       <input className="field-upload__url" id={id} name={name} type="url" defaultValue={defaultValue} placeholder={placeholder} />
-      <label className="field-upload__button" htmlFor={fileId}>Upload file</label>
+      <label className="btn btn--secondary btn--sm field-upload__button" htmlFor={fileId}>Upload file</label>
       <input className="field-upload__file" id={fileId} name="photo" type="file" accept={accept} onChange={(event) => onFileChange?.(event.target.files?.[0]?.name ?? '')} />
     </div>
   );

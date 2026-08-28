@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { CircleAlert, CircleCheck, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { DateTimePicker } from '@/components/DateTimePicker';
 import { ModalFormLayout } from '@/components/ModalFormLayout';
@@ -74,13 +74,17 @@ export function IdeaForm({ idea, timezone, presentation = 'page', onCancel, onSa
   };
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => runLookup(event.target.value);
 
-  const lookupHint = looking
-    ? 'Looking up…'
+  /* Status lives in the field as an icon rather than a line of copy
+     below it — the message pushed every field down as it appeared and
+     disappeared. `title` gives the explanation on hover; the sr-only
+     span carries it to screen readers, which never see a title. */
+  const lookupStatus = looking
+    ? { icon: <Loader2 className="field-status__spin" size={16} aria-hidden="true" />, tone: 'busy', label: 'Looking up this link…' }
     : filled.length > 0
-      ? `Filled ${filled.join(', ')} from this link.`
+      ? { icon: <CircleCheck size={16} aria-hidden="true" />, tone: 'success', label: `Filled ${filled.join(', ')} from this link.` }
       : lookupFailed
-        ? "Couldn't read that link — fill the fields below."
-        : undefined;
+        ? { icon: <CircleAlert size={16} aria-hidden="true" />, tone: 'error', label: "Couldn't read that link. Fill the fields below." }
+        : null;
 
   const router = useRouter();
   const modal = presentation === 'modal';
@@ -89,14 +93,21 @@ export function IdeaForm({ idea, timezone, presentation = 'page', onCancel, onSa
   const fields = <>
     {idea && <input type="hidden" name="ideaId" value={idea.id} />}
 
-    <Field htmlFor="mapsUrl" label="Google Maps" hint={lookupHint}>
+    <Field htmlFor="mapsUrl" label="Google Maps">
       <Input
         id="mapsUrl"
         name="mapsUrl"
         type="url"
         defaultValue={idea?.mapsUrl ?? ''}
         placeholder="https://maps.google.com/…"
-        trailingIcon={looking ? <Loader2 className="field-spinner" size={16} aria-hidden="true" /> : undefined}
+        /* Always rendered so the reserved padding never changes width —
+           otherwise a long URL shifts sideways as the icon appears. */
+        trailingIcon={
+          <span className="field-status" data-tone={lookupStatus?.tone} title={lookupStatus?.label}>
+            {lookupStatus?.icon}
+            {lookupStatus && <span className="sr-only">{lookupStatus.label}</span>}
+          </span>
+        }
         onPaste={handlePaste}
         onBlur={handleBlur}
       />
@@ -124,8 +135,8 @@ export function IdeaForm({ idea, timezone, presentation = 'page', onCancel, onSa
           {ideaCategories.map((value) => <option value={value} key={value}>{categoryMeta[value].label}</option>)}
         </Select>
       </Field>
-      <Field span={3} htmlFor="tags" label="Tags" hint="Separate with commas.">
-        <Input id="tags" name="tags" defaultValue={idea?.tags.join(', ') ?? ''} placeholder="sushi, counter seating" />
+      <Field span={3} htmlFor="tags" label="Tags">
+        <Input id="tags" name="tags" defaultValue={idea?.tags.join(', ') ?? ''} placeholder="Sushi, counter seating" />
       </Field>
     </div>
 
@@ -138,7 +149,6 @@ export function IdeaForm({ idea, timezone, presentation = 'page', onCancel, onSa
       <Field htmlFor="scheduledAt" label="Start date"><DateTimePicker id="scheduledAt" name="scheduledAt" initialValue={formatDateTimeInput(idea?.scheduledAt ?? null, timezone)} /></Field>
       <Field htmlFor="scheduledEndAt" label="End date"><DateTimePicker id="scheduledEndAt" name="scheduledEndAt" initialValue={formatDateTimeInput(idea?.scheduledEndAt ?? null, timezone)} /></Field>
     </div>
-    <small className="timezone-field-note">Times use {timezone}.</small>
 
     <Field htmlFor="imageUrl" label="Image" hint={fileName ? `${fileName} will be uploaded when you save.` : undefined}>
       <ImageInput id="imageUrl" name="imageUrl" fileId="photo" defaultValue={idea?.externalImageUrl ?? ''} placeholder={fileName || (idea?.coverPath ? 'Current uploaded image' : 'Image link…')} accept="image/jpeg,image/png,image/webp,image/gif" onFileChange={setFileName} />
