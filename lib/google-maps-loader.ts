@@ -1,20 +1,7 @@
-/* Loads the Maps JavaScript API once per page and hands back the exact
-   constructors the map needs.
-
-   Two failed approaches are worth recording so nobody repeats them:
-
-   1. Resolving on script.onload and reading google.maps.Map — onload
-      fires when the bootstrap lands, not when libraries are populated.
-      Works on a warm cache, throws "maps.Map is not a constructor" on a
-      cold one.
-   2. Resolving on google.maps.importLibrary — that function comes from
-      Google's inline bootstrap snippet and is not guaranteed to exist
-      when loading via a plain script tag.
-
-   The reliable signal is the `callback` query parameter: Google invokes
-   it only once the API is fully initialised. We still prefer
-   importLibrary when it happens to be present, since it is the forward
-   path, but we never depend on it. */
+/* Loads the Maps JavaScript API once per page, then explicitly imports the
+   three libraries used by IdeaMap. This follows Google's dynamic-library
+   bootstrap rather than assuming a direct script callback has populated
+   every constructor on the global namespace. */
 
 export type MapsApi = {
   Map: typeof google.maps.Map;
@@ -22,26 +9,75 @@ export type MapsApi = {
   AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement;
 };
 
-const CALLBACK_NAME = '__tripHubMapsReady';
+type BootstrapMaps = {
+  importLibrary?: (name: string) => Promise<unknown>;
+  __ib__?: () => void;
+};
+
+type BootstrapWindow = {
+  google?: { maps?: BootstrapMaps };
+};
 
 let loader: Promise<MapsApi> | null = null;
 
-function readFromGlobal(): MapsApi {
-  const maps = window.google?.maps;
-  const candidate = {
-    Map: maps?.Map,
-    LatLngBounds: maps?.LatLngBounds,
-    AdvancedMarkerElement: maps?.marker?.AdvancedMarkerElement,
+function installDynamicLoader(apiKey: string) {
+  const browser = window as unknown as BootstrapWindow;
+  const googleNamespace = browser.google ?? (browser.google = {});
+  const maps = googleNamespace.maps ?? (googleNamespace.maps = {});
+  if (maps.importLibrary) return;
+
+  const requested = new Set<string>();
+  let bootstrap: Promise<void> | null = null;
+
+  const importLibrary = (name: string): Promise<unknown> => {
+    requested.add(name);
+
+    if (!bootstrap) {
+      bootstrap = new Promise<void>((resolve, reject) => {
+        /* Promise.all calls importLibrary three times in the same turn. Wait
+           one microtask so all requested libraries are included in the
+           initial Google request, matching the official bootstrap. */
+        queueMicrotask(() => {
+          const endpoint = new URL('https://maps.googleapis.com/maps/api/js');
+          endpoint.searchParams.set('key', apiKey);
+          endpoint.searchParams.set('v', 'weekly');
+          endpoint.searchParams.set('loading', 'async');
+          endpoint.searchParams.set('libraries', [...requested].join(','));
+          endpoint.searchParams.set('callback', 'google.maps.__ib__');
+
+          const timer = window.setTimeout(
+            () => reject(new Error('Google Maps timed out. Check the API key and its website restrictions.')),
+            12000,
+          );
+          maps.__ib__ = () => {
+            window.clearTimeout(timer);
+            resolve();
+          };
+
+          const script = document.createElement('script');
+          script.src = endpoint.toString();
+          script.async = true;
+          script.onerror = () => {
+            window.clearTimeout(timer);
+            reject(new Error('Google Maps could not load. Check the API key and its website restrictions.'));
+          };
+          document.head.appendChild(script);
+        });
+      });
+    }
+
+    return bootstrap.then(() => {
+      const loadedImport = maps.importLibrary;
+      if (!loadedImport || loadedImport === importLibrary) {
+        throw new Error('Google Maps loaded without its library importer.');
+      }
+      return loadedImport(name);
+    });
   };
-  if (isComplete(candidate)) return candidate;
-  const missing = Object.entries(candidate).filter(([, value]) => typeof value !== 'function').map(([name]) => name);
-  throw new Error(`Maps API incomplete — missing: ${missing.join(', ')}.`);
+
+  maps.importLibrary = importLibrary;
 }
 
-/* Every constructor must be present. Returning a partially-populated
-   object is how "api.LatLngBounds is not a constructor" happened:
-   importLibrary('maps') provides Map but NOT LatLngBounds, which lives in
-   the 'core' library. Validate, then fall back rather than trust. */
 function isComplete(api: Partial<MapsApi>): api is MapsApi {
   return typeof api.Map === 'function'
     && typeof api.LatLngBounds === 'function'
@@ -50,24 +86,27 @@ function isComplete(api: Partial<MapsApi>): api is MapsApi {
 
 async function resolveApi(): Promise<MapsApi> {
   const maps = window.google?.maps;
-  if (typeof maps?.importLibrary === 'function') {
-    try {
-      const [core, mapsLib, markerLib] = await Promise.all([
-        maps.importLibrary('core') as Promise<{ LatLngBounds: typeof google.maps.LatLngBounds }>,
-        maps.importLibrary('maps') as Promise<{ Map: typeof google.maps.Map }>,
-        maps.importLibrary('marker') as Promise<{ AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement }>,
-      ]);
-      const candidate = {
-        Map: mapsLib?.Map,
-        LatLngBounds: core?.LatLngBounds,
-        AdvancedMarkerElement: markerLib?.AdvancedMarkerElement,
-      };
-      if (isComplete(candidate)) return candidate;
-    } catch {
-      // fall through
-    }
+  if (typeof maps?.importLibrary !== 'function') {
+    throw new Error('Google Maps loaded without its library importer.');
   }
-  return readFromGlobal();
+
+  const [core, mapsLibrary, markerLibrary] = await Promise.all([
+    maps.importLibrary('core') as Promise<{ LatLngBounds: typeof google.maps.LatLngBounds }>,
+    maps.importLibrary('maps') as Promise<{ Map: typeof google.maps.Map }>,
+    maps.importLibrary('marker') as Promise<{ AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement }>,
+  ]);
+  const api = {
+    Map: mapsLibrary.Map,
+    LatLngBounds: core.LatLngBounds,
+    AdvancedMarkerElement: markerLibrary.AdvancedMarkerElement,
+  };
+  if (!isComplete(api)) {
+    const missing = Object.entries(api)
+      .filter(([, value]) => typeof value !== 'function')
+      .map(([name]) => name);
+    throw new Error(`Maps API incomplete — missing: ${missing.join(', ')}.`);
+  }
+  return api;
 }
 
 export function loadGoogleMaps(): Promise<MapsApi> {
@@ -77,41 +116,10 @@ export function loadGoogleMaps(): Promise<MapsApi> {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY;
   if (!apiKey) return Promise.reject(new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY.'));
 
-  // Already initialised by an earlier mount.
-  if (window.google?.maps?.Map) {
-    loader = resolveApi();
-    return loader;
-  }
-
-  loader = new Promise<MapsApi>((resolve, reject) => {
-    const fail = (message: string) => {
-      loader = null; // let a later attempt retry
-      reject(new Error(message));
-    };
-
-    const timer = setTimeout(() => fail('Google Maps timed out. Check the API key and its referrer restrictions.'), 12000);
-
-    (window as unknown as Record<string, unknown>)[CALLBACK_NAME] = () => {
-      clearTimeout(timer);
-      resolveApi().then(resolve).catch((cause: Error) => fail(cause.message));
-    };
-
-    const endpoint = new URL('https://maps.googleapis.com/maps/api/js');
-    endpoint.searchParams.set('key', apiKey);
-    endpoint.searchParams.set('v', 'weekly');
-    endpoint.searchParams.set('libraries', 'marker');
-    endpoint.searchParams.set('loading', 'async');
-    endpoint.searchParams.set('callback', CALLBACK_NAME);
-
-    const script = document.createElement('script');
-    script.src = endpoint.toString();
-    script.async = true;
-    script.onerror = () => {
-      clearTimeout(timer);
-      fail('Google Maps could not load. Check the API key referrer restrictions.');
-    };
-    document.head.appendChild(script);
+  installDynamicLoader(apiKey);
+  loader = resolveApi().catch((error) => {
+    loader = null;
+    throw error;
   });
-
   return loader;
 }
