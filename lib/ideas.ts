@@ -99,7 +99,9 @@ function mapIdea(row: IdeaRow, userId: string, members: TripMemberRow[], imageUr
     socialUrl: row.social_url,
     coverPath: row.cover_url,
     externalImageUrl: row.image_url,
-    imageUrl: row.image_url ?? imageUrl,
+    imageUrl: row.image_url && isGoogleHostedImage(row.image_url)
+      ? `/api/ideas/${row.id}/image`
+      : row.image_url ?? imageUrl,
     createdBy: row.created_by,
     createdAt: row.created_at,
     scheduledAt: row.scheduled_at,
@@ -111,6 +113,15 @@ function mapIdea(row: IdeaRow, userId: string, members: TripMemberRow[], imageUr
     partnerVote,
     isConfirmed: mutuallyPositive,
   };
+}
+
+function isGoogleHostedImage(value: string) {
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    return host === 'googleusercontent.com' || host.endsWith('.googleusercontent.com');
+  } catch {
+    return false;
+  }
 }
 
 async function signedImageUrls(paths: string[]) {
