@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImageIcon, MapPin, MapPinned, X } from 'lucide-react';
+import { MediaImage } from '@/components/MediaImage';
 import { loadGoogleMaps, type MapsApi } from '@/lib/google-maps-loader';
 import { distanceKm, formatDistance } from '@/lib/distance';
 import { CategoryTagList } from '@/components/ui/Card';
@@ -220,9 +221,10 @@ export function IdeaMap({
             aria-label={`Open ${preview.title}`}
           >
             <div className="map-preview__media">
-              {preview.imageUrl
-                ? <img src={preview.imageUrl} alt="" />
-                : <div className="card__placeholder"><ImageIcon size={22} strokeWidth={1.6} aria-hidden="true" /></div>}
+              <MediaImage
+                src={preview.imageUrl}
+                fallback={<div className="card__placeholder"><ImageIcon size={22} strokeWidth={1.6} aria-hidden="true" /></div>}
+              />
             </div>
             <div className="map-preview__text">
               <strong>{preview.title}</strong>

@@ -11,6 +11,7 @@ import { VoteControls } from '@/components/VoteControls';
 import { DismissibleDetails } from '@/components/DismissibleDetails';
 import { CategoryTagList } from '@/components/ui/Card';
 import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
+import { MediaImage } from '@/components/MediaImage';
 import { formatBookingDateTime } from '@/lib/datetime';
 import type { Idea } from '@/lib/ideas';
 
@@ -24,7 +25,11 @@ export function IdeaModal({ idea, timezone, onClose }: { idea: Idea; timezone: s
   return <ModalFrame className={editing ? 'is-editing' : ''} onClose={onClose} labelledBy={editing ? MODAL_FORM_TITLE_ID : 'idea-modal-title'}>
     {editing ? <IdeaForm idea={idea} timezone={timezone} presentation="modal" onCancel={() => setEditing(false)} onSaved={onClose} /> : <>
       <div className="idea-modal-media">
-        {idea.imageUrl ? <img src={idea.imageUrl} alt="" /> : <div className="idea-modal-placeholder"><ImageIcon size={34} strokeWidth={1.6} aria-hidden="true" /></div>}
+        <MediaImage
+          src={idea.imageUrl}
+          loading="eager"
+          fallback={<div className="idea-modal-placeholder"><ImageIcon size={34} strokeWidth={1.6} aria-hidden="true" /></div>}
+        />
         <div className="idea-modal-media-actions card__overlay">
           <VoteControls ideaId={idea.id} viewerId={idea.viewerId} viewerTraveler={idea.viewerTraveler} currentVote={idea.currentVote} partnerVote={idea.partnerVote} />
           <DismissibleDetails className="idea-kebab" summary={<MoreHorizontal size={20} aria-hidden="true" />} summaryLabel="Idea actions"><div><button type="button" onClick={() => setEditing(true)}><Pencil size={14} aria-hidden="true" />Edit</button><form action={deleteIdea}><input type="hidden" name="ideaId" value={idea.id} /><button className="danger-menu-action" type="submit"><Trash2 size={14} aria-hidden="true" />Delete</button></form></div></DismissibleDetails>

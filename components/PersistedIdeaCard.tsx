@@ -1,6 +1,7 @@
 'use client';
 import { ImageIcon, MapPin } from 'lucide-react';
 import { Card, CardBody, CardMedia, CardMeta, CardTitle, CategoryTagList } from '@/components/ui/Card';
+import { MediaImage } from '@/components/MediaImage';
 import { VoteControls } from '@/components/VoteControls';
 import type { Idea } from '@/lib/ideas';
 
@@ -10,13 +11,14 @@ export function PersistedIdeaCard({ idea, onOpen }: { idea: Idea; onOpen: (idea:
     <Card interactive>
       <button className="card__open" type="button" onClick={() => onOpen(idea)} aria-label={`Open ${idea.title}`}>
         <CardMedia aspect="square">
-          {idea.imageUrl ? (
-            <img src={idea.imageUrl} alt="" />
-          ) : (
+          <MediaImage
+            src={idea.imageUrl}
+            fallback={
             <div className="card__placeholder">
               <ImageIcon size={30} strokeWidth={1.7} aria-hidden="true" />
             </div>
-          )}
+            }
+          />
         </CardMedia>
         <CardBody>
           <CardTitle>{idea.title}</CardTitle>

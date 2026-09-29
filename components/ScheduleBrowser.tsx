@@ -5,6 +5,7 @@ import { BedDouble, CalendarDays, Clock3, ImageIcon, Plane, Plus, Ticket, TrainF
 import { IdeaModal } from '@/components/IdeaModal';
 import { BookingModal } from '@/components/BookingModal';
 import { ScheduleActivityModal } from '@/components/ScheduleActivityModal';
+import { MediaImage } from '@/components/MediaImage';
 import { Button } from '@/components/ui/Button';
 import { CardBody, CardButton, CardMedia, CardTitle, CategoryTagList, SourceChip } from '@/components/ui/Card';
 import { activityChip, bookingChip } from '@/lib/categories';
@@ -22,13 +23,12 @@ const bookingIcons: Record<string, typeof Plane> = {
 };
 
 function ItemMedia({ item }: { item: ScheduleItem }) {
-  if (item.imageUrl) return <img src={item.imageUrl} alt="" />;
   const Icon = item.source === 'booking' ? bookingIcons[item.type] ?? CalendarDays : ImageIcon;
-  return (
+  return <MediaImage src={item.imageUrl} fallback={
     <div className="card__placeholder">
       <Icon size={26} strokeWidth={1.6} aria-hidden="true" />
     </div>
-  );
+  } />;
 }
 
 function ItemBody({ item }: { item: ScheduleItem }) {
