@@ -107,8 +107,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .new-sheet-layer { --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); position: fixed; z-index: 80; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; overscroll-behavior: none; background: rgb(23 24 22 / 0.42); backdrop-filter: blur(3px); isolation: isolate; }
 .new-sheet { position: relative; width: min(100%, var(--phone-width)); max-height: min(88dvh, 760px); overflow: hidden; overscroll-behavior: contain; border-radius: 32px 32px 0 0; background: var(--white); box-shadow: var(--shadow); animation: sheet-in 220ms cubic-bezier(.2,.8,.2,1); transition: transform 180ms cubic-bezier(.2,.8,.2,1); touch-action: pan-y; }
-.new-sheet-layer.is-keyboard-open { --drawer-safe-bottom: 0px; align-items: flex-end; }
-.new-sheet-layer.is-keyboard-open .new-sheet { width: min(100%, var(--phone-width)); height: calc(100% - 8px); min-height: 0; max-height: calc(100% - 8px); }
+.new-sheet-layer.is-keyboard-open { --drawer-safe-bottom: 0px; align-items: flex-start; padding-top: calc(var(--visual-viewport-top, 0px) + 8px); }
+.new-sheet-layer.is-keyboard-open::after { position: absolute; z-index: 0; right: 0; bottom: 0; left: 0; height: calc(var(--keyboard-inset, 0px) + 1px); background: var(--white); content: ''; }
+.new-sheet-layer.is-keyboard-open .new-sheet { z-index: 1; width: min(100%, var(--phone-width)); height: calc(var(--visual-viewport-height, 100dvh) - 8px); min-height: 0; max-height: calc(var(--visual-viewport-height, 100dvh) - 8px); }
 .new-sheet__drag-zone { position: sticky; z-index: 3; top: 0; display: grid; height: 24px; place-items: center; background: var(--white); cursor: grab; touch-action: none; }
 .new-sheet__drag-zone:active { cursor: grabbing; }
 .new-sheet__handle { width: 36px; height: 4px; border-radius: 99px; background: var(--line-strong); }

@@ -11,7 +11,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
   const onCloseRef = useRef(onClose);
   const [mounted, setMounted] = useState(false);
   const [dragY, setDragY] = useState(0);
-  const [viewport, setViewport] = useState<{ height: number; top: number; keyboard: boolean } | null>(null);
+  const [viewport, setViewport] = useState<{ height: number; top: number; bottom: number; keyboard: boolean } | null>(null);
 
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
@@ -46,7 +46,9 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       if (!visual) { setViewport(null); return; }
       viewportBaseline.current = Math.max(viewportBaseline.current ?? visual.height, visual.height);
       const editing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLSelectElement;
-      setViewport({ height: visual.height, top: visual.offsetTop, keyboard: editing && visual.height < viewportBaseline.current - 100 });
+      const keyboard = editing && visual.height < viewportBaseline.current - 100;
+      const bottom = keyboard ? Math.max(0, viewportBaseline.current - visual.offsetTop - visual.height) : 0;
+      setViewport({ height: visual.height, top: visual.offsetTop, bottom, keyboard });
     };
     document.addEventListener('keydown', close);
     root.classList.add('has-open-drawer');
@@ -89,7 +91,11 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     startY.current = null;
   };
 
-  const layerStyle = viewport ? ({ height: `${viewport.height}px`, top: `${viewport.top}px`, bottom: 'auto' } satisfies CSSProperties) : undefined;
+  const layerStyle = viewport ? ({
+    '--visual-viewport-height': `${viewport.height}px`,
+    '--visual-viewport-top': `${viewport.top}px`,
+    '--keyboard-inset': `${viewport.bottom}px`,
+  } as CSSProperties) : undefined;
 
   if (!mounted) return null;
 
