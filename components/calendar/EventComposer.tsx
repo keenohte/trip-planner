@@ -91,7 +91,7 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
     <form className="new-sheet__form" action={action} onSubmit={submit}>
       {item && <><input name="itemId" type="hidden" value={item.id} /><input name="source" type="hidden" value={item.source} /></>}
       <input name="startsAt" type="hidden" value={startsAt} /><input name="endsAt" type="hidden" value={endsAt} /><input name="notes" type="hidden" value={item ? notes : ''} />
-      <div className="new-sheet__body new-composer-body">
+      <div className="new-sheet__body new-composer-body" data-drawer-scroll>
         <h2 id="composer-title">{item ? 'Update your plan' : 'Add to your day'}</h2>
         <div className="new-composer-fields">
           <input className="is-first" name="title" required maxLength={160} placeholder="What are you doing?" defaultValue={item?.title ?? ''} autoFocus onFocus={(event) => event.currentTarget.select()} />

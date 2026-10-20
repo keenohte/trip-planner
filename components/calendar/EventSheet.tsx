@@ -76,7 +76,7 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
   };
 
   return <MobileDrawer labelledBy="event-sheet-title" onClose={onClose} className="new-sheet--event">
-    <div className="new-event-sheet">
+    <div className="new-event-sheet" data-drawer-scroll>
       <div className="new-event-sheet__title-row">
         {active === 'title' ? <input className="new-inline-title" aria-label="Title" value={title} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => setTitle(event.target.value)} onBlur={() => setActive(null)} /> : <button id="event-sheet-title" className="new-inline-title-view" type="button" onClick={() => setActive('title')}>{title}</button>}
         {dirty && <button className="new-inline-save" type="button" disabled={pending} onClick={save}>{pending ? 'Saving…' : 'Save'}</button>}

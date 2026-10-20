@@ -1,10 +1,11 @@
 'use client';
 
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, type TouchEvent, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export function MobileDrawer({ children, labelledBy, onClose, className = '' }: { children: ReactNode; labelledBy: string; onClose: () => void; className?: string }) {
   const startY = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const viewportBaseline = useRef<number | null>(null);
   const layerRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLElement>(null);
@@ -91,6 +92,18 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     startY.current = null;
   };
 
+  const containTouchScroll = (event: TouchEvent<HTMLDivElement>) => {
+    const currentY = event.touches[0]?.clientY;
+    if (currentY === undefined || touchStartY.current === null) return;
+    const target = event.target instanceof Element ? event.target : null;
+    const scrollArea = target?.closest<HTMLElement>('[data-drawer-scroll]');
+    if (!scrollArea) { event.preventDefault(); return; }
+    const delta = currentY - touchStartY.current;
+    const atTop = scrollArea.scrollTop <= 0;
+    const atBottom = scrollArea.scrollTop + scrollArea.clientHeight >= scrollArea.scrollHeight - 1;
+    if (scrollArea.scrollHeight <= scrollArea.clientHeight || (atTop && delta > 0) || (atBottom && delta < 0)) event.preventDefault();
+  };
+
   const layerStyle = viewport ? ({
     '--visual-viewport-height': `${viewport.height}px`,
     '--visual-viewport-top': `${viewport.top}px`,
@@ -99,7 +112,17 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
 
   if (!mounted) return null;
 
-  return createPortal(<div ref={layerRef} className={`new-sheet-layer${viewport?.keyboard ? ' is-keyboard-open' : ''}`} style={layerStyle} role="presentation" onPointerDown={(event) => event.target === event.currentTarget && onCloseRef.current()}>
+  return createPortal(<div
+    ref={layerRef}
+    className={`new-sheet-layer${viewport?.keyboard ? ' is-keyboard-open' : ''}`}
+    style={layerStyle}
+    role="presentation"
+    onPointerDown={(event) => event.target === event.currentTarget && onCloseRef.current()}
+    onTouchStart={(event) => { touchStartY.current = event.touches[0]?.clientY ?? null; }}
+    onTouchMove={containTouchScroll}
+    onTouchEnd={() => { touchStartY.current = null; }}
+    onTouchCancel={() => { touchStartY.current = null; }}
+  >
     <section ref={sheetRef} className={`new-sheet ${className}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1} style={{ transform: `translateY(${dragY}px)` }}>
       <div
         className="new-sheet__drag-zone"

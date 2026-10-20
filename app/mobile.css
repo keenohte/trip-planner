@@ -55,8 +55,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-date-strip button.is-today { background: var(--lavender-soft); color: #235a86; }
 .new-date-strip button.is-active { border-radius: 16px; background: var(--blue); color: var(--white); box-shadow: 0 7px 18px rgb(0 140 255 / 0.22); }
 
-.new-week-list { display: grid; gap: 16px; padding-top: 20px; }
-.new-week-day { overflow: hidden; padding: 12px; scroll-margin-top: 150px; border: 0; border-radius: 20px; background: var(--paper); box-shadow: 0 0 9.1px rgb(0 0 0 / 0.18); }
+.new-week-list { display: grid; gap: 16px; padding-top: 34px; padding-bottom: clamp(240px, calc(100dvh - 430px), 480px); }
+.new-week-day { overflow: hidden; padding: 12px; scroll-margin-top: 166px; border: 0; border-radius: 20px; background: var(--paper); box-shadow: 0 0 9.1px rgb(0 0 0 / 0.18); }
 .new-week-day__header { display: flex; width: 100%; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 0 0 20px; border: 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
 .new-week-day__header > span:first-child { display: grid; gap: 2px; }
 .new-week-day__header small { color: #777; font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: uppercase; }
@@ -172,7 +172,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-comment p { margin: 0 0 4px; color: #303030; font-size: 12px; line-height: 1.3; }
 .new-comment time { color: #777; font-size: 10px; }
 .new-comment-composer { display: flex; flex: 0 0 auto; gap: 8px; margin: 0; padding: 0 12px calc(12px + var(--drawer-safe-bottom)); background: var(--white); }
-.new-comment-composer input { width: 100%; min-width: 0; height: 47px; padding: 0 16px; border: 0; border-radius: 999px; outline: 0; background: var(--item-surface); color: var(--ink); font-size: 12px; }
+.new-comment-composer input { width: 100%; min-width: 0; height: 47px; padding: 0 16px; border: 0; border-radius: 999px; outline: 0; background: var(--item-surface); color: var(--ink); font-size: 16px; }
 .new-comment-composer button { padding: 0 12px; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; }
 .new-comment-composer button:disabled { opacity: 0; pointer-events: none; }
 
@@ -225,8 +225,8 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 
 .new-sheet--note { display: flex; height: min(70svh, 620px); min-height: 480px; flex-direction: column; overflow: hidden; }
 .new-note-drawer { display: flex; min-height: 0; flex: 1; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: 16px 14px calc(14px + var(--drawer-safe-bottom)); -webkit-overflow-scrolling: touch; }
-.new-note-drawer__title, .new-note-drawer__title-input { width: 100%; margin: 0; padding: 8px 0 14px; border: 0; background: transparent; color: var(--ink); font-size: 25px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.2; text-align: left; }
-.new-note-drawer__body, .new-note-drawer__body-input { width: 100%; min-height: 160px; margin: 0; padding: 6px 0; border: 0; background: transparent; color: #353535; font-size: 13px; font-weight: 400; line-height: 1.35; text-align: left; white-space: pre-wrap; }
+.new-note-drawer__title, .new-note-drawer__title-input { display: block; width: 100%; margin: 0; padding: 8px 0 6px; border: 0; background: transparent; color: var(--ink); font-size: 25px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.2; text-align: left; }
+.new-note-drawer__body, .new-note-drawer__body-input { display: block; width: 100%; min-height: 160px; margin: 0; padding: 0; border: 0; border-radius: 0; appearance: none; background: transparent; color: #353535; font-family: inherit; font-size: 16px; font-weight: 400; line-height: 1.35; text-align: left; white-space: pre-wrap; }
 .new-note-drawer__body.is-empty { color: var(--faint); }
 .new-note-drawer__title-input:focus, .new-note-drawer__body-input:focus { outline: 0; }
 .new-note-drawer__body-input { resize: none; }
@@ -251,4 +251,8 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 
 @media (max-width: 480px) {
   input, textarea, select { font-size: 16px !important; }
+  .new-inline-title { font-size: 24px !important; }
+  .new-note-drawer__title-input { font-size: 25px !important; }
+  .new-note-drawer__body-input { font-size: 16px !important; }
+  .new-composer-fields > input, .new-composer-field > input, .new-composer-time input { font-size: 17px !important; }
 }

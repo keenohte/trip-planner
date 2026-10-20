@@ -25,7 +25,7 @@ export function NoteDrawer({ note, preview = false, onPreviewSave, onClose }: {
   useEffect(() => { if (state.saved) { router.refresh(); onClose(); } }, [onClose, router, state.saved]);
 
   return <MobileDrawer labelledBy="note-drawer-title" onClose={onClose} className="new-sheet--note">
-    <form className="new-note-drawer" action={action} onSubmit={(event) => {
+    <form className="new-note-drawer" data-drawer-scroll action={action} onSubmit={(event) => {
       if (!preview) return;
       event.preventDefault();
       if (!title.trim()) return;
@@ -35,7 +35,7 @@ export function NoteDrawer({ note, preview = false, onPreviewSave, onClose }: {
       <input name="presentation" type="hidden" value="modal" />
       {note && <input name="noteId" type="hidden" value={note.id} />}
       {active === 'title' || !note ? <input id="note-drawer-title" className="new-note-drawer__title-input" aria-label="Note title" name="title" required maxLength={160} placeholder="Note title" value={title} autoFocus onFocus={(event) => note && event.currentTarget.select()} onChange={(event) => setTitle(event.target.value)} onBlur={() => note && setActive(null)} /> : <><input name="title" type="hidden" value={title} /><button id="note-drawer-title" className="new-note-drawer__title" type="button" onClick={() => setActive('title')}>{title}</button></>}
-      {active === 'body' || !note ? <textarea className="new-note-drawer__body-input" aria-label="Note" name="body" placeholder="Write a note…" value={body} onChange={(event) => setBody(event.target.value)} onBlur={() => note && setActive(null)} /> : <><input name="body" type="hidden" value={body} /><button className={`new-note-drawer__body${body ? '' : ' is-empty'}`} type="button" onClick={() => setActive('body')}>{body || 'Add note text'}</button></>}
+      {active === 'body' || !note ? <textarea className="new-note-drawer__body-input" aria-label="Note" name="body" placeholder="Write a note…" value={body} autoFocus={active === 'body'} onChange={(event) => setBody(event.target.value)} onBlur={() => note && setActive(null)} /> : <><input name="body" type="hidden" value={body} /><button className={`new-note-drawer__body${body ? '' : ' is-empty'}`} type="button" onClick={() => setActive('body')}>{body || 'Add note text'}</button></>}
       {state.error && <p className="new-form__error" role="alert">{state.error}</p>}
       {dirty && <button className="new-note-drawer__save" type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save'}</button>}
     </form>
