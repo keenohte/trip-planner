@@ -105,15 +105,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-add-button { display: grid; width: 58px; height: 58px; place-items: center; justify-self: end; border: 0; border-radius: 50%; background: var(--blue); color: var(--white); box-shadow: 0 9px 22px rgb(0 140 255 / 0.28); cursor: pointer; }
 .new-add-button:disabled { background: var(--blue); box-shadow: 0 9px 22px rgb(0 140 255 / 0.20); cursor: default; opacity: 0.48; }
 
-.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); position: fixed; z-index: 80; top: calc(-1 * var(--drawer-safe-top)); right: 0; left: 0; display: flex; height: calc(var(--layout-viewport-height, 100dvh) + var(--drawer-safe-top)); align-items: flex-end; justify-content: center; overflow: hidden; overscroll-behavior: none; isolation: isolate; touch-action: none; }
-.new-sheet-layer__backdrop { position: absolute; z-index: 0; inset: 0; width: 100%; padding: 0; border: 0; border-radius: 0; appearance: none; background: rgb(23 24 22 / 0.42); backdrop-filter: blur(3px); cursor: default; }
-.new-sheet-layer__keyboard-fill { display: none; }
-.new-sheet { position: relative; z-index: 2; width: min(100%, var(--phone-width)); max-height: min(88dvh, 760px); overflow: hidden; overscroll-behavior: contain; border-radius: 32px 32px 0 0; background: var(--white); box-shadow: var(--shadow); animation: sheet-in 220ms cubic-bezier(.2,.8,.2,1); transition: transform 180ms cubic-bezier(.2,.8,.2,1); touch-action: none; }
-.new-sheet-layer.is-keyboard-open { --drawer-safe-bottom: 0px; height: calc(var(--layout-viewport-height, 100dvh) + var(--drawer-safe-top)); align-items: flex-start; padding-top: calc(var(--drawer-safe-top) + var(--visual-viewport-top, 0px) + 8px); }
-.new-sheet-layer.is-keyboard-open .new-sheet-layer__backdrop { bottom: auto; height: calc(var(--drawer-safe-top) + var(--visual-viewport-top, 0px) + var(--visual-viewport-height, 100dvh)); }
-.new-sheet-layer.is-keyboard-open .new-sheet-layer__keyboard-fill { position: absolute; z-index: 1; top: calc(var(--drawer-safe-top) + var(--visual-viewport-top, 0px) + var(--visual-viewport-height, 100dvh) - 1px); right: 0; bottom: 0; left: 0; display: block; background: var(--white); }
-.new-sheet-layer.is-keyboard-open .new-sheet { width: min(100%, var(--phone-width)); height: calc(var(--visual-viewport-height, 100dvh) - 8px); min-height: 0; max-height: calc(var(--visual-viewport-height, 100dvh) - 8px); }
-.new-sheet__drag-zone { position: sticky; z-index: 3; top: 0; display: grid; height: 24px; place-items: center; background: var(--white); cursor: grab; touch-action: none; }
+.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); position: fixed; z-index: 100; inset: 0; height: 100dvh; overflow: hidden; overscroll-behavior: none; pointer-events: none; isolation: isolate; touch-action: none; }
+.new-sheet { position: absolute; inset: 0; display: flex; width: 100%; height: 100dvh; min-height: 0; max-height: none; flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 0; background: var(--white); box-shadow: none; transform: translateY(100%); transition: transform 360ms cubic-bezier(.22, 1, .36, 1); pointer-events: auto; touch-action: none; }
+.new-sheet[data-open="true"] { transform: translateY(var(--drawer-drag-y, 0px)); }
+.new-sheet.is-dragging { transition: none; }
+.new-sheet__drag-zone { position: sticky; z-index: 3; top: 0; display: grid; height: calc(24px + var(--drawer-safe-top)); flex: 0 0 calc(24px + var(--drawer-safe-top)); padding-top: var(--drawer-safe-top); place-items: center; background: var(--white); cursor: grab; touch-action: none; }
 .new-sheet__drag-zone:active { cursor: grabbing; }
 .new-sheet__handle { width: 36px; height: 4px; border-radius: 99px; background: var(--line-strong); }
 .new-sheet__form { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; overflow: hidden; }
@@ -132,7 +128,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-note-block { margin-top: 18px; padding: 16px; border-radius: var(--radius-md); background: var(--lavender-soft); }
 .new-note-block p { margin: 7px 0 0; line-height: 1.55; }
 
-.new-sheet--composer { display: flex; height: min(74svh, 650px); min-height: 520px; flex-direction: column; overflow: hidden; }
+.new-sheet--composer { height: 100dvh; min-height: 0; max-height: none; }
 .new-sheet--composer .new-sheet__form { height: 100%; }
 .new-composer-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 20px; -webkit-overflow-scrolling: touch; }
 .new-composer-body h2 { margin: 0 0 22px; font-size: 27px; font-weight: 400; letter-spacing: -0.025em; }
@@ -151,8 +147,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-composer-footer button { width: 100%; min-height: 48px; border: 0; border-radius: 999px; background: #1d1d1d; color: var(--white); font-size: 16px; font-weight: 650; box-shadow: 0 8px 22px rgb(0 0 0 / 0.14); cursor: pointer; }
 .new-composer-footer button:disabled { opacity: 0.55; }
 
-.new-sheet--event { display: flex; height: min(65svh, 590px); min-height: 500px; flex-direction: column; overflow: hidden; }
-.new-sheet--event .new-sheet__drag-zone { flex: 0 0 24px; }
+.new-sheet--event { height: 100dvh; min-height: 0; max-height: none; }
 .new-event-sheet { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px 18px; -webkit-overflow-scrolling: touch; }
 .new-event-sheet__title-row { display: flex; min-height: 49px; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .new-inline-title-view, .new-inline-title { min-width: 0; flex: 1 1 auto; margin: 0; padding: 0; border: 0; background: transparent; color: #1d1d1d; font-size: 24px; font-weight: 400; letter-spacing: -0.025em; line-height: 1.2; text-align: left; }
@@ -228,7 +223,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-note-card small { color: var(--faint); font-size: 10px; }
 .new-notes-empty { margin: 0; padding: 18px 12px; color: var(--muted); font-size: 12px; }
 
-.new-sheet--note { display: flex; height: min(70svh, 620px); min-height: 480px; flex-direction: column; overflow: hidden; }
+.new-sheet--note { height: 100dvh; min-height: 0; max-height: none; }
 .new-note-drawer { display: flex; min-height: 0; flex: 1; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px calc(14px + var(--drawer-safe-bottom)); -webkit-overflow-scrolling: touch; }
 .new-note-drawer__field { display: grid; width: 100%; min-width: 0; }
 .new-note-drawer__field::after { grid-area: 1 / 1; width: 100%; visibility: hidden; white-space: pre-wrap; overflow-wrap: anywhere; content: attr(data-value) ' '; }
@@ -246,8 +241,6 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .skeleton-grid { display: grid; gap: 10px; }
 .skeleton-card { height: 110px; }
 .error-state, .empty-state, .auth-panel { margin: 80px 20px 0; padding: 22px; border-radius: var(--radius-lg); background: var(--paper); }
-
-@keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } }
 
 @media (min-width: 481px) {
   html, body { background: #e9e9ec; }
