@@ -1,4 +1,4 @@
-const CACHE = 'trip-hub-v1';
+const CACHE = 'trip-hub-v2';
 const STATIC = ['/', '/schedule', '/notes', '/manifest.webmanifest', '/trip-hub-icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -24,8 +24,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+  event.respondWith(fetch(request).then((response) => {
     if (response.ok) caches.open(CACHE).then((cache) => cache.put(request, response.clone()));
     return response;
-  })));
+  }).catch(() => caches.match(request)));
 });

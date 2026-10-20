@@ -12,7 +12,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
   const onCloseRef = useRef(onClose);
   const [mounted, setMounted] = useState(false);
   const [dragY, setDragY] = useState(0);
-  const [viewport, setViewport] = useState<{ height: number; top: number; bottom: number; keyboard: boolean } | null>(null);
+  const [viewport, setViewport] = useState<{ height: number; top: number; bottom: number; layoutHeight: number; keyboard: boolean } | null>(null);
 
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
@@ -39,17 +39,24 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       bodyTop: body.style.top,
       bodyWidth: body.style.width,
       bodyOverflow: body.style.overflow,
+      rootBackground: root.style.backgroundColor,
+      bodyBackground: body.style.backgroundColor,
       inert: app?.inert ?? false,
       theme: theme?.content,
     };
     const updateViewport = () => {
       const visual = window.visualViewport;
       if (!visual) { setViewport(null); return; }
-      viewportBaseline.current = Math.max(viewportBaseline.current ?? visual.height, visual.height);
+      viewportBaseline.current = Math.max(viewportBaseline.current ?? 0, window.innerHeight, visual.height + visual.offsetTop);
       const editing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLSelectElement;
       const keyboard = editing && visual.height < viewportBaseline.current - 100;
-      const bottom = keyboard ? Math.max(0, viewportBaseline.current - visual.offsetTop - visual.height) : 0;
-      setViewport({ height: visual.height, top: visual.offsetTop, bottom, keyboard });
+      const layoutHeight = viewportBaseline.current;
+      const bottom = keyboard ? Math.max(0, layoutHeight - visual.offsetTop - visual.height) : 0;
+      root.classList.toggle('has-drawer-keyboard', keyboard);
+      root.style.backgroundColor = keyboard ? '#ffffff' : '#a1a1a3';
+      body.style.backgroundColor = keyboard ? '#ffffff' : '#a1a1a3';
+      if (theme) theme.content = '#a1a1a3';
+      setViewport({ height: visual.height, top: visual.offsetTop, bottom, layoutHeight, keyboard });
     };
     document.addEventListener('keydown', close);
     root.classList.add('has-open-drawer');
@@ -73,12 +80,15 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       document.removeEventListener('focusin', updateViewport);
       document.removeEventListener('focusout', updateViewport);
       root.classList.remove('has-open-drawer');
+      root.classList.remove('has-drawer-keyboard');
       body.classList.remove('has-open-drawer');
       root.style.overflow = previous.rootOverflow;
       body.style.position = previous.bodyPosition;
       body.style.top = previous.bodyTop;
       body.style.width = previous.bodyWidth;
       body.style.overflow = previous.bodyOverflow;
+      root.style.backgroundColor = previous.rootBackground;
+      body.style.backgroundColor = previous.bodyBackground;
       if (app) app.inert = previous.inert;
       if (theme && previous.theme) theme.content = previous.theme;
       viewportBaseline.current = null;
@@ -108,6 +118,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     '--visual-viewport-height': `${viewport.height}px`,
     '--visual-viewport-top': `${viewport.top}px`,
     '--keyboard-inset': `${viewport.bottom}px`,
+    '--layout-viewport-height': `${viewport.layoutHeight}px`,
   } as CSSProperties) : undefined;
 
   if (!mounted) return null;
@@ -117,12 +128,13 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     className={`new-sheet-layer${viewport?.keyboard ? ' is-keyboard-open' : ''}`}
     style={layerStyle}
     role="presentation"
-    onPointerDown={(event) => event.target === event.currentTarget && onCloseRef.current()}
     onTouchStart={(event) => { touchStartY.current = event.touches[0]?.clientY ?? null; }}
     onTouchMove={containTouchScroll}
     onTouchEnd={() => { touchStartY.current = null; }}
     onTouchCancel={() => { touchStartY.current = null; }}
   >
+    <button className="new-sheet-layer__backdrop" type="button" aria-label="Close drawer" onClick={() => onCloseRef.current()} />
+    <div className="new-sheet-layer__keyboard-fill" aria-hidden="true" />
     <section ref={sheetRef} className={`new-sheet ${className}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1} style={{ transform: `translateY(${dragY}px)` }}>
       <div
         className="new-sheet__drag-zone"
