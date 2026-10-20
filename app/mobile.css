@@ -105,10 +105,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-add-button { display: grid; width: 58px; height: 58px; place-items: center; justify-self: end; border: 0; border-radius: 50%; background: var(--blue); color: var(--white); box-shadow: 0 9px 22px rgb(0 140 255 / 0.28); cursor: pointer; }
 .new-add-button:disabled { background: var(--blue); box-shadow: 0 9px 22px rgb(0 140 255 / 0.20); cursor: default; opacity: 0.48; }
 
-.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); position: fixed; z-index: 80; top: calc(-1 * var(--drawer-safe-top)); right: 0; left: 0; display: flex; height: calc(var(--layout-viewport-height, 100dvh) + var(--drawer-safe-top)); align-items: flex-end; justify-content: center; overflow: hidden; overscroll-behavior: none; isolation: isolate; }
+.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); position: fixed; z-index: 80; top: calc(-1 * var(--drawer-safe-top)); right: 0; left: 0; display: flex; height: calc(var(--layout-viewport-height, 100dvh) + var(--drawer-safe-top)); align-items: flex-end; justify-content: center; overflow: hidden; overscroll-behavior: none; isolation: isolate; touch-action: none; }
 .new-sheet-layer__backdrop { position: absolute; z-index: 0; inset: 0; width: 100%; padding: 0; border: 0; border-radius: 0; appearance: none; background: rgb(23 24 22 / 0.42); backdrop-filter: blur(3px); cursor: default; }
 .new-sheet-layer__keyboard-fill { display: none; }
-.new-sheet { position: relative; z-index: 2; width: min(100%, var(--phone-width)); max-height: min(88dvh, 760px); overflow: hidden; overscroll-behavior: contain; border-radius: 32px 32px 0 0; background: var(--white); box-shadow: var(--shadow); animation: sheet-in 220ms cubic-bezier(.2,.8,.2,1); transition: transform 180ms cubic-bezier(.2,.8,.2,1); touch-action: pan-y; }
+.new-sheet { position: relative; z-index: 2; width: min(100%, var(--phone-width)); max-height: min(88dvh, 760px); overflow: hidden; overscroll-behavior: contain; border-radius: 32px 32px 0 0; background: var(--white); box-shadow: var(--shadow); animation: sheet-in 220ms cubic-bezier(.2,.8,.2,1); transition: transform 180ms cubic-bezier(.2,.8,.2,1); touch-action: none; }
 .new-sheet-layer.is-keyboard-open { --drawer-safe-bottom: 0px; height: calc(var(--layout-viewport-height, 100dvh) + var(--drawer-safe-top)); align-items: flex-start; padding-top: calc(var(--drawer-safe-top) + var(--visual-viewport-top, 0px) + 8px); }
 .new-sheet-layer.is-keyboard-open .new-sheet-layer__backdrop { bottom: auto; height: calc(var(--drawer-safe-top) + var(--visual-viewport-top, 0px) + var(--visual-viewport-height, 100dvh)); }
 .new-sheet-layer.is-keyboard-open .new-sheet-layer__keyboard-fill { position: absolute; z-index: 1; top: calc(var(--drawer-safe-top) + var(--visual-viewport-top, 0px) + var(--visual-viewport-height, 100dvh) - 1px); right: 0; bottom: 0; left: 0; display: block; background: var(--white); }
@@ -117,6 +117,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-sheet__drag-zone:active { cursor: grabbing; }
 .new-sheet__handle { width: 36px; height: 4px; border-radius: 99px; background: var(--line-strong); }
 .new-sheet__form { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; overflow: hidden; }
+[data-drawer-scroll] { touch-action: pan-y; }
 html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .app-viewport[inert] { pointer-events: none; user-select: none; }
 .new-sheet__header { display: flex; align-items: center; justify-content: space-between; padding: 13px 20px 6px; }
@@ -229,8 +230,11 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 
 .new-sheet--note { display: flex; height: min(70svh, 620px); min-height: 480px; flex-direction: column; overflow: hidden; }
 .new-note-drawer { display: flex; min-height: 0; flex: 1; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px calc(14px + var(--drawer-safe-bottom)); -webkit-overflow-scrolling: touch; }
-.new-note-drawer__title-input { display: block; width: 100%; min-height: 30px; margin: 0 0 16px; padding: 0; overflow: hidden; border: 0; border-radius: 0; appearance: none; background: transparent; color: var(--ink); font-family: inherit; font-size: 25px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.2; text-align: left; resize: none; }
-.new-note-drawer__body-input { display: block; width: 100%; min-height: 44px; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; appearance: none; background: transparent; color: #353535; font-family: inherit; font-size: 16px; font-weight: 400; line-height: 1.35; text-align: left; white-space: pre-wrap; resize: none; }
+.new-note-drawer__field { display: grid; width: 100%; min-width: 0; }
+.new-note-drawer__field::after { grid-area: 1 / 1; width: 100%; visibility: hidden; white-space: pre-wrap; overflow-wrap: anywhere; content: attr(data-value) ' '; }
+.new-note-drawer__field--title { min-height: 30px; margin: 0 0 16px; color: var(--ink); font-family: inherit; font-size: 25px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.2; }
+.new-note-drawer__field--body { min-height: 44px; color: #353535; font-family: inherit; font-size: 16px; font-weight: 400; line-height: 1.35; }
+.new-note-drawer__title-input, .new-note-drawer__body-input { grid-area: 1 / 1; width: 100%; min-width: 0; min-height: inherit; align-self: stretch; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; appearance: none; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; line-height: inherit; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; resize: none; }
 .new-note-drawer__body-input.is-empty { color: var(--faint); }
 .new-note-drawer__title-input:focus, .new-note-drawer__body-input:focus { outline: 0; }
 .new-note-drawer__save { width: 100%; min-height: 48px; margin-top: auto; border: 0; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 15px; font-weight: 650; cursor: pointer; box-shadow: 0 7px 16px rgb(23 24 22 / 0.14); }
