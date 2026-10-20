@@ -15,9 +15,18 @@ export const metadata: Metadata = {
   description: 'A private shared space for planning a trip together.',
   manifest: '/manifest.webmanifest',
   icons: { icon: '/trip-hub-icon.svg' },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Trip Hub' },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#f7f7f9' };
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
+  themeColor: '#f7f7f9',
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

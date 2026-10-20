@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BedDouble, CalendarDays, Clock3, Landmark, Map as MapIcon, Moon, NotebookText, Plane, Plus, ShoppingBag, Soup, Sparkles, Sun, SunMedium, UtensilsCrossed } from 'lucide-react';
@@ -80,6 +80,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   const [composer, setComposer] = useState<ComposerState | null>(null);
   const [previewItems, setPreviewItems] = useState<ScheduleItem[]>(() => groups.flatMap((group) => group.items));
   const dayRefs = useRef(new Map<string, HTMLElement>());
+  const stickyRef = useRef<HTMLDivElement>(null);
   const swipeStartX = useRef<number | null>(null);
   const dateStripSwiped = useRef(false);
   const [, startTransition] = useTransition();
@@ -95,6 +96,33 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   }, [allItems]);
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
   const periods: Period[] = ['Morning', 'Afternoon', 'Evening'];
+
+  useEffect(() => {
+    if (view !== 'week') return;
+
+    let frame = 0;
+    const syncDateToFirstCard = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const boundary = (stickyRef.current?.getBoundingClientRect().bottom ?? 0) + 1;
+        const firstVisibleDate = weekDates.find((key) => {
+          const card = dayRefs.current.get(key);
+          return card ? card.getBoundingClientRect().bottom > boundary : false;
+        });
+        const nextDate = firstVisibleDate ?? weekDates.at(-1);
+        if (nextDate) setSelectedDate((currentDate) => currentDate === nextDate ? currentDate : nextDate);
+      });
+    };
+
+    syncDateToFirstCard();
+    window.addEventListener('scroll', syncDateToFirstCard, { passive: true });
+    window.addEventListener('resize', syncDateToFirstCard);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', syncDateToFirstCard);
+      window.removeEventListener('resize', syncDateToFirstCard);
+    };
+  }, [view, weekDates]);
 
   const openDay = (key: string) => { setSelectedDate(key); setView('day'); };
   const moveWeek = (amount: number) => {
@@ -156,7 +184,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
       <h1>Your trip to Korea &amp; Japan</h1>
     </header>
 
-    <div className="new-calendar-sticky">
+    <div className="new-calendar-sticky" ref={stickyRef}>
       <div className="new-calendar-heading">
         <div className="new-segmented" aria-label="Calendar view"><button className={view === 'week' ? 'is-active' : ''} onClick={() => setView('week')} type="button">Week</button><button className={view === 'day' ? 'is-active' : ''} onClick={() => setView('day')} type="button">Day</button></div>
         <button className="new-map-button" type="button" aria-label="Map view coming soon"><MapIcon size={16} strokeWidth={1.8} /></button>
