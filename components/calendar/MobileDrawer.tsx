@@ -32,7 +32,12 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     const root = document.documentElement;
     const body = document.body;
     const app = document.querySelector<HTMLElement>('.app-viewport');
-    const theme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    document.querySelectorAll('meta[data-drawer-theme]').forEach((node) => node.remove());
+    const drawerTheme = document.createElement('meta');
+    drawerTheme.name = 'theme-color';
+    drawerTheme.content = '#a1a1a3';
+    drawerTheme.dataset.drawerTheme = 'true';
+    document.head.appendChild(drawerTheme);
     const previous = {
       rootOverflow: root.style.overflow,
       bodyPosition: body.style.position,
@@ -42,7 +47,6 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       rootBackground: root.style.backgroundColor,
       bodyBackground: body.style.backgroundColor,
       inert: app?.inert ?? false,
-      theme: theme?.content,
     };
     const updateViewport = () => {
       const visual = window.visualViewport;
@@ -55,7 +59,6 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       root.classList.toggle('has-drawer-keyboard', keyboard);
       root.style.backgroundColor = keyboard ? '#ffffff' : '#a1a1a3';
       body.style.backgroundColor = keyboard ? '#ffffff' : '#a1a1a3';
-      if (theme) theme.content = '#a1a1a3';
       setViewport({ height: visual.height, top: visual.offsetTop, bottom, layoutHeight, keyboard });
     };
     document.addEventListener('keydown', close);
@@ -67,7 +70,6 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     body.style.width = '100%';
     body.style.overflow = 'hidden';
     if (app) app.inert = true;
-    if (theme) theme.content = '#a1a1a3';
     window.visualViewport?.addEventListener('resize', updateViewport);
     window.visualViewport?.addEventListener('scroll', updateViewport);
     document.addEventListener('focusin', updateViewport);
@@ -90,7 +92,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       root.style.backgroundColor = previous.rootBackground;
       body.style.backgroundColor = previous.bodyBackground;
       if (app) app.inert = previous.inert;
-      if (theme && previous.theme) theme.content = previous.theme;
+      document.querySelectorAll('meta[data-drawer-theme]').forEach((node) => node.remove());
       viewportBaseline.current = null;
       window.scrollTo(0, scrollY);
     };
