@@ -1,11 +1,16 @@
-import Link from 'next/link';
+import { NotesBrowser } from '@/components/notes/NotesBrowser';
 import { TableRealtimeRefresh } from '@/components/TableRealtimeRefresh';
-import { NewNoteTrigger } from '@/components/CreateRecordTriggers';
 import { getNotes } from '@/lib/notes';
 import { getCurrentTrip } from '@/lib/trips';
 
+const previewNotes = [
+  { id: 'preview-1', title: 'Before we leave', body: 'Download offline maps, add Suica to wallet, and confirm airport transfer.', pinned: true, updatedAt: '2026-10-20T12:00:00Z' },
+  { id: 'preview-2', title: 'Things to bring', body: 'Portable charger, small umbrella, passport copies, and comfortable walking shoes.', pinned: false, updatedAt: '2026-10-19T12:00:00Z' },
+];
+
 export default async function NotesPage() {
   const trip = await getCurrentTrip();
-  const notes = trip ? await getNotes(trip.id) : [];
-  return <>{trip && <TableRealtimeRefresh tripId={trip.id} table="notes" />}<div className="simple-page-toolbar"><div><h2>Notes</h2><p>Shared details and reminders.</p></div><NewNoteTrigger className="primary-link">+ Add Note</NewNoteTrigger></div>{notes.length > 0 ? <div className="notes-grid">{notes.map((note) => <Link className="note-card" href={`/notes/${note.id}`} key={note.id}><h3>{note.title}</h3><p>{note.body || 'Empty Note'}</p><small>Updated {new Intl.DateTimeFormat('en-US', { timeZone: trip?.timezone ?? 'UTC', month: 'short', day: 'numeric' }).format(new Date(note.updatedAt))}</small></Link>)}</div> : <section className="empty-state"><h3>No shared notes yet</h3><p>Plain text keeps trip knowledge quick to write and easy to find.</p><NewNoteTrigger className="primary-link">Add your first Note</NewNoteTrigger></section>}</>;
+  const records = trip?.preview ? previewNotes : trip ? await getNotes(trip.id) : [];
+  const notes = records.map((note) => ({ id: note.id, title: note.title, body: note.body, pinned: note.pinned, updatedAt: note.updatedAt }));
+  return <>{!trip?.preview && trip && <TableRealtimeRefresh tripId={trip.id} table="notes" />}{trip ? <NotesBrowser initialNotes={notes} timezone={trip.timezone} tripStart={trip.startDate} tripEnd={trip.endDate} preview={trip.preview} /> : <section className="empty-state"><h3>No trip found</h3><p>Create a trip before adding notes.</p></section>}</>;
 }

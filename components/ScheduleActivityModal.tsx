@@ -12,14 +12,14 @@ import { DetailPanel, DetailRow } from '@/components/ui/DetailPanel';
 import { formatBookingDateTime } from '@/lib/datetime';
 import type { ScheduleActivity } from '@/lib/schedule-activities';
 
-export function ScheduleActivityModal({ activity, timezone, onClose }: { activity?: ScheduleActivity; timezone: string; onClose: () => void }) {
+export function ScheduleActivityModal({ activity, initialStartsAt, timezone, onClose }: { activity?: ScheduleActivity; initialStartsAt?: string; timezone: string; onClose: () => void }) {
   const [editing, setEditing] = useState(!activity);
   const location = activity ? [activity.city, activity.country, activity.neighborhood].filter(Boolean).join(', ') : '';
 
   return (
     <ModalFrame className={editing ? 'is-editing' : ''} onClose={onClose} labelledBy={editing ? MODAL_FORM_TITLE_ID : 'activity-modal-title'}>
       {editing ? (
-        <ScheduleActivityForm activity={activity} timezone={timezone} onCancel={() => activity ? setEditing(false) : onClose()} onSaved={onClose} />
+        <ScheduleActivityForm activity={activity} initialStartsAt={initialStartsAt} timezone={timezone} onCancel={() => activity ? setEditing(false) : onClose()} onSaved={onClose} />
       ) : activity && <>
         <div className="idea-modal-media">
           {activity.imageUrl ? <img src={activity.imageUrl} alt="" /> : <div className="idea-modal-placeholder"><ImageIcon size={34} strokeWidth={1.6} aria-hidden="true" /></div>}

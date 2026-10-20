@@ -37,8 +37,8 @@ function parse(data:FormData,timezone:string) {
   const startInput=text(data,'startsAt'); const endInput=text(data,'endsAt');
   const startsAt=startInput ? localDateTimeToIso(startInput,timezone) : null; const endsAt=endInput ? localDateTimeToIso(endInput,timezone) : null;
   if (!startsAt) return {error:`Choose a valid start date and time in ${timezone}.`} as const;
-  if (endInput && !endsAt) return {error:`Choose a valid end date and time in ${timezone}.`} as const;
-  if (endsAt && endsAt<startsAt) return {error:'The end time must be after the start time.'} as const;
+  if (!endsAt) return {error:`Choose a valid end date and time in ${timezone}.`} as const;
+  if (endsAt<=startsAt) return {error:'The end time must be after the start time.'} as const;
   const imageUrl=parseUrl(data); if (imageUrl.error) return {error:imageUrl.error} as const;
   return {error:null,values:{title,country:optional(data,'country'),city:optional(data,'city'),neighborhood:optional(data,'neighborhood'),starts_at:startsAt,ends_at:endsAt,image_url:imageUrl.value,notes:optional(data,'notes')}} as const;
 }
@@ -65,3 +65,64 @@ export async function updateScheduleActivity(_state:ActivityFormState,data:FormD
 }
 
 export async function deleteScheduleActivity(data:FormData){const trip=await getTripForMutation();const id=text(data,'activityId');if(!trip||!/^[0-9a-f-]{36}$/i.test(id))redirect('/schedule');const supabase=await createClient();const {data:existing}=await supabase.from('schedule_activities').select('cover_url').eq('id',id).eq('trip_id',trip.id).maybeSingle();await supabase.from('schedule_activities').delete().eq('id',id).eq('trip_id',trip.id);if(existing?.cover_url)await supabase.storage.from('idea-images').remove([existing.cover_url]);refresh(id);redirect('/schedule');}
+
+export async function updateScheduleItem(_state:ActivityFormState,data:FormData):Promise<ActivityFormState>{
+  const trip=await getTripForMutation();
+  const id=text(data,'itemId');
+  const source=text(data,'source');
+  if(!trip)return{error:'Could not reach the server. Please try again.'};
+  if(!/^[0-9a-f-]{36}$/i.test(id)||!['activity','booking','idea'].includes(source))return{error:'Event not found.'};
+  const input=parse(data,trip.timezone);
+  if(input.error||!input.values)return{error:input.error};
+  const {title,city,starts_at,ends_at,notes}=input.values;
+  const supabase=await createClient();
+  const table=source==='activity'?'schedule_activities':source==='booking'?'bookings':'ideas';
+  const values=source==='activity'
+    ? {title,city,starts_at,ends_at,notes}
+    : source==='booking'
+      ? {title,city_route:city,starts_at,ends_at,notes}
+      : {title,city,scheduled_at:starts_at,scheduled_end_at:ends_at,notes};
+  const {error}=await supabase.from(table).update(values).eq('id',id).eq('trip_id',trip.id);
+  if(error)return{error:databaseError(error.message)};
+  refresh(id);return{error:null,saved:true};
+}
+
+export async function deleteScheduleItem(data:FormData):Promise<ActivityFormState>{
+  const trip=await getTripForMutation();
+  const id=text(data,'itemId');
+  const source=text(data,'source');
+  if(!trip)return{error:'Could not reach the server. Please try again.'};
+  if(!/^[0-9a-f-]{36}$/i.test(id)||!['activity','booking','idea'].includes(source))return{error:'Event not found.'};
+  const supabase=await createClient();
+  const table=source==='activity'?'schedule_activities':source==='booking'?'bookings':'ideas';
+  const {error}=await supabase.from(table).delete().eq('id',id).eq('trip_id',trip.id);
+  if(error)return{error:databaseError(error.message)};
+  refresh(id);return{error:null,saved:true};
+}
+
+export async function createScheduleComment(data:FormData):Promise<{error:string|null;comment?:{id:string;body:string;createdAt:string}}>{
+  const trip=await getTripForMutation();
+  const itemId=text(data,'itemId');
+  const source=text(data,'source');
+  const body=text(data,'body');
+  if(!trip)return{error:'Could not reach the server. Please try again.'};
+  if(!/^[0-9a-f-]{36}$/i.test(itemId)||!['activity','booking','idea'].includes(source))return{error:'Event not found.'};
+  if(!body||body.length>1000)return{error:'Enter a comment under 1,000 characters.'};
+  const supabase=await createClient();
+  const {data:auth}=await supabase.auth.getUser();
+  if(!auth.user)return{error:'Your session expired. Sign in again.'};
+  const {data:created,error}=await supabase.from('schedule_comments').insert({trip_id:trip.id,item_id:itemId,source,body,created_by:auth.user.id}).select('id, body, created_at').single();
+  if(error||!created)return{error:error?.message?.includes('schema cache')?'Comments need the latest database migration before they can be saved.':error?.message??'Could not add the comment.'};
+  refresh(itemId);return{error:null,comment:{id:created.id,body:created.body,createdAt:created.created_at}};
+}
+
+export async function deleteScheduleComment(data:FormData):Promise<ActivityFormState>{
+  const trip=await getTripForMutation();
+  const commentId=text(data,'commentId');
+  if(!trip)return{error:'Could not reach the server. Please try again.'};
+  if(!/^[0-9a-f-]{36}$/i.test(commentId))return{error:'Comment not found.'};
+  const supabase=await createClient();
+  const {error}=await supabase.from('schedule_comments').delete().eq('id',commentId).eq('trip_id',trip.id);
+  if(error)return{error:error.message};
+  refresh();return{error:null,saved:true};
+}

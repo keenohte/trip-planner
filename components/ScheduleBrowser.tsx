@@ -1,132 +1,197 @@
 'use client';
 
-import { useState } from 'react';
-import { BedDouble, CalendarDays, Clock3, ImageIcon, Plane, Plus, Ticket, TrainFront } from 'lucide-react';
-import { IdeaModal } from '@/components/IdeaModal';
-import { BookingModal } from '@/components/BookingModal';
-import { ScheduleActivityModal } from '@/components/ScheduleActivityModal';
-import { MediaImage } from '@/components/MediaImage';
-import { Button } from '@/components/ui/Button';
-import { CardBody, CardButton, CardMedia, CardTitle, CategoryTagList, SourceChip } from '@/components/ui/Card';
-import { activityChip, bookingChip } from '@/lib/categories';
-import { formatScheduleTime } from '@/lib/datetime';
-import type { Idea } from '@/lib/ideas';
-import type { Booking } from '@/lib/bookings';
+import { useMemo, useRef, useState, useTransition } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { BedDouble, CalendarDays, Clock3, Landmark, Map as MapIcon, Moon, NotebookText, Plane, Plus, ShoppingBag, Soup, Sparkles, Sun, SunMedium, UtensilsCrossed } from 'lucide-react';
+import { EventComposer, type PreviewEventInput } from '@/components/calendar/EventComposer';
+import { EventSheet, type InlineEventUpdate } from '@/components/calendar/EventSheet';
+import { SwipeReveal } from '@/components/calendar/SwipeReveal';
+import { deleteScheduleItem } from '@/app/schedule/actions';
+import { dateKey, formatScheduleTime } from '@/lib/datetime';
 import type { ScheduleGroup, ScheduleItem } from '@/lib/schedule';
-import type { ScheduleActivity } from '@/lib/schedule-activities';
+import type { ScheduleComment } from '@/lib/schedule-comments';
 
-const bookingIcons: Record<string, typeof Plane> = {
-  flight: Plane,
-  hotel: BedDouble,
-  train: TrainFront,
-  ticket: Ticket,
-};
+type View = 'week' | 'day';
+type Period = 'Morning' | 'Afternoon' | 'Evening';
+type ComposerState = { initialStartsAt: string; item: ScheduleItem | null };
 
-function ItemMedia({ item }: { item: ScheduleItem }) {
-  const Icon = item.source === 'booking' ? bookingIcons[item.type] ?? CalendarDays : ImageIcon;
-  return <MediaImage src={item.imageUrl} fallback={
-    <div className="card__placeholder">
-      <Icon size={26} strokeWidth={1.6} aria-hidden="true" />
-    </div>
-  } />;
+function addDays(key: string, amount: number) {
+  const date = new Date(`${key}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return date.toISOString().slice(0, 10);
 }
 
-function ItemBody({ item }: { item: ScheduleItem }) {
-  return (
-    <CardBody>
-      <CardTitle>{item.title}</CardTitle>
-      {item.detail && <p className="schedule-card__detail">{item.detail}</p>}
-      {item.source === 'idea' && item.idea
-        ? <CategoryTagList category={item.idea.category} tags={item.idea.tags} max={2} />
-        : <SourceChip meta={item.source === 'booking' ? bookingChip(item.type) : activityChip} />}
-      <div className="schedule-card__time">
-        <Clock3 size={15} aria-hidden="true" />
-        <span>
-          {formatScheduleTime(item.startsAt, item.timezone)}
-          {item.endsAt && <> → {formatScheduleTime(item.endsAt, item.timezone)}</>}
-        </span>
-      </div>
-    </CardBody>
-  );
+function todayKey(timezone: string) {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
 }
 
-function dayLabel(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: timezone }).format(new Date(iso));
+function formatDate(key: string, options: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(new Date(`${key}T12:00:00Z`));
 }
 
-export function ScheduleBrowser({ groups, timezone }: { groups: ScheduleGroup[]; timezone: string }) {
-  const [idea, setIdea] = useState<Idea | null>(null);
-  const [booking, setBooking] = useState<Booking | null>(null);
-  const [activity, setActivity] = useState<ScheduleActivity | null | undefined>(undefined);
+function dayNumber(key: string, tripStart: string | null, tripEnd: string | null) {
+  if (!tripStart || key < tripStart || (tripEnd && key > tripEnd)) return null;
+  return Math.floor((Date.parse(`${key}T00:00:00Z`) - Date.parse(`${tripStart}T00:00:00Z`)) / 86400000) + 1;
+}
 
-  const open = (item: ScheduleItem) => {
-    if (item.idea) setIdea(item.idea);
-    else if (item.booking) setBooking(item.booking);
-    else if (item.activity) setActivity(item.activity);
+function periodFor(item: ScheduleItem): Period {
+  const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: item.timezone, hour: '2-digit', hourCycle: 'h23' }).format(new Date(item.startsAt)));
+  if (hour < 12) return 'Morning';
+  if (hour < 17) return 'Afternoon';
+  return 'Evening';
+}
+
+function timeRange(item: ScheduleItem) {
+  const start = formatScheduleTime(item.startsAt, item.timezone);
+  return item.endsAt ? `${start} – ${formatScheduleTime(item.endsAt, item.timezone)}` : start;
+}
+
+function eventPresentation(item: ScheduleItem) {
+  const value = `${item.title} ${item.type} ${item.types.join(' ')}`.toLowerCase();
+  if (/airport|flight|plane/.test(value)) return { Icon: Plane, tone: 'blue' };
+  if (/hotel|check-in|accommodation|stay/.test(value)) return { Icon: BedDouble, tone: 'pink' };
+  if (/dinner|lunch|breakfast|food|restaurant/.test(value)) return { Icon: UtensilsCrossed, tone: 'orange' };
+  if (/market|shop|store/.test(value)) return { Icon: ShoppingBag, tone: 'violet' };
+  if (/temple|shrine|museum|castle|sight/.test(value)) return { Icon: Landmark, tone: 'green' };
+  if (/cafe|coffee|noodle/.test(value)) return { Icon: Soup, tone: 'orange' };
+  return { Icon: Sparkles, tone: 'blue' };
+}
+
+function AgendaCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => void }) {
+  const { Icon, tone } = eventPresentation(item);
+  const place = item.detail?.split(/[·,]/)[0]?.trim();
+  return <button className="new-event-card" type="button" onClick={onOpen}>
+    <span className={`new-event-card__icon is-${tone}`}><Icon size={22} strokeWidth={2.2} /></span>
+    <span className="new-event-card__content"><span className="new-event-card__title">{item.title}</span><span className="new-event-card__meta">{timeRange(item)}{place ? ` · ${place}` : ''}</span></span>
+  </button>;
+}
+
+export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview = false }: { groups: ScheduleGroup[]; timezone: string; tripStart: string | null; tripEnd: string | null; preview?: boolean }) {
+  const current = todayKey(timezone);
+  const firstDate = tripStart ?? groups[0]?.key ?? current;
+  const initialDate = tripStart && tripEnd && current >= tripStart && current <= tripEnd ? current : firstDate;
+  const [view, setView] = useState<View>('week');
+  const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [weekStart, setWeekStart] = useState(firstDate);
+  const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
+  const [composer, setComposer] = useState<ComposerState | null>(null);
+  const [previewItems, setPreviewItems] = useState<ScheduleItem[]>(() => groups.flatMap((group) => group.items));
+  const dayRefs = useRef(new Map<string, HTMLElement>());
+  const swipeStartX = useRef<number | null>(null);
+  const dateStripSwiped = useRef(false);
+  const [, startTransition] = useTransition();
+  const router = useRouter();
+  const allItems = useMemo(() => preview ? previewItems : groups.flatMap((group) => group.items), [groups, preview, previewItems]);
+  const byDate = useMemo(() => {
+    const result = new Map<string, ScheduleItem[]>();
+    for (const item of allItems) {
+      const key = dateKey(item.startsAt, item.timezone);
+      result.set(key, [...(result.get(key) ?? []), item].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)));
+    }
+    return result;
+  }, [allItems]);
+  const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
+  const periods: Period[] = ['Morning', 'Afternoon', 'Evening'];
+
+  const openDay = (key: string) => { setSelectedDate(key); setView('day'); };
+  const moveWeek = (amount: number) => {
+    const next = addDays(weekStart, amount * 7);
+    setWeekStart(next);
+    setSelectedDate(next);
+    window.setTimeout(() => dayRefs.current.get(next)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
+  };
+  const selectDate = (key: string) => {
+    if (dateStripSwiped.current) { dateStripSwiped.current = false; return; }
+    setSelectedDate(key);
+    if (view === 'week') requestAnimationFrame(() => dayRefs.current.get(key)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+  const addEvent = (hour = '09:00') => { setSelectedItem(null); setComposer({ initialStartsAt: `${selectedDate}T${hour}`, item: null }); };
+  const savePreviewEvent = ({ item, title, startsAt, endsAt, city, notes }: PreviewEventInput) => {
+    if (item) {
+      setPreviewItems((currentItems) => currentItems.map((candidate) => candidate.id === item.id && candidate.source === item.source
+        ? { ...candidate, title, startsAt, endsAt, detail: city || null, activity: candidate.activity ? { ...candidate.activity, title, startsAt, endsAt, city: city || null, notes: notes || null } : candidate.activity }
+        : candidate));
+    } else {
+      const id = `preview-${Date.now()}`;
+      const created: ScheduleItem = {
+        id, source: 'activity', title, startsAt, endsAt, type: 'Activity', types: ['Activity'], detail: city || null,
+        timezone, imageUrl: null, idea: null, booking: null, href: '/schedule',
+        activity: { id, tripId: 'preview', title, country: null, city: city || null, neighborhood: null, startsAt, endsAt, imageUrl: null, externalImageUrl: null, coverPath: null, notes: notes || null, createdBy: 'preview', createdAt: new Date().toISOString() }, comments: [],
+      };
+      setPreviewItems((currentItems) => [...currentItems, created].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)));
+    }
+    setSelectedDate(dateKey(startsAt, timezone));
   };
 
-  return (
-    <>
-      <div className="toolbar">
-        <div>
-          <h2 className="toolbar__title">Schedule</h2>
-          <p className="toolbar__subtitle">Confirmed plans, bookings, and activities by trip day.</p>
-        </div>
-        <div className="toolbar__actions">
-          <Button variant="primary" onClick={() => setActivity(null)}>
-            <Plus size={18} aria-hidden="true" />
-            Add activity
-          </Button>
-        </div>
+  const updatePreviewItem = (item: ScheduleItem, update: InlineEventUpdate) => {
+    const updated: ScheduleItem = { ...item, title: update.title, startsAt: update.startsAt, endsAt: update.endsAt, detail: update.city || null, activity: item.activity ? { ...item.activity, title: update.title, startsAt: update.startsAt, endsAt: update.endsAt, city: update.city || null, notes: update.notes || null } : item.activity };
+    setPreviewItems((items) => items.map((candidate) => candidate.id === item.id && candidate.source === item.source ? updated : candidate));
+    setSelectedItem(updated);
+  };
+
+  const updatePreviewComments = (item: ScheduleItem, comments: ScheduleComment[]) => {
+    const updated = { ...item, comments };
+    setPreviewItems((items) => items.map((candidate) => candidate.id === item.id && candidate.source === item.source ? updated : candidate));
+    setSelectedItem(updated);
+  };
+
+  const removeItem = async (item: ScheduleItem) => {
+    if (preview) {
+      setPreviewItems((items) => items.filter((candidate) => candidate.id !== item.id || candidate.source !== item.source));
+      if (selectedItem?.id === item.id && selectedItem.source === item.source) setSelectedItem(null);
+      return;
+    }
+    const data = new FormData(); data.set('itemId', item.id); data.set('source', item.source);
+    await new Promise<void>((resolve) => startTransition(async () => { const result = await deleteScheduleItem(data); if (!result.error) { if (selectedItem?.id === item.id && selectedItem.source === item.source) setSelectedItem(null); router.refresh(); } resolve(); }));
+  };
+
+  const agendaRow = (item: ScheduleItem) => <SwipeReveal key={`${item.source}-${item.id}`} label={item.title} onDelete={() => removeItem(item)}><AgendaCard item={item} onOpen={() => setSelectedItem(item)} /></SwipeReveal>;
+
+  return <div className="new-app">
+    <header className="new-app-header">
+      <p className="new-trip-range">{tripStart && tripEnd ? `${formatDate(tripStart, { month: 'short', day: 'numeric' })} – ${formatDate(tripEnd, { month: 'short', day: 'numeric' })}` : 'Trip dates'}{preview && <span className="new-preview-label">Preview</span>}</p>
+      <h1>Your trip to Korea &amp; Japan</h1>
+    </header>
+
+    <div className="new-calendar-sticky">
+      <div className="new-calendar-heading">
+        <div className="new-segmented" aria-label="Calendar view"><button className={view === 'week' ? 'is-active' : ''} onClick={() => setView('week')} type="button">Week</button><button className={view === 'day' ? 'is-active' : ''} onClick={() => setView('day')} type="button">Day</button></div>
+        <button className="new-map-button" type="button" aria-label="Map view coming soon"><MapIcon size={16} strokeWidth={1.8} /></button>
       </div>
 
-      {groups.length > 0 ? (
-        <div className="schedule">
-          {groups.map((group) => (
-            <section className="schedule-day" key={group.key}>
-              <div className="schedule-day__rail">
-                <span className="schedule-day__date">{dayLabel(group.startsAt, group.timezone)}</span>
-                {group.dayNumber && (
-                  <strong className="schedule-day__number" aria-label={`Trip day ${group.dayNumber}`}>
-                    {group.dayNumber}
-                  </strong>
-                )}
-                <i className="schedule-day__line" aria-hidden="true" />
-              </div>
+      <nav
+        className="new-date-strip"
+        aria-label={`${formatDate(weekStart, { month: 'short', day: 'numeric' })} to ${formatDate(addDays(weekStart, 6), { month: 'short', day: 'numeric' })}`}
+        onPointerDown={(event) => { swipeStartX.current = event.clientX; dateStripSwiped.current = false; }}
+        onPointerUp={(event) => { if (swipeStartX.current === null) return; const distance = event.clientX - swipeStartX.current; swipeStartX.current = null; if (Math.abs(distance) > 48) { dateStripSwiped.current = true; moveWeek(distance < 0 ? 1 : -1); window.setTimeout(() => { dateStripSwiped.current = false; }, 0); } }}
+        onPointerCancel={() => { swipeStartX.current = null; }}
+      >{weekDates.map((key) => <button className={`${key === selectedDate ? 'is-active' : ''}${key === current ? ' is-today' : ''}`} type="button" onClick={() => selectDate(key)} key={key}><span>{formatDate(key, { weekday: 'narrow' })}</span><strong>{formatDate(key, { day: 'numeric' })}</strong></button>)}</nav>
+    </div>
 
-              <div className="schedule-day__cards">
-                {group.items.map((item) => (
-                  <CardButton
-                    row
-                    key={`${item.source}-${item.id}`}
-                    onClick={() => open(item)}
-                    aria-label={`Open ${item.title}`}
-                  >
-                    <CardMedia aspect="square">
-                      <ItemMedia item={item} />
-                    </CardMedia>
-                    <ItemBody item={item} />
-                  </CardButton>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      ) : (
-        <section className="empty-state">
-          <h3>Nothing scheduled yet</h3>
-          <p>Add an activity, or give a confirmed idea or booking a start time.</p>
-          <Button variant="primary" onClick={() => setActivity(null)}>
-            Add activity
-          </Button>
-        </section>
-      )}
+    {view === 'week' ? <div className="new-week-list">{weekDates.map((key) => {
+      const items = byDate.get(key) ?? [];
+      const number = dayNumber(key, tripStart, tripEnd);
+      if (!number) return null;
+      return <section className="new-week-day" ref={(node) => { if (node) dayRefs.current.set(key, node); else dayRefs.current.delete(key); }} key={key}>
+        <button className="new-week-day__header" type="button" onClick={() => openDay(key)}><span><small>Day {number}</small><strong>{formatDate(key, { weekday: 'long' })}</strong></span><span>{formatDate(key, { month: 'short', day: 'numeric' })}</span></button>
+        {items.length ? <div className="new-week-day__events">{items.map(agendaRow)}</div> : <button className="new-empty-row" type="button" onClick={() => openDay(key)}>Nothing planned yet</button>}
+      </section>;
+    })}</div> : <div className="new-day-view">
+      <div className="new-day-title"><span><small>Day {dayNumber(selectedDate, tripStart, tripEnd) ?? '—'}</small><strong>{formatDate(selectedDate, { weekday: 'long' })}</strong></span><span>{formatDate(selectedDate, { month: 'short', day: 'numeric' })}</span></div>
+      <div className="new-day-agenda">{periods.map((period) => {
+        const items = (byDate.get(selectedDate) ?? []).filter((item) => periodFor(item) === period);
+        const hour = period === 'Morning' ? '09:00' : period === 'Afternoon' ? '13:00' : '18:00';
+        const PeriodIcon = period === 'Morning' ? SunMedium : period === 'Afternoon' ? Sun : Moon;
+        return <section className="new-period" key={period}><div className="new-period__label" aria-label={period}><PeriodIcon aria-hidden="true" size={24} strokeWidth={1.8} /><span /></div><div className="new-period__body">{items.map(agendaRow)}{items.length === 0 && <button className="new-empty-row" type="button" onClick={() => addEvent(hour)}><Clock3 size={15} />Open time</button>}</div></section>;
+      })}</div>
+    </div>}
 
-      {idea && <IdeaModal idea={idea} timezone={timezone} onClose={() => setIdea(null)} />}
-      {booking && <BookingModal booking={booking} timezone={timezone} onClose={() => setBooking(null)} />}
-      {activity !== undefined && (
-        <ScheduleActivityModal activity={activity ?? undefined} timezone={timezone} onClose={() => setActivity(undefined)} />
-      )}
-    </>
-  );
+    <nav className="new-bottom-nav" aria-label="Primary navigation"><button className="is-active" type="button"><CalendarDays size={20} /><span>Schedule</span></button><Link href="/notes"><NotebookText size={20} /><span>Notes</span></Link><button className="new-add-button" type="button" aria-label="Add event" onClick={() => addEvent()}><Plus size={25} /></button></nav>
+
+    {selectedItem && <EventSheet item={selectedItem} preview={preview} onPreviewSave={(update) => updatePreviewItem(selectedItem, update)} onPreviewComments={(comments) => updatePreviewComments(selectedItem, comments)} onClose={() => setSelectedItem(null)} />}
+    {composer && <EventComposer key={`${composer.item?.source ?? 'new'}-${composer.item?.id ?? composer.initialStartsAt}`} initialStartsAt={composer.initialStartsAt} item={composer.item} items={allItems} timezone={timezone} preview={preview} onPreviewSave={savePreviewEvent} onClose={() => setComposer(null)} />}
+  </div>;
 }

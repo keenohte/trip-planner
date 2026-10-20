@@ -11,6 +11,17 @@ export type CurrentTrip = {
   endDate: string | null;
   timezone: string;
   role: 'owner' | 'member';
+  preview?: boolean;
+};
+
+const localPreviewTrip: CurrentTrip = {
+  id: '00000000-0000-0000-0000-000000000000',
+  name: 'Korea + Japan',
+  startDate: '2026-10-23',
+  endDate: '2026-11-07',
+  timezone: 'Asia/Tokyo',
+  role: 'owner',
+  preview: true,
 };
 
 /* cache() matters more than the timeout here.
@@ -27,7 +38,7 @@ const loadTrip = cache(async (timeoutMs: number): Promise<CurrentTrip | null> =>
   if (!isSupabaseConfigured) return null;
 
   const user = await getSessionUser();
-  if (!user) return null;
+  if (!user) return process.env.NODE_ENV === 'development' ? localPreviewTrip : null;
 
   const supabase = await createClient();
   const data = await withTimeout(

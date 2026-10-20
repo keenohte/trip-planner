@@ -11,7 +11,14 @@ import { createScheduleActivity, updateScheduleActivity, type ActivityFormState 
 
 const initialState: ActivityFormState = { error: null };
 
-export function ScheduleActivityForm({ activity, timezone, onCancel, onSaved }: { activity?: ScheduleActivity; timezone: string; onCancel: () => void; onSaved: () => void }) {
+function oneHourAfter(value: string) {
+  if (!value) return '';
+  const date = new Date(`${value}:00Z`);
+  date.setUTCHours(date.getUTCHours() + 1);
+  return date.toISOString().slice(0, 16);
+}
+
+export function ScheduleActivityForm({ activity, initialStartsAt = '', timezone, onCancel, onSaved }: { activity?: ScheduleActivity; initialStartsAt?: string; timezone: string; onCancel: () => void; onSaved: () => void }) {
   const [state, action, pending] = useActionState(activity ? updateScheduleActivity : createScheduleActivity, initialState);
   const [fileName, setFileName] = useState('');
   const router = useRouter();
@@ -21,7 +28,7 @@ export function ScheduleActivityForm({ activity, timezone, onCancel, onSaved }: 
     {activity && <input type="hidden" name="activityId" value={activity.id} />}
     <Field htmlFor="activity-title" label="Title" required><Input id="activity-title" name="title" required maxLength={160} defaultValue={activity?.title ?? ''} placeholder="Morning walk" /></Field>
     <div className="form-columns form-columns-three"><Field htmlFor="activity-country" label="Country"><Input id="activity-country" name="country" defaultValue={activity?.country ?? ''} placeholder="Japan" /></Field><Field htmlFor="activity-city" label="City"><Input id="activity-city" name="city" defaultValue={activity?.city ?? ''} placeholder="Kyoto" /></Field><Field htmlFor="activity-neighborhood" label="Neighborhood"><Input id="activity-neighborhood" name="neighborhood" defaultValue={activity?.neighborhood ?? ''} placeholder="Gion" /></Field></div>
-    <div className="form-columns date-time-fields"><Field htmlFor="activity-start" label="Start date" required><DateTimePicker id="activity-start" name="startsAt" initialValue={formatDateTimeInput(activity?.startsAt ?? null, timezone)} /></Field><Field htmlFor="activity-end" label="End date"><DateTimePicker id="activity-end" name="endsAt" initialValue={formatDateTimeInput(activity?.endsAt ?? null, timezone)} /></Field></div>
+    <div className="form-columns date-time-fields"><Field htmlFor="activity-start" label="Start" required><DateTimePicker id="activity-start" name="startsAt" initialValue={activity ? formatDateTimeInput(activity.startsAt, timezone) : initialStartsAt} /></Field><Field htmlFor="activity-end" label="End" required><DateTimePicker id="activity-end" name="endsAt" initialValue={activity ? formatDateTimeInput(activity.endsAt, timezone) : oneHourAfter(initialStartsAt)} /></Field></div>
     <small className="timezone-field-note">Times use {timezone}.</small>
     <Field htmlFor="activity-image" label="Image" hint={fileName ? `${fileName} will be uploaded when you save.` : undefined}><ImageInput id="activity-image" name="imageUrl" fileId="activity-photo" defaultValue={activity?.externalImageUrl ?? ''} placeholder={fileName || (activity?.coverPath ? 'Current uploaded image' : 'Image link…')} accept="image/jpeg,image/png,image/webp,image/gif" onFileChange={setFileName} /></Field>
     <Field htmlFor="activity-notes" label="Notes"><Textarea id="activity-notes" name="notes" rows={5} defaultValue={activity?.notes ?? ''} placeholder="Anything useful for the day…" /></Field>

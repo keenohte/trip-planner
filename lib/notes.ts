@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 
-export type Note = { id: string; tripId: string; title: string; body: string | null; createdBy: string; createdAt: string; updatedAt: string };
-type NoteRow = { id: string; trip_id: string; title: string; body: string | null; created_by: string; created_at: string; updated_at: string };
-const fields = 'id, trip_id, title, body, created_by, created_at, updated_at';
-function mapNote(row: NoteRow): Note { return { id: row.id, tripId: row.trip_id, title: row.title, body: row.body, createdBy: row.created_by, createdAt: row.created_at, updatedAt: row.updated_at }; }
+export type Note = { id: string; tripId: string; title: string; body: string | null; pinned: boolean; createdBy: string; createdAt: string; updatedAt: string };
+type NoteRow = { id: string; trip_id: string; title: string; body: string | null; pinned: boolean; created_by: string; created_at: string; updated_at: string };
+const fields = 'id, trip_id, title, body, pinned, created_by, created_at, updated_at';
+function mapNote(row: NoteRow): Note { return { id: row.id, tripId: row.trip_id, title: row.title, body: row.body, pinned: row.pinned ?? false, createdBy: row.created_by, createdAt: row.created_at, updatedAt: row.updated_at }; }
 
 export async function getNotes(tripId: string) {
   const supabase = await createClient();

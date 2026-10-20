@@ -51,3 +51,26 @@ export async function deleteNote(data: FormData) {
   refresh(id);
   redirect('/notes');
 }
+
+export async function deleteNoteFromDrawer(data: FormData): Promise<NoteFormState> {
+  const trip = await getTripForMutation();
+  const id = text(data, 'noteId');
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { error: 'Note not found.' };
+  const { error } = await (await createClient()).from('notes').delete().eq('id', id).eq('trip_id', trip.id);
+  if (error) return { error: error.message };
+  refresh(id);
+  return { error: null, saved: true };
+}
+
+export async function toggleNotePinned(data: FormData): Promise<NoteFormState> {
+  const trip = await getTripForMutation();
+  const id = text(data, 'noteId');
+  if (!trip) return { error: 'Could not reach the server. Please try again.' };
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { error: 'Note not found.' };
+  const pinned = text(data, 'pinned') === 'true';
+  const { error } = await (await createClient()).from('notes').update({ pinned }).eq('id', id).eq('trip_id', trip.id);
+  if (error) return { error: error.message };
+  refresh(id);
+  return { error: null, saved: true };
+}

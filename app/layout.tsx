@@ -1,34 +1,12 @@
 import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
-import '@daypicker/react/style.css';
-import './globals.css';
-import './styles/tokens.css';
-import './styles/base.css';
-import './styles/legacy.css';
-import './styles/components/avatar.css';
-import './styles/components/button.css';
-import './styles/components/card.css';
-import './styles/components/chip.css';
-import './styles/components/grid.css';
-import './styles/components/header.css';
-import './styles/components/map.css';
-import './styles/components/modal.css';
-import './styles/components/form.css';
-import './styles/components/tabs.css';
-import './styles/components/toolbar.css';
-import './styles/components/schedule.css';
-import './styles/components/vote.css';
-import { Nav } from '@/components/Nav';
-import { NavFallback } from '@/components/NavFallback';
+import { DM_Sans } from 'next/font/google';
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
+import './mobile.css';
 
-/* Previously the stylesheet asked for "Inter" by name without ever
-   loading it, so every visitor got a fallback system font. next/font
-   self-hosts the file and exposes it as --font-inter, which
-   app/styles/tokens.css consumes. */
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-app',
   display: 'swap',
 });
 
@@ -39,23 +17,14 @@ export const metadata: Metadata = {
   icons: { icon: '/trip-hub-icon.svg' },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#F4F4F4' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#f7f7f9' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={dmSans.variable}>
       <body>
-        <main className="shell">
-          {/* Nav is async and lives in the root layout, so without a
-              Suspense boundary the whole document waits on it — nothing
-              streams, loading.tsx never shows, and a slow upstream reads
-              as a blank white page. The boundary lets the shell paint
-              immediately and the header fill in. */}
-          <Suspense fallback={<NavFallback />}>
-            <Nav />
-          </Suspense>
-          {children}
-        </main>
+        <ServiceWorkerRegistration />
+        <main className="app-viewport"><Suspense>{children}</Suspense></main>
       </body>
     </html>
   );
