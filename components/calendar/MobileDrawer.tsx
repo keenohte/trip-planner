@@ -1,46 +1,87 @@
 'use client';
 
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export function MobileDrawer({ children, labelledBy, onClose, className = '' }: { children: ReactNode; labelledBy: string; onClose: () => void; className?: string }) {
   const startY = useRef<number | null>(null);
   const viewportBaseline = useRef<number | null>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+  const [mounted, setMounted] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [viewport, setViewport] = useState<{ height: number; top: number; keyboard: boolean } | null>(null);
 
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
   useEffect(() => {
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    setMounted(true);
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCloseRef.current();
+      if (event.key !== 'Tab' || !sheetRef.current) return;
+      const focusable = [...sheetRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) { event.preventDefault(); sheetRef.current.focus(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
     const scrollY = window.scrollY;
+    const root = document.documentElement;
     const body = document.body;
-    const previous = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow };
+    const app = document.querySelector<HTMLElement>('.app-viewport');
+    const theme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const previous = {
+      rootOverflow: root.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      bodyOverflow: body.style.overflow,
+      inert: app?.inert ?? false,
+      theme: theme?.content,
+    };
     const updateViewport = () => {
       const visual = window.visualViewport;
       if (!visual) { setViewport(null); return; }
       viewportBaseline.current = Math.max(viewportBaseline.current ?? visual.height, visual.height);
-      setViewport({ height: visual.height, top: visual.offsetTop, keyboard: visual.height < viewportBaseline.current - 100 });
+      const editing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLSelectElement;
+      setViewport({ height: visual.height, top: visual.offsetTop, keyboard: editing && visual.height < viewportBaseline.current - 100 });
     };
     document.addEventListener('keydown', close);
+    root.classList.add('has-open-drawer');
     body.classList.add('has-open-drawer');
+    root.style.overflow = 'hidden';
     body.style.position = 'fixed';
     body.style.top = `-${scrollY}px`;
     body.style.width = '100%';
     body.style.overflow = 'hidden';
+    if (app) app.inert = true;
+    if (theme) theme.content = '#a1a1a3';
     window.visualViewport?.addEventListener('resize', updateViewport);
     window.visualViewport?.addEventListener('scroll', updateViewport);
+    document.addEventListener('focusin', updateViewport);
+    document.addEventListener('focusout', updateViewport);
     updateViewport();
     return () => {
       document.removeEventListener('keydown', close);
       window.visualViewport?.removeEventListener('resize', updateViewport);
       window.visualViewport?.removeEventListener('scroll', updateViewport);
+      document.removeEventListener('focusin', updateViewport);
+      document.removeEventListener('focusout', updateViewport);
+      root.classList.remove('has-open-drawer');
       body.classList.remove('has-open-drawer');
-      body.style.position = previous.position;
-      body.style.top = previous.top;
-      body.style.width = previous.width;
-      body.style.overflow = previous.overflow;
+      root.style.overflow = previous.rootOverflow;
+      body.style.position = previous.bodyPosition;
+      body.style.top = previous.bodyTop;
+      body.style.width = previous.bodyWidth;
+      body.style.overflow = previous.bodyOverflow;
+      if (app) app.inert = previous.inert;
+      if (theme && previous.theme) theme.content = previous.theme;
       viewportBaseline.current = null;
       window.scrollTo(0, scrollY);
     };
-  }, [onClose]);
+  }, []);
 
   const finishDrag = () => {
     if (dragY > 88) onClose();
@@ -50,8 +91,10 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
 
   const layerStyle = viewport ? ({ height: `${viewport.height}px`, top: `${viewport.top}px`, bottom: 'auto' } satisfies CSSProperties) : undefined;
 
-  return <div className={`new-sheet-layer${viewport?.keyboard ? ' is-keyboard-open' : ''}`} style={layerStyle} role="presentation" onPointerDown={(event) => event.target === event.currentTarget && onClose()}>
-    <section className={`new-sheet ${className}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} style={{ transform: `translateY(${dragY}px)` }}>
+  if (!mounted) return null;
+
+  return createPortal(<div ref={layerRef} className={`new-sheet-layer${viewport?.keyboard ? ' is-keyboard-open' : ''}`} style={layerStyle} role="presentation" onPointerDown={(event) => event.target === event.currentTarget && onCloseRef.current()}>
+    <section ref={sheetRef} className={`new-sheet ${className}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1} style={{ transform: `translateY(${dragY}px)` }}>
       <div
         className="new-sheet__drag-zone"
         onPointerDown={(event) => { startY.current = event.clientY; event.currentTarget.setPointerCapture(event.pointerId); }}
@@ -63,5 +106,5 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       </div>
       {children}
     </section>
-  </div>;
+  </div>, document.body);
 }
