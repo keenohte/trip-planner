@@ -16,6 +16,15 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
+    // Capture the app's actual layout viewport before mounting children. Some
+    // drawers autofocus immediately, so measuring for the first time after
+    // mount can already be measuring the keyboard-shrunken viewport.
+    const initialVisual = window.visualViewport;
+    viewportBaseline.current = Math.max(
+      window.innerHeight,
+      document.documentElement.clientHeight,
+      (initialVisual?.height ?? 0) + (initialVisual?.offsetTop ?? 0),
+    );
     setMounted(true);
     const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onCloseRef.current();
@@ -31,12 +40,18 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     const root = document.documentElement;
     const body = document.body;
     const app = document.querySelector<HTMLElement>('.app-viewport');
-    document.querySelectorAll('meta[data-drawer-theme]').forEach((node) => node.remove());
-    const drawerTheme = document.createElement('meta');
-    drawerTheme.name = 'theme-color';
-    drawerTheme.content = '#a1a1a3';
-    drawerTheme.dataset.drawerTheme = 'true';
-    document.head.appendChild(drawerTheme);
+    const themeMetas = [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')];
+    const previousThemeColors = themeMetas.map((meta) => meta.content);
+    let createdTheme: HTMLMetaElement | null = null;
+    if (!themeMetas.length) {
+      createdTheme = document.createElement('meta');
+      createdTheme.name = 'theme-color';
+      document.head.appendChild(createdTheme);
+      themeMetas.push(createdTheme);
+    }
+    // Update the existing tag instead of appending a duplicate. iOS may keep
+    // using the first theme-color tag when multiple tags are present.
+    themeMetas.forEach((meta) => { meta.content = '#a1a1a3'; });
     const previous = {
       rootOverflow: root.style.overflow,
       bodyPosition: body.style.position,
@@ -50,17 +65,12 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     const updateViewport = () => {
       const visual = window.visualViewport;
       if (!visual) { setViewport(null); return; }
-      // On iOS, this effect can run after an auto-focused field has already
-      // shortened both innerHeight and the visual viewport. screen.height is
-      // the stable installed-app viewport and keeps the drawer anchored to the
-      // real top and bottom edges while the keyboard is present.
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
-      const installedAppHeight = standalone && window.innerWidth <= 480 ? window.screen.height : 0;
+      // Never use screen.height here. In current iOS Home Screen apps the web
+      // viewport may intentionally start below the reserved status area.
       viewportBaseline.current = Math.max(
         viewportBaseline.current ?? 0,
         window.innerHeight,
         document.documentElement.clientHeight,
-        installedAppHeight,
         visual.height + visual.offsetTop,
       );
       const editing = document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLSelectElement;
@@ -68,10 +78,13 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       const layoutHeight = viewportBaseline.current;
       const bottom = keyboard ? Math.max(0, layoutHeight - visual.offsetTop - visual.height) : 0;
       root.classList.toggle('has-drawer-keyboard', keyboard);
-      // With black-translucent standalone mode, this is also the color behind
-      // the iOS status area. It must stay dimmed even while typing.
+      // In current iOS standalone mode, the reserved status area derives its
+      // color from the page rather than accepting arbitrary page content.
       root.style.backgroundColor = '#a1a1a3';
-      body.style.backgroundColor = '#a1a1a3';
+      // iOS exposes the strip above its keyboard accessory as page background,
+      // outside the visual viewport. Keep that lower surface white while the
+      // keyboard is open so it joins the drawer without a seam.
+      body.style.backgroundColor = keyboard ? '#ffffff' : '#a1a1a3';
       setViewport({ height: visual.height, top: visual.offsetTop, bottom, layoutHeight, keyboard });
     };
     document.addEventListener('keydown', close);
@@ -134,7 +147,10 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       root.style.backgroundColor = previous.rootBackground;
       body.style.backgroundColor = previous.bodyBackground;
       if (app) app.inert = previous.inert;
-      document.querySelectorAll('meta[data-drawer-theme]').forEach((node) => node.remove());
+      themeMetas.forEach((meta, index) => {
+        if (meta === createdTheme) meta.remove();
+        else meta.content = previousThemeColors[index] ?? '#f7f7f9';
+      });
       viewportBaseline.current = null;
       window.scrollTo(0, scrollY);
     };

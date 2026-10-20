@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   description: 'A private shared space for planning a trip together.',
   manifest: '/manifest.webmanifest',
   icons: { icon: '/trip-hub-icon.svg' },
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Trip Hub' },
 };
 
 export const viewport: Viewport = {
@@ -31,6 +30,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={dmSans.variable}>
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Trip Hub" />
+      </head>
       <body>
         <ServiceWorkerRegistration />
         <main className="app-viewport"><Suspense>{children}</Suspense></main>
