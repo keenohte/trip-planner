@@ -97,6 +97,15 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
   const periods: Period[] = ['Morning', 'Afternoon', 'Evening'];
 
+  const scrollToDay = (key: string, behavior: ScrollBehavior = 'smooth') => {
+    const card = dayRefs.current.get(key);
+    const sticky = stickyRef.current;
+    if (!card || !sticky) return;
+    const anchor = sticky.offsetHeight + 16;
+    const top = Math.max(0, window.scrollY + card.getBoundingClientRect().top - anchor);
+    window.scrollTo({ top, behavior });
+  };
+
   useEffect(() => {
     if (view !== 'week') return;
 
@@ -129,12 +138,12 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     const next = addDays(weekStart, amount * 7);
     setWeekStart(next);
     setSelectedDate(next);
-    window.setTimeout(() => dayRefs.current.get(next)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
+    window.setTimeout(() => scrollToDay(next), 40);
   };
   const selectDate = (key: string) => {
     if (dateStripSwiped.current) { dateStripSwiped.current = false; return; }
     setSelectedDate(key);
-    if (view === 'week') requestAnimationFrame(() => dayRefs.current.get(key)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    if (view === 'week') requestAnimationFrame(() => scrollToDay(key));
   };
   const addEvent = (hour = '09:00') => { setSelectedItem(null); setComposer({ initialStartsAt: `${selectedDate}T${hour}`, item: null }); };
   const savePreviewEvent = ({ item, title, startsAt, endsAt, city, notes }: PreviewEventInput) => {
