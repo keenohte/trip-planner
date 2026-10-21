@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BedDouble, CalendarDays, Clock3, Landmark, Map as MapIcon, Moon, NotebookText, Plane, Plus, ShoppingBag, Soup, Sparkles, Sun, SunMedium, UtensilsCrossed } from 'lucide-react';
+import { BedDouble, Clock3, Landmark, Moon, Plane, ShoppingBag, Soup, Sparkles, Sun, Sunrise, UtensilsCrossed } from 'lucide-react';
 import { EventComposer, type PreviewEventInput } from '@/components/calendar/EventComposer';
 import { EventSheet, type InlineEventUpdate } from '@/components/calendar/EventSheet';
 import { SwipeReveal } from '@/components/calendar/SwipeReveal';
+import { NewBottomNav } from '@/components/NewBottomNav';
 import { deleteScheduleItem } from '@/app/schedule/actions';
 import { dateKey, formatScheduleTime } from '@/lib/datetime';
 import type { ScheduleGroup, ScheduleItem } from '@/lib/schedule';
@@ -196,7 +196,6 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     <div className="new-calendar-sticky" ref={stickyRef}>
       <div className="new-calendar-heading">
         <div className="new-segmented" aria-label="Calendar view"><button className={view === 'week' ? 'is-active' : ''} onClick={() => setView('week')} type="button">Week</button><button className={view === 'day' ? 'is-active' : ''} onClick={() => setView('day')} type="button">Day</button></div>
-        <button className="new-map-button" type="button" aria-label="Map view coming soon"><MapIcon size={16} strokeWidth={1.8} /></button>
       </div>
 
       <nav
@@ -221,12 +220,12 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
       <div className="new-day-agenda">{periods.map((period) => {
         const items = (byDate.get(selectedDate) ?? []).filter((item) => periodFor(item) === period);
         const hour = period === 'Morning' ? '09:00' : period === 'Afternoon' ? '13:00' : '18:00';
-        const PeriodIcon = period === 'Morning' ? SunMedium : period === 'Afternoon' ? Sun : Moon;
+        const PeriodIcon = period === 'Morning' ? Sunrise : period === 'Afternoon' ? Sun : Moon;
         return <section className="new-period" key={period}><div className="new-period__label" aria-label={period}><PeriodIcon aria-hidden="true" size={24} strokeWidth={1.8} /><span /></div><div className="new-period__body">{items.map(agendaRow)}{items.length === 0 && <button className="new-empty-row" type="button" onClick={() => addEvent(hour)}><Clock3 size={15} />Open time</button>}</div></section>;
       })}</div>
     </div>}
 
-    <nav className="new-bottom-nav" aria-label="Primary navigation"><button className="is-active" type="button"><CalendarDays size={20} /><span>Schedule</span></button><Link href="/notes"><NotebookText size={20} /><span>Notes</span></Link><button className="new-add-button" type="button" aria-label="Add event" onClick={() => addEvent()}><Plus size={25} /></button></nav>
+    <NewBottomNav active="schedule" addLabel="Add event" onAdd={() => addEvent()} />
 
     {selectedItem && <EventSheet item={selectedItem} preview={preview} onPreviewSave={(update) => updatePreviewItem(selectedItem, update)} onPreviewComments={(comments) => updatePreviewComments(selectedItem, comments)} onClose={() => setSelectedItem(null)} />}
     {composer && <EventComposer key={`${composer.item?.source ?? 'new'}-${composer.item?.id ?? composer.initialStartsAt}`} initialStartsAt={composer.initialStartsAt} item={composer.item} items={allItems} timezone={timezone} preview={preview} onPreviewSave={savePreviewEvent} onClose={() => setComposer(null)} />}

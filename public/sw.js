@@ -1,5 +1,5 @@
-const CACHE = 'trip-hub-v10';
-const STATIC = ['/', '/schedule', '/notes', '/manifest.webmanifest', '/trip-hub-icon.svg'];
+const CACHE = 'trip-hub-v11';
+const STATIC = ['/', '/schedule', '/notes', '/map', '/manifest.webmanifest', '/trip-hub-icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(STATIC)).catch(() => undefined));

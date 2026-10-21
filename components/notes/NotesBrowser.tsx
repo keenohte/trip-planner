@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, NotebookText, Pin, Plus } from 'lucide-react';
+import { Pin } from 'lucide-react';
 import { deleteNoteFromDrawer, toggleNotePinned } from '@/app/notes/actions';
 import { SwipeReveal } from '@/components/calendar/SwipeReveal';
 import { NoteDrawer, type NoteItem, type PreviewNoteInput } from '@/components/notes/NoteDrawer';
+import { NewBottomNav } from '@/components/NewBottomNav';
 
 function formatTripDate(value: string | null) {
   if (!value) return '';
@@ -74,7 +74,7 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
     <header className="new-app-header"><p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p><h1>Your trip notes</h1></header>
     {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
     <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
-    <nav className="new-bottom-nav" aria-label="Primary navigation"><Link href="/schedule"><CalendarDays size={20} /><span>Schedule</span></Link><span className="new-bottom-nav__item is-active"><NotebookText size={20} /><span>Notes</span></span><button className="new-add-button" type="button" aria-label="Add note" onClick={() => setSelected(null)}><Plus size={25} /></button></nav>
+    <NewBottomNav active="notes" addLabel="Add note" onAdd={() => setSelected(null)} />
     {selected !== undefined && <NoteDrawer key={selected?.id ?? 'new'} note={selected} preview={preview} onPreviewSave={savePreview} onClose={() => setSelected(undefined)} />}
   </div>;
 }

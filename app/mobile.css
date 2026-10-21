@@ -32,17 +32,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-app { min-height: 100dvh; padding: calc(32px + env(safe-area-inset-top)) 8px calc(126px + env(safe-area-inset-bottom)); }
 
 .new-app-header { display: flex; align-items: center; flex-direction: column; gap: 16px; padding: 0 12px 24px; text-align: center; }
-.new-app-header h1 { max-width: 360px; margin: 0; color: #1d1d1d; font-size: 32px; font-weight: 650; letter-spacing: -0.035em; line-height: 1.16; }
+.new-app-header h1 { width: 100%; max-width: 390px; margin: 0; overflow: visible; color: #1d1d1d; font-size: 32px; font-weight: 650; letter-spacing: -0.035em; line-height: 1.16; text-wrap: balance; white-space: normal; }
 .new-trip-range { display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 4px 8px; border-radius: 999px; background: #ececec; color: #1d1d1d; font-size: 12px; line-height: 1; text-transform: uppercase; }
 .new-kicker { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
 
 .new-preview-label { display: inline-flex; align-items: center; margin-left: 6px; color: #55738f; font-size: 8px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .new-calendar-sticky { position: sticky; z-index: 20; top: 0; margin: calc(-1 * env(safe-area-inset-top)) -8px 0; padding: calc(12px + env(safe-area-inset-top)) 8px 16px; background: var(--canvas); }
-.new-calendar-heading { display: flex; align-items: stretch; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.new-calendar-heading { display: flex; align-items: stretch; justify-content: flex-start; gap: 12px; margin-bottom: 16px; }
 .new-segmented { display: flex; align-items: center; padding: 4px; border: 0; border-radius: 999px; background: #e7e7e7; }
 .new-segmented button { min-height: 36px; padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: #929292; font-size: 14px; font-weight: 500; cursor: pointer; }
 .new-segmented button.is-active { background: var(--white); color: #000; font-weight: 650; box-shadow: 0 1px 3px rgb(0 0 0 / 0.04); }
-.new-map-button { display: grid; width: 41px; min-height: 41px; place-items: center; padding: 0; border: 0; border-radius: 999px; background: #e6e6e6; color: #555; cursor: pointer; }
 .new-week-controls { display: flex; align-items: center; gap: 5px; }
 .new-week-controls strong { min-width: 94px; font-size: 11px; font-weight: 650; text-align: center; }
 .new-week-controls button { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
@@ -99,11 +98,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-period__body .new-event-card__icon { background: #f7f7f8; }
 .new-period__body .new-empty-row { min-height: 68px; justify-content: flex-start; padding: 0 16px; border: 1px dashed var(--line-strong); border-radius: var(--radius-md); background: transparent; }
 
-.new-bottom-nav { position: fixed; z-index: 30; right: 50%; bottom: calc(10px + env(safe-area-inset-bottom)); display: grid; width: min(calc(100% - 20px), 410px); height: 72px; grid-template-columns: 1fr 1fr 72px; align-items: center; gap: 4px; padding: 6px; transform: translateX(50%); border: 0; border-radius: 30px; background: rgb(255 255 255 / 0.94); box-shadow: 0 12px 38px rgb(23 24 22 / 0.16); backdrop-filter: blur(18px); }
-.new-bottom-nav > button:not(.new-add-button), .new-bottom-nav > a, .new-bottom-nav__item { display: flex; height: 60px; align-items: center; justify-content: center; flex-direction: column; gap: 4px; border: 0; border-radius: 24px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 650; text-decoration: none; }
-.new-bottom-nav > .is-active { background: #f0f0f2 !important; color: var(--ink) !important; }
-.new-add-button { display: grid; width: 58px; height: 58px; place-items: center; justify-self: end; border: 0; border-radius: 50%; background: var(--blue); color: var(--white); box-shadow: 0 9px 22px rgb(0 140 255 / 0.28); cursor: pointer; }
+.new-bottom-controls { position: fixed; z-index: 30; right: 50%; bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; width: min(calc(100% - 24px), 398px); align-items: center; justify-content: center; gap: 10px; transform: translateX(50%); }
+.new-bottom-nav { display: grid; height: 68px; min-width: 0; flex: 1 1 auto; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; gap: 3px; padding: 5px; border: 1px solid rgb(255 255 255 / 0.68); border-radius: 29px; background: rgb(244 245 247 / 0.76); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.82), 0 12px 34px rgb(23 24 22 / 0.16); -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%); }
+.new-bottom-nav > a { display: flex; height: 56px; min-width: 0; align-items: center; justify-content: center; flex-direction: column; gap: 3px; border-radius: 23px; color: #70737a; font-size: 10px; font-weight: 650; text-decoration: none; }
+.new-bottom-nav > .is-active { background: rgb(219 221 225 / 0.82); color: var(--blue); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.70); }
+.new-bottom-nav__icon { flex: 0 0 auto; }
+.new-bottom-nav > .is-active .new-bottom-nav__icon { filter: drop-shadow(0 1px 2px rgb(0 140 255 / 0.18)); }
+.new-add-button { display: grid; width: 60px; height: 60px; flex: 0 0 60px; place-items: center; border: 0; border-radius: 50%; background: var(--blue); color: var(--white); box-shadow: 0 9px 22px rgb(0 140 255 / 0.28); cursor: pointer; text-decoration: none; }
 .new-add-button:disabled { background: var(--blue); box-shadow: 0 9px 22px rgb(0 140 255 / 0.20); cursor: default; opacity: 0.48; }
+
+.new-map-page__content { min-height: 420px; }
+.new-map-page__content .map-frame { height: calc(100dvh - 250px); min-height: 420px; border-radius: 24px; }
 
 .new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); --drawer-keyboard-inset: 0px; --drawer-viewport-top: 0px; position: fixed; z-index: 100; inset: 0; height: 100dvh; overflow: hidden; overscroll-behavior: none; background: transparent; pointer-events: none; isolation: isolate; touch-action: none; }
 .new-sheet { position: absolute; inset: 0; display: flex; width: 100%; height: 100%; min-height: 0; max-height: none; flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 0; background: var(--white); box-shadow: none; transform: translateY(100%); transition: transform 360ms cubic-bezier(.22, 1, .36, 1); pointer-events: auto; touch-action: none; }
