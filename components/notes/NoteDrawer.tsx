@@ -25,7 +25,7 @@ export function NoteDrawer({ note, preview = false, onPreviewSave, onClose }: {
 
   useEffect(() => { if (state.saved) { router.refresh(); onClose(); } }, [onClose, router, state.saved]);
   return <MobileDrawer labelledBy="note-drawer-title" onClose={onClose} className="new-sheet--note">
-    <form className="new-note-drawer" data-drawer-scroll action={action} onSubmit={(event) => {
+    <form className="new-note-drawer" action={action} onSubmit={(event) => {
       if (!preview) return;
       event.preventDefault();
       if (!title.trim()) return;
@@ -34,36 +34,38 @@ export function NoteDrawer({ note, preview = false, onPreviewSave, onClose }: {
     }}>
       <input name="presentation" type="hidden" value="modal" />
       {note && <input name="noteId" type="hidden" value={note.id} />}
-      <div className="new-note-drawer__field new-note-drawer__field--title" data-value={title || ' '}>
-        <textarea
-          ref={titleRef}
-          id="note-drawer-title"
-          className="new-note-drawer__title-input"
-          aria-label="Note title"
-          name="title"
-          required
-          maxLength={160}
-          rows={1}
-          placeholder="Note title"
-          value={title}
-          autoFocus={!note}
-          onChange={(event) => setTitle(event.target.value)}
-          onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); bodyRef.current?.focus(); } }}
-        />
+      <div className="new-note-drawer__content" data-drawer-scroll>
+        <div className="new-note-drawer__field new-note-drawer__field--title" data-value={title || ' '}>
+          <textarea
+            ref={titleRef}
+            id="note-drawer-title"
+            className="new-note-drawer__title-input"
+            aria-label="Note title"
+            name="title"
+            required
+            maxLength={160}
+            rows={1}
+            placeholder="Note title"
+            value={title}
+            autoFocus={!note}
+            onChange={(event) => setTitle(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); bodyRef.current?.focus(); } }}
+          />
+        </div>
+        <div className="new-note-drawer__field new-note-drawer__field--body" data-value={body || ' '}>
+          <textarea
+            ref={bodyRef}
+            className={`new-note-drawer__body-input${body ? '' : ' is-empty'}`}
+            aria-label="Note"
+            name="body"
+            rows={1}
+            placeholder="Write a note…"
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
+          />
+        </div>
+        {state.error && <p className="new-form__error" role="alert">{state.error}</p>}
       </div>
-      <div className="new-note-drawer__field new-note-drawer__field--body" data-value={body || ' '}>
-        <textarea
-          ref={bodyRef}
-          className={`new-note-drawer__body-input${body ? '' : ' is-empty'}`}
-          aria-label="Note"
-          name="body"
-          rows={1}
-          placeholder="Write a note…"
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-        />
-      </div>
-      {state.error && <p className="new-form__error" role="alert">{state.error}</p>}
       {dirty && <button className="new-note-drawer__save" type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save'}</button>}
     </form>
   </MobileDrawer>;

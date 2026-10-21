@@ -2,6 +2,7 @@
 
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 
 const TRANSITION_MS = 360;
 
@@ -43,11 +44,12 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     const previous = {
       rootOverflow: root.style.overflow,
       rootBackground: root.style.backgroundColor,
-      bodyPosition: body.style.position,
-      bodyTop: body.style.top,
-      bodyWidth: body.style.width,
       bodyOverflow: body.style.overflow,
       bodyBackground: body.style.backgroundColor,
+      appPosition: app?.style.position ?? '',
+      appTop: app?.style.top ?? '',
+      appRight: app?.style.right ?? '',
+      appLeft: app?.style.left ?? '',
       inert: app?.inert ?? false,
     };
 
@@ -55,12 +57,15 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     body.classList.add('has-open-drawer');
     root.style.overflow = 'hidden';
     root.style.backgroundColor = '#ffffff';
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.width = '100%';
     body.style.overflow = 'hidden';
     body.style.backgroundColor = '#ffffff';
-    if (app) app.inert = true;
+    if (app) {
+      app.style.position = 'fixed';
+      app.style.top = `-${scrollY}px`;
+      app.style.right = '0';
+      app.style.left = '0';
+      app.inert = true;
+    }
 
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { dismiss(); return; }
@@ -108,12 +113,15 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       body.classList.remove('has-open-drawer');
       root.style.overflow = previous.rootOverflow;
       root.style.backgroundColor = previous.rootBackground;
-      body.style.position = previous.bodyPosition;
-      body.style.top = previous.bodyTop;
-      body.style.width = previous.bodyWidth;
       body.style.overflow = previous.bodyOverflow;
       body.style.backgroundColor = previous.bodyBackground;
-      if (app) app.inert = previous.inert;
+      if (app) {
+        app.style.position = previous.appPosition;
+        app.style.top = previous.appTop;
+        app.style.right = previous.appRight;
+        app.style.left = previous.appLeft;
+        app.inert = previous.inert;
+      }
       window.scrollTo(0, scrollY);
     };
   }, [mounted]);
@@ -150,6 +158,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         >
           <div className="new-sheet__handle" aria-hidden="true" />
         </div>
+        <button className="new-sheet__close" type="button" aria-label="Close drawer" onClick={dismiss}><X size={20} strokeWidth={2.2} /></button>
         {children}
       </section>
     </div>,
