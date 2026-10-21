@@ -32,15 +32,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-app { min-height: 100dvh; padding: calc(32px + env(safe-area-inset-top)) 8px calc(126px + env(safe-area-inset-bottom)); }
 
 .new-app-header { display: flex; align-items: center; flex-direction: column; gap: 16px; padding: 0 12px 24px; text-align: center; }
-.new-app-header h1 { width: 100%; max-width: 390px; margin: 0; overflow: visible; color: #1d1d1d; font-size: 32px; font-weight: 650; letter-spacing: -0.035em; line-height: 1.16; text-wrap: balance; white-space: normal; }
+.new-app-header h1 { width: 100%; max-width: 390px; margin: 0; overflow: visible; color: #1d1d1d; font-size: 32px; font-weight: 650; letter-spacing: -0.035em; line-height: 1.16; white-space: normal; }
+.new-trip-title span { display: block; }
 .new-trip-range { display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 4px 8px; border-radius: 999px; background: #ececec; color: #1d1d1d; font-size: 12px; line-height: 1; text-transform: uppercase; }
 .new-kicker { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
 
 .new-preview-label { display: inline-flex; align-items: center; margin-left: 6px; color: #55738f; font-size: 8px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .new-calendar-sticky { position: sticky; z-index: 20; top: 0; margin: calc(-1 * env(safe-area-inset-top)) -8px 0; padding: calc(12px + env(safe-area-inset-top)) 8px 16px; background: var(--canvas); }
 .new-calendar-heading { display: flex; align-items: stretch; justify-content: flex-start; gap: 12px; margin-bottom: 16px; }
-.new-segmented { display: flex; align-items: center; padding: 4px; border: 0; border-radius: 999px; background: #e7e7e7; }
-.new-segmented button { min-height: 36px; padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: #929292; font-size: 14px; font-weight: 500; cursor: pointer; }
+.new-segmented { display: flex; width: 100%; align-items: center; padding: 4px; border: 0; border-radius: 999px; background: #e7e7e7; }
+.new-segmented button { min-width: 0; min-height: 36px; flex: 1 1 50%; padding: 8px 16px; border: 0; border-radius: 999px; background: transparent; color: #929292; font-size: 14px; font-weight: 500; cursor: pointer; }
 .new-segmented button.is-active { background: var(--white); color: #000; font-weight: 650; box-shadow: 0 1px 3px rgb(0 0 0 / 0.04); }
 .new-week-controls { display: flex; align-items: center; gap: 5px; }
 .new-week-controls strong { min-width: 94px; font-size: 11px; font-weight: 650; text-align: center; }

@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CalendarDays, Map, NotebookText, Plus } from 'lucide-react';
 
 type Destination = 'schedule' | 'notes' | 'map';
@@ -11,6 +13,13 @@ export function NewBottomNav({ active, addLabel, onAdd, addHref }: {
   onAdd?: () => void;
   addHref?: string;
 }) {
+  const router = useRouter();
+  useEffect(() => {
+    router.prefetch('/schedule');
+    router.prefetch('/notes');
+    router.prefetch('/map');
+  }, [router]);
+
   const destinations = [
     { key: 'schedule' as const, href: '/schedule', label: 'Schedule', Icon: CalendarDays },
     { key: 'notes' as const, href: '/notes', label: 'Notes', Icon: NotebookText },
@@ -22,7 +31,7 @@ export function NewBottomNav({ active, addLabel, onAdd, addHref }: {
     <nav className="new-bottom-nav" aria-label="Primary navigation">
       {destinations.map(({ key, href, label, Icon }) => {
         const isActive = active === key;
-        return <Link className={isActive ? 'is-active' : ''} href={href} aria-current={isActive ? 'page' : undefined} key={key}>
+        return <Link className={isActive ? 'is-active' : ''} href={href} prefetch aria-current={isActive ? 'page' : undefined} key={key}>
           <Icon className="new-bottom-nav__icon" size={21} strokeWidth={isActive ? 2 : 1.8} fill={isActive ? 'currentColor' : 'none'} aria-hidden="true" />
           <span>{label}</span>
         </Link>;

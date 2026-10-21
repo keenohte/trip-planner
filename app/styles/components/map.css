@@ -41,9 +41,9 @@
     --map-pin-max: 160px;
     display: inline-flex;
     max-width: var(--map-pin-max);
-    align-items: baseline;
-    gap: var(--space-1);
-    padding: 5px 10px;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 8px;
     border: 1.5px solid var(--border-strong);
     border-radius: var(--radius-pill);
     background: var(--surface);
@@ -53,9 +53,8 @@
     font-weight: var(--weight-bold);
     line-height: 1.25;
     box-shadow: 0 2px 8px rgb(28 28 28 / 0.28);
-    cursor: pointer;
+    cursor: default;
     transform: translateY(-6px);
-    transition: transform 0.12s ease, background-color 0.12s ease, color 0.12s ease;
   }
 
 
@@ -71,42 +70,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
-  /* Distance from the previewed idea. Empty at rest, so the map is quiet
-     until you select something. */
-  .map-pin__distance {
-    flex: 0 0 auto;
-    color: var(--text-muted);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-  }
-  .map-pin__distance:empty { display: none; }
-
-  .map-pin:hover {
-    transform: translateY(-6px) scale(1.06);
-  }
-
-  /* Liked ideas get a heart beside the name rather than a recoloured
-     pill. Colour on the whole pin competed with the selected state and
-     made a busy map busier; a small mark reads at a glance and leaves
-     the label legible. */
-  .map-pin__heart {
-    display: none;
-    flex: 0 0 auto;
-    align-self: center;
-    color: var(--love);
-    line-height: 0;
-  }
-  .map-pin--liked .map-pin__heart { display: inline-flex; }
-  .map-pin--selected .map-pin__heart { color: var(--surface); }
-
-  .map-pin--selected {
-    max-width: none;
-    border-color: var(--primary);
-    background: var(--primary);
-    color: var(--text-on-fill);
-  }
-  .map-pin--selected .map-pin__distance { color: var(--primary-soft); }
 
   /* View switch */
   .view-toggle {

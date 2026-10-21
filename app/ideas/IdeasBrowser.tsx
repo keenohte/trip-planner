@@ -171,7 +171,7 @@ export function IdeasBrowser({ ideas, timezone, variant = 'ideas' }: { ideas: Id
       </div>
 
       {filtered.length > 0 && view === 'map' ? (
-        <IdeaMap ideas={filtered} onOpen={setSelected} showVoting={variant === 'ideas'} />
+        <IdeaMap ideas={filtered} />
       ) : filtered.length > 0 ? (
         <div className="card-grid">
           {filtered.map((idea) => (
