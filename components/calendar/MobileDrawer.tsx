@@ -8,7 +8,9 @@ const TRANSITION_MS = 360;
 
 export function MobileDrawer({ children, labelledBy, onClose, className = '' }: { children: ReactNode; labelledBy: string; onClose: () => void; className?: string }) {
   const startY = useRef<number | null>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLElement>(null);
+  const baselineViewportHeight = useRef(typeof window === 'undefined' ? 0 : Math.max(window.innerHeight, window.visualViewport?.height ?? 0));
   const onCloseRef = useRef(onClose);
   const closeTimer = useRef<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -38,6 +40,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       secondFrame = window.requestAnimationFrame(() => setOpen(true));
     });
     const scrollY = window.scrollY;
+    const visualViewport = window.visualViewport;
     const root = document.documentElement;
     const body = document.body;
     const app = document.querySelector<HTMLElement>('.app-viewport');
@@ -66,6 +69,26 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       app.style.left = '0';
       app.inert = true;
     }
+
+    const syncVisualViewport = () => {
+      const layer = layerRef.current;
+      if (!layer) return;
+      const height = visualViewport?.height ?? window.innerHeight;
+      const top = visualViewport?.offsetTop ?? 0;
+      layer.style.setProperty('--drawer-viewport-height', `${height}px`);
+      layer.style.setProperty('--drawer-viewport-top', `${top}px`);
+      const keyboardOpen = height < baselineViewportHeight.current - 80;
+      layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
+      if (keyboardOpen) {
+        sheetRef.current?.querySelectorAll<HTMLElement>('[data-drawer-scroll]').forEach((scrollArea) => {
+          scrollArea.scrollTop = 0;
+        });
+      }
+    };
+    syncVisualViewport();
+    visualViewport?.addEventListener('resize', syncVisualViewport);
+    visualViewport?.addEventListener('scroll', syncVisualViewport);
+    window.addEventListener('resize', syncVisualViewport);
 
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { dismiss(); return; }
@@ -109,6 +132,9 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       document.removeEventListener('touchmove', touchMove, true);
       document.removeEventListener('touchend', touchEnd, true);
       document.removeEventListener('touchcancel', touchEnd, true);
+      visualViewport?.removeEventListener('resize', syncVisualViewport);
+      visualViewport?.removeEventListener('scroll', syncVisualViewport);
+      window.removeEventListener('resize', syncVisualViewport);
       root.classList.remove('has-open-drawer');
       body.classList.remove('has-open-drawer');
       root.style.overflow = previous.rootOverflow;
@@ -138,7 +164,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
   const sheetStyle = { '--drawer-drag-y': `${dragY}px` } as CSSProperties;
 
   return createPortal(
-    <div className="new-sheet-layer" role="presentation">
+    <div ref={layerRef} className="new-sheet-layer" role="presentation" data-keyboard-open="false">
       <section
         ref={sheetRef}
         className={`new-sheet ${className}${dragging ? ' is-dragging' : ''}`}
