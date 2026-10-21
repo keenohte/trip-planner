@@ -75,8 +75,11 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       if (!layer) return;
       const height = visualViewport?.height ?? window.innerHeight;
       const top = visualViewport?.offsetTop ?? 0;
-      const keyboardInset = Math.max(0, layer.getBoundingClientRect().height - (top + height));
+      // Keep the drawer full-height. Counter iOS viewport panning separately from
+      // the keyboard inset so focusing a field can never resize the drawer.
+      const keyboardInset = Math.max(0, layer.getBoundingClientRect().height - height);
       layer.style.setProperty('--drawer-keyboard-inset', `${keyboardInset}px`);
+      layer.style.setProperty('--drawer-viewport-top', `${top}px`);
       const keyboardOpen = height < baselineViewportHeight.current - 80;
       layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
       if (keyboardOpen) {
@@ -190,17 +193,19 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         tabIndex={-1}
         style={sheetStyle}
       >
-        <div
-          className="new-sheet__drag-zone"
-          onPointerDown={(event) => { startY.current = event.clientY; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }}
-          onPointerMove={(event) => { if (startY.current !== null) setDragY(Math.max(0, event.clientY - startY.current)); }}
-          onPointerUp={finishDrag}
-          onPointerCancel={finishDrag}
-        >
-          <div className="new-sheet__handle" aria-hidden="true" />
+        <div className="new-sheet__viewport">
+          <div
+            className="new-sheet__drag-zone"
+            onPointerDown={(event) => { startY.current = event.clientY; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }}
+            onPointerMove={(event) => { if (startY.current !== null) setDragY(Math.max(0, event.clientY - startY.current)); }}
+            onPointerUp={finishDrag}
+            onPointerCancel={finishDrag}
+          >
+            <div className="new-sheet__handle" aria-hidden="true" />
+          </div>
+          <button className="new-sheet__close" type="button" aria-label="Close drawer" onClick={dismiss}><X size={20} strokeWidth={2.2} /></button>
+          {children}
         </div>
-        <button className="new-sheet__close" type="button" aria-label="Close drawer" onClick={dismiss}><X size={20} strokeWidth={2.2} /></button>
-        {children}
       </section>
     </div>,
     document.body,

@@ -105,10 +105,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-add-button { display: grid; width: 58px; height: 58px; place-items: center; justify-self: end; border: 0; border-radius: 50%; background: var(--blue); color: var(--white); box-shadow: 0 9px 22px rgb(0 140 255 / 0.28); cursor: pointer; }
 .new-add-button:disabled { background: var(--blue); box-shadow: 0 9px 22px rgb(0 140 255 / 0.20); cursor: default; opacity: 0.48; }
 
-.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); --drawer-keyboard-inset: 0px; position: fixed; z-index: 100; inset: 0; height: 100dvh; overflow: hidden; overscroll-behavior: none; background: transparent; pointer-events: none; isolation: isolate; touch-action: none; }
+.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); --drawer-keyboard-inset: 0px; --drawer-viewport-top: 0px; position: fixed; z-index: 100; inset: 0; height: 100dvh; overflow: hidden; overscroll-behavior: none; background: transparent; pointer-events: none; isolation: isolate; touch-action: none; }
 .new-sheet { position: absolute; inset: 0; display: flex; width: 100%; height: 100%; min-height: 0; max-height: none; flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 0; background: var(--white); box-shadow: none; transform: translateY(100%); transition: transform 360ms cubic-bezier(.22, 1, .36, 1); pointer-events: auto; touch-action: none; }
 .new-sheet[data-open="true"] { transform: translateY(var(--drawer-drag-y, 0px)); }
 .new-sheet.is-dragging { transition: none; }
+.new-sheet__viewport { display: flex; width: 100%; height: 100%; min-height: 0; flex: 1 1 auto; flex-direction: column; transform: translateY(var(--drawer-viewport-top)); }
 .new-sheet__drag-zone { position: sticky; z-index: 3; top: 0; display: grid; height: calc(56px + var(--drawer-safe-top)); flex: 0 0 calc(56px + var(--drawer-safe-top)); padding-top: var(--drawer-safe-top); place-items: start center; background: var(--white); cursor: grab; touch-action: none; }
 .new-sheet__drag-zone:active { cursor: grabbing; }
 .new-sheet__handle { width: 36px; height: 4px; margin-top: 10px; border-radius: 99px; background: var(--line-strong); }
@@ -144,7 +145,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-composer-time { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .new-composer-time span { color: #777; }
 .new-composer-feedback { display: grid; gap: 8px; margin-top: 12px; }
-.new-composer-footer { position: relative; z-index: 4; flex: 0 0 auto; padding: 12px 14px max(4px, var(--drawer-safe-bottom)); background: var(--white); will-change: transform; }
+.new-composer-footer { position: relative; z-index: 4; flex: 0 0 auto; padding: 12px 14px max(4px, calc(var(--drawer-safe-bottom) - 24px)); background: var(--white); will-change: transform; }
 .new-composer-footer button { width: 100%; min-height: 48px; border: 0; border-radius: 999px; background: #1d1d1d; color: var(--white); font-size: 16px; font-weight: 650; box-shadow: 0 8px 22px rgb(0 0 0 / 0.14); cursor: pointer; }
 .new-composer-footer button:disabled { opacity: 0.55; }
 
@@ -172,7 +173,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-comment { min-height: 58px; padding: 8px 0; background: var(--white); }
 .new-comment p { margin: 0 0 4px; color: #303030; font-size: 12px; line-height: 1.3; }
 .new-comment time { color: #777; font-size: 10px; }
-.new-comment-composer { position: relative; z-index: 4; display: flex; flex: 0 0 auto; gap: 8px; margin: 0; padding: 0 12px max(18px, var(--drawer-safe-bottom)); background: var(--white); will-change: transform; }
+.new-comment-composer { position: relative; z-index: 4; display: flex; flex: 0 0 auto; gap: 8px; margin: 0; padding: 0 12px max(4px, calc(var(--drawer-safe-bottom) - 24px)); background: var(--white); will-change: transform; }
 .new-comment-composer input { width: 100%; min-width: 0; height: 47px; padding: 0 16px; border: 0; border-radius: 999px; outline: 0; background: var(--item-surface); color: var(--ink); font-size: 16px; }
 .new-comment-composer button { padding: 0 12px; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; }
 .new-comment-composer button:disabled { opacity: 0; pointer-events: none; }
@@ -234,7 +235,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-note-drawer__title-input, .new-note-drawer__body-input { grid-area: 1 / 1; width: 100%; min-width: 0; min-height: inherit; align-self: stretch; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; appearance: none; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; line-height: inherit; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; resize: none; }
 .new-note-drawer__body-input.is-empty { color: var(--faint); }
 .new-note-drawer__title-input:focus, .new-note-drawer__body-input:focus { outline: 0; }
-.new-note-drawer__save { position: relative; z-index: 4; width: calc(100% - 28px); min-height: 48px; flex: 0 0 auto; margin: 12px 14px max(4px, var(--drawer-safe-bottom)); border: 0; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 15px; font-weight: 650; cursor: pointer; box-shadow: 0 7px 16px rgb(23 24 22 / 0.14); will-change: transform; }
+.new-note-drawer__save { position: relative; z-index: 4; width: calc(100% - 28px); min-height: 48px; flex: 0 0 auto; margin: 12px 14px max(4px, calc(var(--drawer-safe-bottom) - 24px)); border: 0; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 15px; font-weight: 650; cursor: pointer; box-shadow: 0 7px 16px rgb(23 24 22 / 0.14); will-change: transform; }
 .new-note-drawer__save:disabled { cursor: wait; opacity: 0.55; }
 
 .new-sheet-layer[data-keyboard-open="true"] .new-composer-body,
