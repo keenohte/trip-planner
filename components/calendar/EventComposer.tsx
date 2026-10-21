@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useActionState, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle } from 'lucide-react';
 import { createScheduleActivity, updateScheduleItem, type ActivityFormState } from '@/app/schedule/actions';
@@ -44,12 +44,17 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
   const [activeField, setActiveField] = useState<'date' | 'time' | null>(null);
   const [overlapAccepted, setOverlapAccepted] = useState(false);
   const [overlapTitle, setOverlapTitle] = useState<string | null>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const city = item?.activity?.city ?? item?.idea?.city ?? item?.booking?.cityRoute ?? item?.detail?.split(/[·,]/)[0]?.trim() ?? '';
   const notes = item?.activity?.notes ?? item?.idea?.notes ?? item?.booking?.notes ?? '';
   const otherItems = useMemo(() => items.filter((candidate) => !item || candidate.id !== item.id || candidate.source !== item.source), [item, items]);
 
   useEffect(() => { if (state.saved) { router.refresh(); onClose(); } }, [onClose, router, state.saved]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { titleRef.current?.focus(); titleRef.current?.select(); }, 380);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const changeStart = (value: string) => {
     setStartsAt(value);
@@ -94,7 +99,7 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
       <div className="new-sheet__body new-composer-body" data-drawer-scroll>
         <h2 id="composer-title">{item ? 'Update your plan' : 'Add to your day'}</h2>
         <div className="new-composer-fields">
-          <input className="is-first" name="title" required maxLength={160} placeholder="What are you doing?" defaultValue={item?.title ?? ''} autoFocus onFocus={(event) => event.currentTarget.select()} />
+          <input ref={titleRef} className="is-first" name="title" required maxLength={160} placeholder="What are you doing?" defaultValue={item?.title ?? ''} onFocus={(event) => event.currentTarget.select()} />
           <div className="new-composer-field">{activeField === 'date' ? <input aria-label="Date" type="date" value={date} autoFocus onChange={(event) => changeStart(`${event.target.value}T${startTime}`)} onBlur={() => setActiveField(null)} /> : <button type="button" onClick={() => setActiveField('date')}>{friendlyDate(date)}</button>}</div>
           <div className="new-composer-field">{activeField === 'time' ? <div className="new-composer-time"><input aria-label="Start time" type="time" value={startTime} autoFocus onChange={(event) => changeStart(`${date}T${event.target.value}`)} /><span>–</span><input aria-label="End time" type="time" value={endTime} onChange={(event) => changeEnd(`${date}T${event.target.value}`)} onBlur={() => setActiveField(null)} /></div> : <button type="button" onClick={() => setActiveField('time')}>{friendlyTime(startTime)} – {friendlyTime(endTime)}</button>}</div>
           <input className="is-last" name="city" placeholder="Where is it?" defaultValue={city} />

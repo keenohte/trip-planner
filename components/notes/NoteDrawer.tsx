@@ -24,6 +24,11 @@ export function NoteDrawer({ note, preview = false, onPreviewSave, onClose }: {
   const dirty = !note || title !== note.title || body !== (note.body ?? '');
 
   useEffect(() => { if (state.saved) { router.refresh(); onClose(); } }, [onClose, router, state.saved]);
+  useEffect(() => {
+    if (note) return;
+    const timer = window.setTimeout(() => titleRef.current?.focus(), 380);
+    return () => window.clearTimeout(timer);
+  }, [note]);
   return <MobileDrawer labelledBy="note-drawer-title" onClose={onClose} className="new-sheet--note">
     <form className="new-note-drawer" action={action} onSubmit={(event) => {
       if (!preview) return;
@@ -47,7 +52,6 @@ export function NoteDrawer({ note, preview = false, onPreviewSave, onClose }: {
             rows={1}
             placeholder="Note title"
             value={title}
-            autoFocus={!note}
             onChange={(event) => setTitle(event.target.value)}
             onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); bodyRef.current?.focus(); } }}
           />

@@ -75,8 +75,8 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       if (!layer) return;
       const height = visualViewport?.height ?? window.innerHeight;
       const top = visualViewport?.offsetTop ?? 0;
-      layer.style.setProperty('--drawer-viewport-height', `${height}px`);
-      layer.style.setProperty('--drawer-viewport-top', `${top}px`);
+      const keyboardInset = Math.max(0, layer.getBoundingClientRect().height - (top + height));
+      layer.style.setProperty('--drawer-keyboard-inset', `${keyboardInset}px`);
       const keyboardOpen = height < baselineViewportHeight.current - 80;
       layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
       if (keyboardOpen) {
@@ -85,10 +85,23 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         });
       }
     };
+    const syncFocusRegion = () => {
+      const layer = layerRef.current;
+      const active = document.activeElement;
+      if (!layer || !(active instanceof Element) || !sheetRef.current?.contains(active)) {
+        if (layer) layer.dataset.focusRegion = 'none';
+        return;
+      }
+      layer.dataset.focusRegion = active.closest('.new-comment-composer') ? 'comment' : active.matches('input, textarea, select') ? 'field' : 'none';
+      syncVisualViewport();
+    };
     syncVisualViewport();
+    syncFocusRegion();
     visualViewport?.addEventListener('resize', syncVisualViewport);
     visualViewport?.addEventListener('scroll', syncVisualViewport);
     window.addEventListener('resize', syncVisualViewport);
+    document.addEventListener('focusin', syncFocusRegion);
+    document.addEventListener('focusout', syncFocusRegion);
 
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { dismiss(); return; }
@@ -135,6 +148,8 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       visualViewport?.removeEventListener('resize', syncVisualViewport);
       visualViewport?.removeEventListener('scroll', syncVisualViewport);
       window.removeEventListener('resize', syncVisualViewport);
+      document.removeEventListener('focusin', syncFocusRegion);
+      document.removeEventListener('focusout', syncFocusRegion);
       root.classList.remove('has-open-drawer');
       body.classList.remove('has-open-drawer');
       root.style.overflow = previous.rootOverflow;
@@ -164,7 +179,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
   const sheetStyle = { '--drawer-drag-y': `${dragY}px` } as CSSProperties;
 
   return createPortal(
-    <div ref={layerRef} className="new-sheet-layer" role="presentation" data-keyboard-open="false">
+    <div ref={layerRef} className="new-sheet-layer" role="presentation" data-keyboard-open="false" data-focus-region="none">
       <section
         ref={sheetRef}
         className={`new-sheet ${className}${dragging ? ' is-dragging' : ''}`}
