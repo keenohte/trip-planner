@@ -190,7 +190,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   return <div className="new-app">
     <header className="new-app-header">
       <p className="new-trip-range">{tripStart && tripEnd ? `${formatDate(tripStart, { month: 'short', day: 'numeric' })} – ${formatDate(tripEnd, { month: 'short', day: 'numeric' })}` : 'Trip dates'}{preview && <span className="new-preview-label">Preview</span>}</p>
-      <h1 className="new-trip-title"><span>Your trip to</span><span>Korea &amp; Japan</span></h1>
+      <h1 className="new-trip-title">Your trip to Korea &amp; Japan</h1>
     </header>
 
     <div className="new-calendar-sticky" ref={stickyRef}>
