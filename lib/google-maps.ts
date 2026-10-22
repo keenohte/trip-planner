@@ -12,7 +12,7 @@ export function isGoogleMapsUrl(value: string) {
 function addressFromUrl(url: URL) {
   for (const key of ['query', 'q', 'destination', 'daddr']) {
     const value = url.searchParams.get(key)?.trim();
-    if (value && !/^[-\d.]+,[-\d.]+$/.test(value)) return value;
+    if (value && !/^[-\d.]+,\s*[-\d.]+$/.test(value)) return value;
   }
   const match = url.pathname.match(/\/maps\/(?:place|search)\/([^/]+)/i);
   if (!match) return null;
@@ -21,6 +21,10 @@ function addressFromUrl(url: URL) {
 }
 
 function coordinatesFromUrl(url: URL) {
+  for (const key of ['query', 'q', 'destination', 'daddr', 'll']) {
+    const value = url.searchParams.get(key)?.trim() ?? null;
+    if (parseCoordinatePair(value)) return value;
+  }
   const marker = url.toString().match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
   if (marker) return `${marker[1]},${marker[2]}`;
   const center = url.toString().match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);

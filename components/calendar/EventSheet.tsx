@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useMemo, useState, useTransition } from 'react';
+import { type FocusEvent, type FormEvent, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
 import { createScheduleComment, deleteScheduleComment, updateScheduleItem } from '@/app/schedule/actions';
@@ -17,6 +17,19 @@ function commentTime(value: string) {
   if (age < 60_000) return 'just now';
   if (age < 3_600_000) return `${Math.floor(age / 60_000)}m ago`;
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(value));
+}
+
+function validateLink(value: string, label: string, googleMaps = false) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+    if (googleMaps && !(url.hostname === 'goo.gl' || url.hostname.endsWith('.goo.gl') || url.hostname.endsWith('.google.com') || url.hostname === 'google.com')) return 'Enter a Google Maps link.';
+    return null;
+  } catch {
+    return `Enter a valid ${label} link.`;
+  }
 }
 
 export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComments, onClose }: {
@@ -43,23 +56,69 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
   const [comments, setComments] = useState<ScheduleComment[]>(item.comments);
   const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [pending, startTransition] = useTransition();
+  const savingRef = useRef(false);
+  const queuedSaveRef = useRef(false);
+  const savedTimerRef = useRef<number | null>(null);
   const router = useRouter();
-  const dirty = title !== item.title || `${date}T${startTime}` !== initialStart || `${date}T${endTime}` !== initialEnd || city !== initialCity || mapsUrl !== initialMapsUrl || websiteUrl !== initialWebsiteUrl;
+  const initialDraft = { title: item.title, date: initialStart.slice(0, 10), startTime: initialStart.slice(11, 16), endTime: initialEnd.slice(11, 16), city: initialCity, mapsUrl: initialMapsUrl, websiteUrl: initialWebsiteUrl };
+  const lastSavedRef = useRef(JSON.stringify(initialDraft));
+  const draftRef = useRef(initialDraft);
+  draftRef.current = { title, date, startTime, endTime, city, mapsUrl, websiteUrl };
 
   const friendlyDate = useMemo(() => new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`)), [date]);
   const friendlyTime = (value: string) => new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(new Date(`2000-01-01T${value}:00Z`));
 
-  const save = () => {
-    const startsAt = localDateTimeToIso(`${date}T${startTime}`, item.timezone);
-    const endsAt = localDateTimeToIso(`${date}T${endTime}`, item.timezone);
-    if (!title.trim() || !startsAt || !endsAt || endsAt <= startsAt) { setError('Check the title and make sure the end time is after the start time.'); return; }
-    const update = { title: title.trim(), startsAt, endsAt, city: city.trim(), notes: initialNotes, mapsUrl: mapsUrl.trim(), websiteUrl: websiteUrl.trim() };
-    if (preview) { onPreviewSave?.(update); setError(null); return; }
-    const data = new FormData();
-    data.set('itemId', item.id); data.set('source', item.source); data.set('title', update.title); data.set('startsAt', `${date}T${startTime}`); data.set('endsAt', `${date}T${endTime}`); data.set('city', update.city); data.set('notes', update.notes); data.set('mapsUrl', update.mapsUrl); data.set('websiteUrl', update.websiteUrl);
-    startTransition(async () => { const result = await updateScheduleItem({ error: null }, data); if (result.error) setError(result.error); else { setError(null); router.refresh(); } });
+  useEffect(() => () => { if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current); }, []);
+
+  const showSaved = () => {
+    setSaveStatus('saved');
+    if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = window.setTimeout(() => setSaveStatus('idle'), 3000);
   };
+
+  const saveDraft = async () => {
+    const draft = draftRef.current;
+    const draftKey = JSON.stringify(draft);
+    if (draftKey === lastSavedRef.current) return;
+    if (savingRef.current) { queuedSaveRef.current = true; return; }
+    const startsAt = localDateTimeToIso(`${draft.date}T${draft.startTime}`, item.timezone);
+    const endsAt = localDateTimeToIso(`${draft.date}T${draft.endTime}`, item.timezone);
+    const linkError = validateLink(draft.mapsUrl, 'Google Maps', true) ?? validateLink(draft.websiteUrl, 'website');
+    if (!draft.title.trim() || !startsAt || !endsAt || endsAt <= startsAt) { setError('Check the title and make sure the end time is after the start time.'); setSaveStatus('error'); return; }
+    if (linkError) { setError(linkError); setSaveStatus('error'); return; }
+    const update = { title: draft.title.trim(), startsAt, endsAt, city: draft.city.trim(), notes: initialNotes, mapsUrl: draft.mapsUrl.trim(), websiteUrl: draft.websiteUrl.trim() };
+    savingRef.current = true;
+    setSaveStatus('saving');
+    setError(null);
+    if (preview) {
+      onPreviewSave?.(update);
+      lastSavedRef.current = draftKey;
+      savingRef.current = false;
+      showSaved();
+      return;
+    }
+    const data = new FormData();
+    data.set('itemId', item.id); data.set('source', item.source); data.set('title', update.title); data.set('startsAt', `${draft.date}T${draft.startTime}`); data.set('endsAt', `${draft.date}T${draft.endTime}`); data.set('city', update.city); data.set('notes', update.notes); data.set('mapsUrl', update.mapsUrl); data.set('websiteUrl', update.websiteUrl);
+    const result = await updateScheduleItem({ error: null }, data);
+    savingRef.current = false;
+    if (result.error) { setError(result.error); setSaveStatus('error'); }
+    else { lastSavedRef.current = draftKey; setError(null); showSaved(); router.refresh(); }
+    if (queuedSaveRef.current) { queuedSaveRef.current = false; window.setTimeout(() => void saveDraft(), 0); }
+  };
+
+  const finishEdit = () => {
+    setActive(null);
+    window.requestAnimationFrame(() => void saveDraft());
+  };
+
+  const finishTimeEdit = (event: FocusEvent<HTMLDivElement>) => {
+    if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+    finishEdit();
+  };
+
+  const markEditing = () => { setSaveStatus('idle'); setError(null); };
 
   const addComment = (event: FormEvent) => {
     event.preventDefault();
@@ -82,16 +141,16 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
   return <MobileDrawer labelledBy="event-sheet-title" onClose={onClose} className="new-sheet--event">
     <div className="new-event-sheet" data-drawer-scroll>
       <div className="new-event-sheet__title-row">
-        {active === 'title' ? <input className="new-inline-title" aria-label="Title" value={title} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => setTitle(event.target.value)} onBlur={() => setActive(null)} /> : <button id="event-sheet-title" className="new-inline-title-view" type="button" onClick={() => setActive('title')}>{title}</button>}
-        {dirty && <button className="new-inline-save" type="button" disabled={pending} onClick={save}>{pending ? 'Saving…' : 'Save'}</button>}
+        {active === 'title' ? <input className="new-inline-title" aria-label="Title" value={title} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setTitle(event.target.value); }} onBlur={finishEdit} /> : <button id="event-sheet-title" className="new-inline-title-view" type="button" onClick={() => setActive('title')}>{title}</button>}
+        <span className={`new-inline-status is-${saveStatus}`} role="status" aria-live="polite">{saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Not saved' : ''}</span>
       </div>
 
       <div className="new-inline-fields">
-        <div className="new-inline-field is-first"><span>Date</span>{active === 'date' ? <input type="date" aria-label="Date" value={date} autoFocus onChange={(event) => setDate(event.target.value)} onBlur={() => setActive(null)} /> : <button type="button" onClick={() => setActive('date')}>{friendlyDate}</button>}</div>
-        <div className="new-inline-field"><span>Time</span>{active === 'time' ? <div className="new-inline-time"><input type="time" aria-label="Start time" value={startTime} autoFocus onChange={(event) => setStartTime(event.target.value)} /><span>–</span><input type="time" aria-label="End time" value={endTime} onChange={(event) => setEndTime(event.target.value)} onBlur={() => setActive(null)} /></div> : <button type="button" onClick={() => setActive('time')}>{friendlyTime(startTime)} – {friendlyTime(endTime)}</button>}</div>
-        <div className="new-inline-field"><span>Location</span>{active === 'city' ? <input aria-label="Location" value={city} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => setCity(event.target.value)} onBlur={() => setActive(null)} /> : <button type="button" onClick={() => setActive('city')}>{city || 'Add a location'}</button>}</div>
-        <div className={`new-inline-field${mapsUrl ? ' has-action' : ' is-empty'}`}>{mapsUrl && <span>Google Maps link</span>}{active === 'mapsUrl' ? <input aria-label="Google Maps link" inputMode="url" placeholder="Google Maps link" value={mapsUrl} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => setMapsUrl(event.target.value)} onBlur={() => setActive(null)} /> : <button type="button" onClick={() => setActive('mapsUrl')}>{mapsUrl || 'Google Maps link'}</button>}{mapsUrl && <a aria-label="Open location in Google Maps" href={mapsUrl} target="_blank" rel="noreferrer"><ExternalLink size={18} /></a>}</div>
-        <div className={`new-inline-field is-last${websiteUrl ? '' : ' is-empty'}`}>{websiteUrl && <span>Website</span>}{active === 'websiteUrl' ? <input aria-label="Website" inputMode="url" placeholder="Website" value={websiteUrl} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => setWebsiteUrl(event.target.value)} onBlur={() => setActive(null)} /> : <button type="button" onClick={() => setActive('websiteUrl')}>{websiteUrl || 'Website'}</button>}{websiteUrl && <a aria-label="Open website" href={websiteUrl} target="_blank" rel="noreferrer"><ExternalLink size={18} /></a>}</div>
+        <div className="new-inline-field is-first"><span>Date</span>{active === 'date' ? <input type="date" aria-label="Date" value={date} autoFocus onChange={(event) => { markEditing(); setDate(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('date')}>{friendlyDate}</button>}</div>
+        <div className="new-inline-field"><span>Time</span>{active === 'time' ? <div className="new-inline-time" onBlur={finishTimeEdit}><input type="time" aria-label="Start time" value={startTime} autoFocus onChange={(event) => { markEditing(); setStartTime(event.target.value); }} /><span>–</span><input type="time" aria-label="End time" value={endTime} onChange={(event) => { markEditing(); setEndTime(event.target.value); }} /></div> : <button type="button" onClick={() => setActive('time')}>{friendlyTime(startTime)} – {friendlyTime(endTime)}</button>}</div>
+        <div className="new-inline-field"><span>Location</span>{active === 'city' ? <input aria-label="Location" value={city} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setCity(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('city')}>{city || 'Add a location'}</button>}</div>
+        <div className={`new-inline-field${mapsUrl ? ' has-action' : ' is-empty'}`}>{mapsUrl && <span>Google Maps link</span>}{active === 'mapsUrl' ? <input aria-label="Google Maps link" inputMode="url" placeholder="Google Maps link" value={mapsUrl} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setMapsUrl(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('mapsUrl')}>{mapsUrl || 'Google Maps link'}</button>}{mapsUrl && <a aria-label="Open location in Google Maps" href={mapsUrl} target="_blank" rel="noreferrer"><ExternalLink size={18} /></a>}</div>
+        <div className={`new-inline-field is-last${websiteUrl ? '' : ' is-empty'}`}>{websiteUrl && <span>Website</span>}{active === 'websiteUrl' ? <input aria-label="Website" inputMode="url" placeholder="Website" value={websiteUrl} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setWebsiteUrl(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('websiteUrl')}>{websiteUrl || 'Website'}</button>}{websiteUrl && <a aria-label="Open website" href={websiteUrl} target="_blank" rel="noreferrer"><ExternalLink size={18} /></a>}</div>
       </div>
 
       <div className="new-comments" aria-label="Comments">{comments.map((entry) => <SwipeReveal key={entry.id} label="comment" onDelete={() => removeComment(entry)}><article className="new-comment"><p>{entry.body}</p><time>{commentTime(entry.createdAt)}</time></article></SwipeReveal>)}</div>

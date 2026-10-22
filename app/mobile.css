@@ -190,7 +190,8 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-inline-title-view, .new-inline-title { min-width: 0; flex: 1 1 auto; margin: 0; padding: 0; border: 0; background: transparent; color: #1d1d1d; font-size: 24px; font-weight: 400; letter-spacing: -0.025em; line-height: 1.2; text-align: left; }
 .new-inline-title-view { cursor: text; }
 .new-inline-title:focus { outline: 0; }
-.new-inline-save { flex: 0 0 auto; padding: 6px 2px; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; }
+.new-inline-status { min-width: 52px; flex: 0 0 auto; padding: 6px 2px; color: var(--faint); font-size: 11px; font-weight: 600; text-align: right; }
+.new-inline-status.is-error { color: var(--danger); }
 .new-inline-fields { display: grid; gap: 4px; }
 .new-inline-field { position: relative; display: grid; min-height: 70px; align-content: center; gap: 4px; padding: 16px; border-radius: 4px; background: var(--item-surface); }
 .new-inline-field.is-first { border-radius: 20px 20px 4px 4px; }
@@ -221,6 +222,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-swipe-row.is-open .new-swipe-row__actions { transform: translate(0, -50%); }
 .new-swipe-row__delete, .new-swipe-row__secondary { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: 999px; color: white; cursor: pointer; }
 .new-swipe-row__delete { background: #ff555b; }
+.new-swipe-row__delete.is-confirming { background: #bd3037; }
 .new-swipe-row__secondary { background: #a8aaad; }
 .new-swipe-row__secondary.is-active { background: #5272ff; }
 .new-swipe-row__delete:disabled, .new-swipe-row__secondary:disabled { opacity: 0.55; cursor: wait; }
