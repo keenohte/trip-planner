@@ -88,7 +88,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       layer.style.setProperty('--drawer-viewport-top', `${top}px`);
       const keyboardOpen = height < baselineViewportHeight.current - 80;
       layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
-      if (keyboardOpen) {
+      if (keyboardOpen || layer.dataset.focusRegion === 'field') {
         const active = document.activeElement;
         const scrollArea = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-event-sheet[data-drawer-scroll]') : null;
         const activeRow = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-inline-field') ?? active : null;
@@ -98,9 +98,12 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
             const commentTop = sheetRef.current?.querySelector<HTMLElement>('.new-comment-composer')?.getBoundingClientRect().top;
             const visibleTop = top + 12;
             const keyboardTop = top + height;
-            // iOS reports the visual viewport above the keyboard, but not the
-            // QuickType/accessory strip that sits on top of it.
-            const visibleBottom = Math.min(keyboardTop, commentTop ?? keyboardTop) - 94;
+            // Some iOS modes do not reduce visualViewport when the keyboard
+            // opens. Cap the target to a known-safe part of the full viewport,
+            // while still clearing the QuickType/accessory strip when it does.
+            const reportedKeyboardLimit = Math.min(keyboardTop, commentTop ?? keyboardTop) - 94;
+            const fallbackKeyboardLimit = top + baselineViewportHeight.current * 0.58;
+            const visibleBottom = Math.min(reportedKeyboardLimit, fallbackKeyboardLimit);
             if (rowRect.bottom > visibleBottom) scrollArea.scrollTop += rowRect.bottom - visibleBottom;
             else if (rowRect.top < visibleTop) scrollArea.scrollTop = Math.max(0, scrollArea.scrollTop + rowRect.top - visibleTop);
           };
