@@ -195,7 +195,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
 
   const agendaRow = (item: ScheduleItem) => <SwipeReveal key={`${item.source}-${item.id}`} label={item.title} onDelete={() => removeItem(item)}><AgendaCard item={item} onOpen={() => setSelectedItem(item)} /></SwipeReveal>;
 
-  return <div className="new-app">
+  return <div className="new-app new-schedule-page">
     <header className="new-app-header">
       <p className="new-trip-range">{tripStart && tripEnd ? `${formatDate(tripStart, { month: 'short', day: 'numeric' })} – ${formatDate(tripEnd, { month: 'short', day: 'numeric' })}` : 'Trip dates'}{preview && <span className="new-preview-label">Preview</span>}</p>
       <h1 className="new-trip-title">Your trip to Korea &amp; Japan</h1>
