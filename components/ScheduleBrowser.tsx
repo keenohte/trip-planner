@@ -83,6 +83,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   const [previewItems, setPreviewItems] = useState<ScheduleItem[]>(() => groups.flatMap((group) => group.items));
   const dayRefs = useRef(new Map<string, HTMLElement>());
   const stickyRef = useRef<HTMLDivElement>(null);
+  const programmaticScrollTarget = useRef<string | null>(null);
   const swipeStartX = useRef<number | null>(null);
   const swipeWidth = useRef(0);
   const dateStripSwiped = useRef(false);
@@ -113,6 +114,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     const card = dayRefs.current.get(key);
     const sticky = stickyRef.current;
     if (!card || !sticky) return;
+    programmaticScrollTarget.current = key;
     const stickyTop = Number.parseFloat(window.getComputedStyle(sticky).top) || 0;
     const anchor = stickyTop + sticky.offsetHeight + 16;
     const top = Math.max(0, window.scrollY + card.getBoundingClientRect().top - anchor);
@@ -127,6 +129,13 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         const boundary = (stickyRef.current?.getBoundingClientRect().bottom ?? 0) + 1;
+        const scrollTarget = programmaticScrollTarget.current;
+        if (scrollTarget) {
+          const targetCard = dayRefs.current.get(scrollTarget);
+          if (targetCard && Math.abs(targetCard.getBoundingClientRect().top - (boundary + 15)) <= 2) programmaticScrollTarget.current = null;
+          setSelectedDate((currentDate) => currentDate === scrollTarget ? currentDate : scrollTarget);
+          return;
+        }
         const firstVisibleDate = weekDates.find((key) => {
           const card = dayRefs.current.get(key);
           return card ? card.getBoundingClientRect().bottom > boundary : false;

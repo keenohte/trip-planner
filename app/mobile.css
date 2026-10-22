@@ -51,7 +51,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-week-controls button { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
 .new-week-controls button:hover { background: var(--white); color: var(--ink); }
 
-.new-date-strip { overflow: hidden; margin: 0; touch-action: pan-y; }
+.new-date-strip { overflow: visible; margin: 0; clip-path: inset(-24px 0); touch-action: pan-y; }
 .new-date-strip__track { display: grid; width: 300%; grid-template-columns: repeat(21, minmax(0, 1fr)); gap: 0; will-change: transform; }
 .new-date-strip__track.is-animating { transition: transform 180ms ease-out; }
 .new-date-strip button { display: grid; min-width: 0; height: 62px; place-items: center; align-content: center; gap: 4px; padding: 12px 0; border: 0; border-radius: 8px; background: transparent; color: #8f8f8f; cursor: pointer; }
