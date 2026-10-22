@@ -86,9 +86,18 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       const keyboardOpen = height < baselineViewportHeight.current - 80;
       layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
       if (keyboardOpen) {
-        sheetRef.current?.querySelectorAll<HTMLElement>('[data-drawer-scroll]').forEach((scrollArea) => {
-          scrollArea.scrollTop = 0;
-        });
+        const active = document.activeElement;
+        const scrollArea = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-event-sheet[data-drawer-scroll]') : null;
+        const activeRow = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-inline-field') ?? active : null;
+        if (scrollArea && activeRow) {
+          window.requestAnimationFrame(() => {
+            const rowRect = activeRow.getBoundingClientRect();
+            const visibleTop = top + 12;
+            const visibleBottom = top + height - 12;
+            if (rowRect.bottom > visibleBottom) scrollArea.scrollBy({ top: rowRect.bottom - visibleBottom, behavior: 'smooth' });
+            else if (rowRect.top < visibleTop) scrollArea.scrollBy({ top: rowRect.top - visibleTop, behavior: 'smooth' });
+          });
+        }
       }
     };
     const syncFocusRegion = () => {

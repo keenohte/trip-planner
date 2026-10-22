@@ -199,7 +199,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-inline-field > span { color: #777; font-size: 12px; font-weight: 500; line-height: 1.2; }
 .new-inline-field > button, .new-inline-field > input, .new-inline-field > textarea, .new-inline-time input { width: 100%; min-width: 0; overflow: hidden; padding: 0; border: 0; outline: 0; background: transparent; color: #1d1d1d; font-size: 16px; font-weight: 650; line-height: 1.2; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 .new-inline-field > button { cursor: text; }
-.new-inline-field.is-empty > button { color: var(--faint); font-weight: 500; }
+.new-inline-field.is-empty > button { color: #8b8b8b; font-size: 17px; font-weight: 600; }
 .new-inline-field > textarea { min-height: 38px; resize: none; }
 .new-inline-field > a { position: absolute; right: 16px; bottom: 18px; display: grid; width: 24px; height: 24px; place-items: center; color: var(--ink); }
 .new-inline-field.is-last > button, .new-inline-field.is-last > input { padding-right: 30px; }
@@ -275,8 +275,8 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-note-drawer__save:disabled { cursor: wait; opacity: 0.55; }
 
 .new-sheet-layer[data-keyboard-open="true"] .new-composer-body,
-.new-sheet-layer[data-keyboard-open="true"] .new-event-sheet,
 .new-sheet-layer[data-keyboard-open="true"] .new-note-drawer__content { overflow-y: hidden; }
+.new-sheet-layer[data-keyboard-open="true"] .new-event-sheet { overflow-y: auto; padding-bottom: calc(18px + var(--drawer-keyboard-inset)); }
 .new-sheet-layer[data-keyboard-open="true"],
 .new-sheet-layer:has(input:focus, textarea:focus, select:focus) { background: var(--white); }
 .new-sheet-layer[data-keyboard-open="true"] .new-composer-footer { padding-bottom: 4px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
