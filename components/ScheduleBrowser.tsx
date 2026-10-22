@@ -69,7 +69,7 @@ function AgendaCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => void }
   </button>;
 }
 
-export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview = false }: { groups: ScheduleGroup[]; timezone: string; tripStart: string | null; tripEnd: string | null; preview?: boolean }) {
+export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview = false, openComposerOnLoad = false }: { groups: ScheduleGroup[]; timezone: string; tripStart: string | null; tripEnd: string | null; preview?: boolean; openComposerOnLoad?: boolean }) {
   const current = todayKey(timezone);
   const firstDate = tripStart ?? groups[0]?.key ?? current;
   const initialDate = tripStart && tripEnd && current >= tripStart && current <= tripEnd ? current : firstDate;
@@ -83,6 +83,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   const stickyRef = useRef<HTMLDivElement>(null);
   const swipeStartX = useRef<number | null>(null);
   const dateStripSwiped = useRef(false);
+  const routeComposerOpened = useRef(false);
   const [, startTransition] = useTransition();
   const router = useRouter();
   const allItems = useMemo(() => preview ? previewItems : groups.flatMap((group) => group.items), [groups, preview, previewItems]);
@@ -96,6 +97,13 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   }, [allItems]);
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
   const periods: Period[] = ['Morning', 'Afternoon', 'Evening'];
+
+  useEffect(() => {
+    if (!openComposerOnLoad || routeComposerOpened.current) return;
+    routeComposerOpened.current = true;
+    setComposer({ initialStartsAt: `${initialDate}T09:00`, item: null });
+    window.history.replaceState(window.history.state, '', '/schedule');
+  }, [initialDate, openComposerOnLoad]);
 
   const scrollToDay = (key: string, behavior: ScrollBehavior = 'smooth') => {
     const card = dayRefs.current.get(key);

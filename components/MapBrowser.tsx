@@ -23,6 +23,6 @@ export function MapBrowser({ items, tripStart, tripEnd, preview = false }: {
       <h1>Your trip map</h1>
     </header>
     <div className="new-map-page__content"><TripMap items={items} /></div>
-    <NewBottomNav active="map" addLabel="Add place" addHref="/ideas/new" />
+    <NewBottomNav active="map" addLabel="Add schedule item" addHref="/schedule?add=1" />
   </div>;
 }

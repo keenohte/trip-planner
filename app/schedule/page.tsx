@@ -5,7 +5,8 @@ import { ScheduleRealtimeRefresh } from '@/components/ScheduleRealtimeRefresh';
 import { getSchedule } from '@/lib/schedule';
 import { getCurrentTrip } from '@/lib/trips';
 
-export default async function SchedulePage(){
+export default async function SchedulePage({searchParams}:{searchParams:Promise<{add?:string}>}){
+  const query=await searchParams;
   const trip=await getCurrentTrip();const groups=trip?await getSchedule(trip):[];
-  return <>{trip&&<>{!trip.preview&&<><RealtimeRefresh tripId={trip.id} ideaIds={[]}/><BookingsRealtimeRefresh tripId={trip.id}/><ScheduleRealtimeRefresh tripId={trip.id}/></>}<ScheduleBrowser groups={groups} timezone={trip.timezone} tripStart={trip.startDate} tripEnd={trip.endDate} preview={trip.preview}/></>}{!trip&&<section className="empty-state"><h3>No trip found</h3><p>Create a trip before building a schedule.</p></section>}</>;
+  return <>{trip&&<>{!trip.preview&&<><RealtimeRefresh tripId={trip.id} ideaIds={[]}/><BookingsRealtimeRefresh tripId={trip.id}/><ScheduleRealtimeRefresh tripId={trip.id}/></>}<ScheduleBrowser groups={groups} timezone={trip.timezone} tripStart={trip.startDate} tripEnd={trip.endDate} preview={trip.preview} openComposerOnLoad={query.add==='1'}/></>}{!trip&&<section className="empty-state"><h3>No trip found</h3><p>Create a trip before building a schedule.</p></section>}</>;
 }

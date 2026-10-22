@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Globe2, MapPin, MapPinned, X } from 'lucide-react';
+import { Globe2, MapPin, MapPinned } from 'lucide-react';
 import { loadGoogleMaps, type MapsApi } from '@/lib/google-maps-loader';
 import type { ScheduleItem } from '@/lib/schedule';
 
@@ -154,7 +154,6 @@ export function TripMap({ items }: { items: ScheduleItem[] }) {
       <div className="map-place-card__actions">
         <a href={mapsHref(selected)} target="_blank" rel="noreferrer" aria-label={`Open ${selected.title} in Google Maps`}><MapPin size={20} aria-hidden="true" /></a>
         {selected.place.websiteUrl && <a href={selected.place.websiteUrl} target="_blank" rel="noreferrer" aria-label={`Open ${selected.title} website`}><Globe2 size={20} aria-hidden="true" /></a>}
-        <button type="button" onClick={() => setSelectedId(null)} aria-label="Close location details"><X size={18} aria-hidden="true" /></button>
       </div>
     </article>}
   </div>;
