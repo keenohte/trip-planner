@@ -40,6 +40,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .new-preview-label { display: inline-flex; align-items: center; margin-left: 6px; color: #55738f; font-size: 8px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .new-schedule-page .new-app-header { padding-bottom: 0; }
+.new-schedule-page::before { position: fixed; z-index: 21; top: 0; right: 50%; width: min(100%, var(--phone-width)); height: var(--safe-area-top); background: var(--canvas); content: ''; pointer-events: none; transform: translateX(50%); }
 .new-calendar-sticky { position: sticky; z-index: 20; top: var(--safe-area-top); margin: 0 -8px; padding: 12px 8px 16px; background: var(--canvas); }
 .new-calendar-heading { display: flex; align-items: stretch; justify-content: flex-start; gap: 12px; margin-bottom: 16px; }
 .new-segmented { display: flex; width: 100%; align-items: center; padding: 4px; border: 0; border-radius: 999px; background: #e7e7e7; }
@@ -271,11 +272,11 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-sheet-layer[data-keyboard-open="true"][data-focus-region="comment"] .new-comment-composer { padding-bottom: 4px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
 .new-sheet-layer[data-keyboard-open="true"] .new-note-drawer__save { margin-bottom: 4px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
 
-.loading-state { display: grid; gap: 12px; padding: 26px 20px; }
+.loading-state { display: grid; gap: 12px; padding: calc(20px + var(--safe-area-top)) 20px 20px; }
 .skeleton { border-radius: 16px; background: #e6e4de; }
-.skeleton-hero { height: 120px; }
+.skeleton-hero { height: 88px; }
 .skeleton-grid { display: grid; gap: 10px; }
-.skeleton-card { height: 110px; }
+.skeleton-card { height: 84px; }
 .error-state, .empty-state, .auth-panel { margin: 80px 20px 0; padding: 22px; border-radius: var(--radius-lg); background: var(--paper); }
 
 @media (min-width: 481px) {

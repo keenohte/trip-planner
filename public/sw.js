@@ -1,5 +1,5 @@
-const CACHE = 'trip-hub-v20';
-const STATIC = ['/', '/schedule', '/notes', '/map', '/manifest.webmanifest', '/trip-hub-icon.svg'];
+const CACHE = 'trip-hub-v21';
+const STATIC = ['/manifest.webmanifest', '/trip-hub-icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(STATIC)).catch(() => undefined));
@@ -14,18 +14,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/auth') || url.pathname.startsWith('/api')) return;
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then((response) => {
-      if (response.ok) caches.open(CACHE).then((cache) => cache.put(request, response.clone()));
-      return response;
-    }).catch(async () => (await caches.match(request)) || (await caches.match('/schedule')) || Response.error()));
-    return;
-  }
+  const isStaticAsset = url.pathname.startsWith('/_next/static/') || STATIC.includes(url.pathname);
+  if (!isStaticAsset) return;
 
-  event.respondWith(fetch(request).then((response) => {
+  event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
     if (response.ok) caches.open(CACHE).then((cache) => cache.put(request, response.clone()));
     return response;
-  }).catch(() => caches.match(request)));
+  })));
 });
