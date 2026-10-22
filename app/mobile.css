@@ -175,7 +175,9 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-composer-time { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .new-composer-time span { color: #777; }
 .new-composer-feedback { display: grid; gap: 8px; margin-top: 12px; }
-.new-composer-footer { position: relative; z-index: 4; flex: 0 0 auto; padding: 12px 14px max(4px, calc(var(--drawer-safe-bottom) - 24px)); background: var(--white); will-change: transform; }
+.new-composer-footer { position: relative; z-index: 4; flex: 0 0 auto; isolation: isolate; padding: 12px 14px max(4px, calc(var(--drawer-safe-bottom) - 24px)); background: var(--white); will-change: transform; }
+.new-composer-footer::before, .new-comment-composer::before { position: absolute; z-index: 0; inset: 0 0 calc(-1 * var(--drawer-keyboard-inset)); background: var(--white); content: ''; pointer-events: none; }
+.new-composer-footer > *, .new-comment-composer > * { position: relative; z-index: 1; }
 .new-composer-footer button { width: 100%; min-height: 48px; border: 0; border-radius: 999px; background: #1d1d1d; color: var(--white); font-size: 16px; font-weight: 650; box-shadow: 0 8px 22px rgb(0 0 0 / 0.14); cursor: pointer; }
 .new-composer-footer button:disabled { opacity: 0.55; }
 
@@ -203,7 +205,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-comment { min-height: 58px; padding: 8px 0; background: var(--white); }
 .new-comment p { margin: 0 0 4px; color: #303030; font-size: 12px; line-height: 1.3; }
 .new-comment time { color: #777; font-size: 10px; }
-.new-comment-composer { position: relative; z-index: 4; display: flex; flex: 0 0 auto; gap: 8px; margin: 0; padding: 0 12px max(4px, calc(var(--drawer-safe-bottom) - 24px)); background: var(--white); will-change: transform; }
+.new-comment-composer { position: relative; z-index: 4; display: flex; flex: 0 0 auto; isolation: isolate; gap: 8px; margin: 0; padding: 0 12px max(4px, calc(var(--drawer-safe-bottom) - 24px)); background: var(--white); will-change: transform; }
 .new-comment-composer input { width: 100%; min-width: 0; height: 47px; padding: 0 16px; border: 0; border-radius: 999px; outline: 0; background: var(--item-surface); color: var(--ink); font-size: 16px; }
 .new-comment-composer button { padding: 0 12px; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 700; cursor: pointer; }
 .new-comment-composer button:disabled { opacity: 0; pointer-events: none; }

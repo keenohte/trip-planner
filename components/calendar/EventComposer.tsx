@@ -106,7 +106,7 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
           <div className="new-composer-field">{activeField === 'time' ? <div className="new-composer-time"><input aria-label="Start time" type="time" value={startTime} autoFocus onChange={(event) => changeStart(`${date}T${event.target.value}`)} /><span>–</span><input aria-label="End time" type="time" value={endTime} onChange={(event) => changeEnd(`${date}T${event.target.value}`)} onBlur={() => setActiveField(null)} /></div> : <button type="button" onClick={() => setActiveField('time')}>{friendlyTime(startTime)} – {friendlyTime(endTime)}</button>}</div>
           <input name="city" placeholder="Where is it?" defaultValue={city} />
           <input name="mapsUrl" type="url" inputMode="url" placeholder="Google Maps link" defaultValue={mapsUrl} />
-          <input className="is-last" name="websiteUrl" type="url" inputMode="url" placeholder="Website (optional)" defaultValue={websiteUrl} />
+          <input className="is-last" name="websiteUrl" type="url" inputMode="url" placeholder="Website" defaultValue={websiteUrl} />
         </div>
         <div className="new-composer-feedback">
           {overlapTitle && <p className="new-form__warning"><AlertTriangle size={17} /><span><strong>This overlaps “{overlapTitle}”.</strong> Overlaps are allowed—submit again to save anyway.</span></p>}
