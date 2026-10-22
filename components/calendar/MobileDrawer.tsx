@@ -58,6 +58,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       appLeft: app?.style.left ?? '',
       inert: app?.inert ?? false,
     };
+    let focusAlignmentTimer = 0;
 
     root.classList.add('has-open-drawer');
     body.classList.add('has-open-drawer');
@@ -92,15 +93,20 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         const scrollArea = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-event-sheet[data-drawer-scroll]') : null;
         const activeRow = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-inline-field') ?? active : null;
         if (scrollArea && activeRow) {
-          window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+          const alignActiveRow = () => {
             const rowRect = activeRow.getBoundingClientRect();
             const commentTop = sheetRef.current?.querySelector<HTMLElement>('.new-comment-composer')?.getBoundingClientRect().top;
             const visibleTop = top + 12;
             const keyboardTop = top + height;
-            const visibleBottom = Math.min(keyboardTop, commentTop ?? keyboardTop) - 12;
-            if (rowRect.bottom > visibleBottom) scrollArea.scrollTo({ top: scrollArea.scrollTop + rowRect.bottom - visibleBottom, behavior: 'smooth' });
-            else if (rowRect.top < visibleTop) scrollArea.scrollTo({ top: Math.max(0, scrollArea.scrollTop + rowRect.top - visibleTop), behavior: 'smooth' });
-          }));
+            // iOS reports the visual viewport above the keyboard, but not the
+            // QuickType/accessory strip that sits on top of it.
+            const visibleBottom = Math.min(keyboardTop, commentTop ?? keyboardTop) - 94;
+            if (rowRect.bottom > visibleBottom) scrollArea.scrollTop += rowRect.bottom - visibleBottom;
+            else if (rowRect.top < visibleTop) scrollArea.scrollTop = Math.max(0, scrollArea.scrollTop + rowRect.top - visibleTop);
+          };
+          window.requestAnimationFrame(() => window.requestAnimationFrame(alignActiveRow));
+          window.clearTimeout(focusAlignmentTimer);
+          focusAlignmentTimer = window.setTimeout(alignActiveRow, 180);
         }
       }
     };
@@ -158,6 +164,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     return () => {
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
+      window.clearTimeout(focusAlignmentTimer);
       if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
       document.removeEventListener('keydown', keydown);
       document.removeEventListener('touchstart', touchStart, true);

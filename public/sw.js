@@ -1,4 +1,4 @@
-const CACHE = 'trip-hub-v41';
+const CACHE = 'trip-hub-v42';
 const STATIC = ['/manifest.webmanifest', '/trip-hub-icon.svg'];
 
 self.addEventListener('install', (event) => {
