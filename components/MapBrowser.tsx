@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { TripMap } from '@/components/TripMap';
 import { NewBottomNav } from '@/components/NewBottomNav';
 import { EventComposer, type PreviewEventInput } from '@/components/calendar/EventComposer';
@@ -20,7 +20,29 @@ export function MapBrowser({ items, timezone, tripStart, tripEnd, preview = fals
 }) {
   const [composerOpen, setComposerOpen] = useState(false);
   const [mapItems, setMapItems] = useState(items);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const stableViewport = useRef({ width: 0, height: 0 });
   useEffect(() => setMapItems(items), [items]);
+  useEffect(() => {
+    const syncStableViewport = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const previous = stableViewport.current;
+      const widthChanged = Math.abs(width - previous.width) > 80;
+      const heightRecovered = height >= previous.height - 1;
+
+      // A software keyboard only reduces height. Keep the map at the last full
+      // viewport size; accept a new height after rotation or once it recovers.
+      if (!previous.height || widthChanged || heightRecovered) {
+        stableViewport.current = { width, height };
+        setViewportHeight(height);
+      }
+    };
+
+    syncStableViewport();
+    window.addEventListener('resize', syncStableViewport);
+    return () => window.removeEventListener('resize', syncStableViewport);
+  }, []);
   const dateRange = tripStart && tripEnd ? `${formatTripDate(tripStart)} – ${formatTripDate(tripEnd)}` : 'Trip dates';
   const initialDate = useMemo(() => {
     const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -39,7 +61,9 @@ export function MapBrowser({ items, timezone, tripStart, tripEnd, preview = fals
     setMapItems((current) => [...current, created].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)));
   };
 
-  return <div className="new-app new-map-page">
+  const pageStyle = viewportHeight ? { '--map-page-height': `${viewportHeight}px` } as CSSProperties : undefined;
+
+  return <div className="new-app new-map-page" style={pageStyle}>
     <header className="new-app-header">
       <p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p>
       <h1>Your trip map</h1>
