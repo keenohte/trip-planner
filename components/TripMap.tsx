@@ -145,16 +145,18 @@ export function TripMap({ items }: { items: ScheduleItem[] }) {
 
   return <div className="map-shell new-trip-map" data-has-selection={selected ? 'true' : 'false'}>
     <div className="map-frame" ref={container} role="application" aria-label="Map of scheduled locations" />
-    {selected && <article className="map-place-card" aria-live="polite">
-      <div className="map-place-card__copy">
-        <strong>{selected.title}</strong>
-        <span>{formatWhen(selected)}</span>
-        {selected.place.address && <span>{selected.place.address}</span>}
-      </div>
-      <div className="map-place-card__actions">
-        <a href={mapsHref(selected)} target="_blank" rel="noreferrer" aria-label={`Open ${selected.title} in Google Maps`}><MapPin size={20} aria-hidden="true" /></a>
-        {selected.place.websiteUrl && <a href={selected.place.websiteUrl} target="_blank" rel="noreferrer" aria-label={`Open ${selected.title} website`}><Globe2 size={20} aria-hidden="true" /></a>}
-      </div>
-    </article>}
+    {selected && <div className="map-place-card-clip">
+      <article className="map-place-card" aria-live="polite">
+        <div className="map-place-card__copy">
+          <strong>{selected.title}</strong>
+          <span>{formatWhen(selected)}</span>
+          {selected.place.address && <span>{selected.place.address}</span>}
+        </div>
+        <div className="map-place-card__actions">
+          <a href={mapsHref(selected)} target="_blank" rel="noreferrer" aria-label={`Open ${selected.title} in Google Maps`}><MapPin size={20} aria-hidden="true" /></a>
+          {selected.place.websiteUrl && <a href={selected.place.websiteUrl} target="_blank" rel="noreferrer" aria-label={`Open ${selected.title} website`}><Globe2 size={20} aria-hidden="true" /></a>}
+        </div>
+      </article>
+    </div>}
   </div>;
 }

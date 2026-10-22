@@ -23,6 +23,8 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
 
   const dismiss = () => {
     if (closeTimer.current !== null) return;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && sheetRef.current?.contains(active)) active.blur();
     setDragging(false);
     setDragY(0);
     setOpen(false);
@@ -39,7 +41,8 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     const firstFrame = window.requestAnimationFrame(() => {
       secondFrame = window.requestAnimationFrame(() => setOpen(true));
     });
-    const scrollY = window.scrollY;
+    const viewportLocked = Boolean(document.querySelector('.new-map-page'));
+    const scrollY = viewportLocked ? 0 : window.scrollY;
     const visualViewport = window.visualViewport;
     const root = document.documentElement;
     const body = document.body;
@@ -62,7 +65,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     root.style.backgroundColor = '#ffffff';
     body.style.overflow = 'hidden';
     body.style.backgroundColor = '#ffffff';
-    if (app) {
+    if (app && !viewportLocked) {
       app.style.position = 'fixed';
       app.style.top = `-${scrollY}px`;
       app.style.right = '0';
@@ -167,6 +170,10 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         app.inert = previous.inert;
       }
       window.scrollTo(0, scrollY);
+      if (viewportLocked) {
+        window.requestAnimationFrame(() => window.scrollTo(0, 0));
+        window.setTimeout(() => window.scrollTo(0, 0), 260);
+      }
     };
   }, [mounted]);
 
