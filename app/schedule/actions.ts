@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { localDateTimeToIso } from '@/lib/datetime';
 import { createClient } from '@/lib/supabase/server';
 import { getTripForMutation } from '@/lib/trips';
+import { isGoogleMapsUrl, resolveGoogleMapsPlace } from '@/lib/google-maps';
 
 export type ActivityFormState = { error: string | null; saved?: boolean };
 const allowedImageTypes = new Map([['image/jpeg','jpg'],['image/png','png'],['image/webp','webp'],['image/gif','gif']]);
@@ -15,11 +16,11 @@ const databaseError = (message?: string) => message?.includes("schedule_activiti
   ? 'Custom activities need one database setup step. Run the latest schedule migration in Supabase, then refresh this page.'
   : message ?? 'Could not save the activity.';
 
-function parseUrl(data: FormData) {
-  const value = optional(data, 'imageUrl');
+function parseUrl(data: FormData, name: string, label: string) {
+  const value = optional(data, name);
   if (!value) return { value:null,error:null };
   try { const url = new URL(value); if (!['http:','https:'].includes(url.protocol)) throw new Error(); return { value:url.toString(),error:null }; }
-  catch { return { value:null,error:'Enter a valid image link.' }; }
+  catch { return { value:null,error:`Enter a valid ${label} link.` }; }
 }
 
 function photo(data:FormData) { const value=data.get('photo'); return value instanceof File && value.size>0 ? value : null; }
@@ -32,22 +33,26 @@ async function upload(tripId:string,id:string,file:File) {
   return error ? {path:null,error:error.message} : {path,error:null};
 }
 
-function parse(data:FormData,timezone:string) {
+async function parse(data:FormData,timezone:string) {
   const title=text(data,'title'); if (!title || title.length>160) return {error:'Enter a title under 160 characters.'} as const;
   const startInput=text(data,'startsAt'); const endInput=text(data,'endsAt');
   const startsAt=startInput ? localDateTimeToIso(startInput,timezone) : null; const endsAt=endInput ? localDateTimeToIso(endInput,timezone) : null;
   if (!startsAt) return {error:`Choose a valid start date and time in ${timezone}.`} as const;
   if (!endsAt) return {error:`Choose a valid end date and time in ${timezone}.`} as const;
   if (endsAt<=startsAt) return {error:'The end time must be after the start time.'} as const;
-  const imageUrl=parseUrl(data); if (imageUrl.error) return {error:imageUrl.error} as const;
-  return {error:null,values:{title,country:optional(data,'country'),city:optional(data,'city'),neighborhood:optional(data,'neighborhood'),starts_at:startsAt,ends_at:endsAt,image_url:imageUrl.value,notes:optional(data,'notes')}} as const;
+  const imageUrl=parseUrl(data,'imageUrl','image'); if (imageUrl.error) return {error:imageUrl.error} as const;
+  const mapsUrl=parseUrl(data,'mapsUrl','Google Maps'); if (mapsUrl.error) return {error:mapsUrl.error} as const;
+  if (mapsUrl.value && !isGoogleMapsUrl(mapsUrl.value)) return {error:'Enter a Google Maps link.'} as const;
+  const websiteUrl=parseUrl(data,'websiteUrl','website'); if (websiteUrl.error) return {error:websiteUrl.error} as const;
+  const place=await resolveGoogleMapsPlace(mapsUrl.value);
+  return {error:null,values:{title,country:optional(data,'country')??place.country,city:optional(data,'city')??place.city,neighborhood:optional(data,'neighborhood')??place.neighborhood,starts_at:startsAt,ends_at:endsAt,image_url:imageUrl.value,notes:optional(data,'notes'),maps_url:mapsUrl.value,location_address:place.address,latitude:place.latitude,longitude:place.longitude,website_url:websiteUrl.value}} as const;
 }
 
 function refresh(id?:string){ revalidatePath('/');revalidatePath('/schedule');if(id)revalidatePath(`/schedule/${id}`); }
 
 export async function createScheduleActivity(_state:ActivityFormState,data:FormData):Promise<ActivityFormState>{
   const trip=await getTripForMutation(); if(!trip)return{error:'Could not reach the server. Please try again.'};
-  const input=parse(data,trip.timezone);if(input.error||!input.values)return{error:input.error};
+  const input=await parse(data,trip.timezone);if(input.error||!input.values)return{error:input.error};
   const supabase=await createClient();const {data:auth}=await supabase.auth.getUser();if(!auth.user)return{error:'Your session expired. Sign in again.'};
   const {data:created,error}=await supabase.from('schedule_activities').insert({...input.values,trip_id:trip.id,created_by:auth.user.id}).select('id').single();
   if(error||!created)return{error:databaseError(error?.message)};
@@ -57,7 +62,7 @@ export async function createScheduleActivity(_state:ActivityFormState,data:FormD
 
 export async function updateScheduleActivity(_state:ActivityFormState,data:FormData):Promise<ActivityFormState>{
   const trip=await getTripForMutation();const id=text(data,'activityId');if(!trip)return{error:'Could not reach the server. Please try again.'};if(!/^[0-9a-f-]{36}$/i.test(id))return{error:'Activity not found.'};
-  const input=parse(data,trip.timezone);if(input.error||!input.values)return{error:input.error};
+  const input=await parse(data,trip.timezone);if(input.error||!input.values)return{error:input.error};
   const supabase=await createClient();const {data:existing,error:findError}=await supabase.from('schedule_activities').select('cover_url').eq('id',id).eq('trip_id',trip.id).maybeSingle();if(findError)return{error:databaseError(findError.message)};if(!existing)return{error:'Activity not found.'};
   const file=photo(data);let path:string|null=null;if(file){const result=await upload(trip.id,id,file);if(result.error||!result.path)return{error:result.error};path=result.path;}
   const {error}=await supabase.from('schedule_activities').update({...input.values,...(path?{cover_url:path,image_url:null}:{})}).eq('id',id).eq('trip_id',trip.id);if(error)return{error:databaseError(error.message)};
@@ -72,16 +77,16 @@ export async function updateScheduleItem(_state:ActivityFormState,data:FormData)
   const source=text(data,'source');
   if(!trip)return{error:'Could not reach the server. Please try again.'};
   if(!/^[0-9a-f-]{36}$/i.test(id)||!['activity','booking','idea'].includes(source))return{error:'Event not found.'};
-  const input=parse(data,trip.timezone);
+  const input=await parse(data,trip.timezone);
   if(input.error||!input.values)return{error:input.error};
-  const {title,city,starts_at,ends_at,notes}=input.values;
+  const {title,city,starts_at,ends_at,notes,maps_url,location_address,latitude,longitude,website_url}=input.values;
   const supabase=await createClient();
   const table=source==='activity'?'schedule_activities':source==='booking'?'bookings':'ideas';
   const values=source==='activity'
-    ? {title,city,starts_at,ends_at,notes}
+    ? {title,city,starts_at,ends_at,notes,maps_url,location_address,latitude,longitude,website_url}
     : source==='booking'
-      ? {title,city_route:city,starts_at,ends_at,notes}
-      : {title,city,scheduled_at:starts_at,scheduled_end_at:ends_at,notes};
+      ? {title,city_route:city,starts_at,ends_at,notes,maps_url,location_address,latitude,longitude,website_url}
+      : {title,city,scheduled_at:starts_at,scheduled_end_at:ends_at,notes,maps_url,location_address,latitude,longitude,website_url};
   const {error}=await supabase.from(table).update(values).eq('id',id).eq('trip_id',trip.id);
   if(error)return{error:databaseError(error.message)};
   refresh(id);return{error:null,saved:true};

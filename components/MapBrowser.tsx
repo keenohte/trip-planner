@@ -1,16 +1,16 @@
 'use client';
 
-import { IdeaMap } from '@/components/IdeaMap';
+import { TripMap } from '@/components/TripMap';
 import { NewBottomNav } from '@/components/NewBottomNav';
-import type { Idea } from '@/lib/ideas';
+import type { ScheduleItem } from '@/lib/schedule';
 
 function formatTripDate(value: string | null) {
   if (!value) return '';
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`));
 }
 
-export function MapBrowser({ ideas, tripStart, tripEnd, preview = false }: {
-  ideas: Idea[];
+export function MapBrowser({ items, tripStart, tripEnd, preview = false }: {
+  items: ScheduleItem[];
   tripStart: string | null;
   tripEnd: string | null;
   preview?: boolean;
@@ -22,7 +22,7 @@ export function MapBrowser({ ideas, tripStart, tripEnd, preview = false }: {
       <p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p>
       <h1>Your trip map</h1>
     </header>
-    <div className="new-map-page__content"><IdeaMap ideas={ideas} /></div>
+    <div className="new-map-page__content"><TripMap items={items} /></div>
     <NewBottomNav active="map" addLabel="Add place" addHref="/ideas/new" />
   </div>;
 }

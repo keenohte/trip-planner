@@ -26,7 +26,14 @@ export type ScheduleItem = {
 export type ScheduleGroup = { key:string;startsAt:string;timezone:string;dayNumber:number|null;items:ScheduleItem[] };
 
 function previewActivity(id: string, title: string, startsAt: string, endsAt: string, city: string, notes: string): ScheduleActivity {
-  return { id, tripId:'00000000-0000-0000-0000-000000000000',title,country:'Japan',city,neighborhood:null,startsAt,endsAt,imageUrl:null,externalImageUrl:null,coverPath:null,notes,createdBy:'preview',createdAt:startsAt };
+  const places: Record<string, { address:string; latitude:number; longitude:number; mapsUrl:string; websiteUrl:string|null }> = {
+    'Arrive at Haneda Airport': { address:'Hanedakuko, Ota City, Tokyo', latitude:35.5494, longitude:139.7798, mapsUrl:'https://www.google.com/maps/search/?api=1&query=Haneda+Airport', websiteUrl:'https://tokyo-haneda.com/en/' },
+    'Dinner in Shibuya': { address:'Shibuya, Tokyo', latitude:35.6595, longitude:139.7005, mapsUrl:'https://www.google.com/maps/search/?api=1&query=Shibuya+Tokyo', websiteUrl:null },
+    'Meiji Shrine and Yoyogi Park': { address:'1-1 Yoyogikamizonocho, Shibuya, Tokyo', latitude:35.6764, longitude:139.6993, mapsUrl:'https://www.google.com/maps/search/?api=1&query=Meiji+Jingu', websiteUrl:'https://www.meijijingu.or.jp/en/' },
+    'Tsukiji outer market': { address:'4 Chome-16-2 Tsukiji, Chuo City, Tokyo', latitude:35.6655, longitude:139.7707, mapsUrl:'https://www.google.com/maps/search/?api=1&query=Tsukiji+Outer+Market', websiteUrl:'https://www.tsukiji.or.jp/english/' },
+  };
+  const place=places[title];
+  return { id, tripId:'00000000-0000-0000-0000-000000000000',title,country:'Japan',city,neighborhood:null,startsAt,endsAt,imageUrl:null,externalImageUrl:null,coverPath:null,notes,mapsUrl:place?.mapsUrl??null,locationAddress:place?.address??null,latitude:place?.latitude??null,longitude:place?.longitude??null,websiteUrl:place?.websiteUrl??null,createdBy:'preview',createdAt:startsAt };
 }
 
 function previewItem(activity: ScheduleActivity): ScheduleItem {

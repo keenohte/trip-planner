@@ -146,17 +146,17 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     if (view === 'week') requestAnimationFrame(() => scrollToDay(key));
   };
   const addEvent = (hour = '09:00') => { setSelectedItem(null); setComposer({ initialStartsAt: `${selectedDate}T${hour}`, item: null }); };
-  const savePreviewEvent = ({ item, title, startsAt, endsAt, city, notes }: PreviewEventInput) => {
+  const savePreviewEvent = ({ item, title, startsAt, endsAt, city, notes, mapsUrl, websiteUrl }: PreviewEventInput) => {
     if (item) {
       setPreviewItems((currentItems) => currentItems.map((candidate) => candidate.id === item.id && candidate.source === item.source
-        ? { ...candidate, title, startsAt, endsAt, detail: city || null, activity: candidate.activity ? { ...candidate.activity, title, startsAt, endsAt, city: city || null, notes: notes || null } : candidate.activity }
+        ? { ...candidate, title, startsAt, endsAt, detail: city || null, activity: candidate.activity ? { ...candidate.activity, title, startsAt, endsAt, city: city || null, notes: notes || null, mapsUrl: mapsUrl || null, websiteUrl: websiteUrl || null } : candidate.activity }
         : candidate));
     } else {
       const id = `preview-${Date.now()}`;
       const created: ScheduleItem = {
         id, source: 'activity', title, startsAt, endsAt, type: 'Activity', types: ['Activity'], detail: city || null,
         timezone, imageUrl: null, idea: null, booking: null, href: '/schedule',
-        activity: { id, tripId: 'preview', title, country: null, city: city || null, neighborhood: null, startsAt, endsAt, imageUrl: null, externalImageUrl: null, coverPath: null, notes: notes || null, createdBy: 'preview', createdAt: new Date().toISOString() }, comments: [],
+        activity: { id, tripId: 'preview', title, country: null, city: city || null, neighborhood: null, startsAt, endsAt, imageUrl: null, externalImageUrl: null, coverPath: null, notes: notes || null, mapsUrl: mapsUrl || null, locationAddress: null, latitude: null, longitude: null, websiteUrl: websiteUrl || null, createdBy: 'preview', createdAt: new Date().toISOString() }, comments: [],
       };
       setPreviewItems((currentItems) => [...currentItems, created].sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt)));
     }
@@ -164,7 +164,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   };
 
   const updatePreviewItem = (item: ScheduleItem, update: InlineEventUpdate) => {
-    const updated: ScheduleItem = { ...item, title: update.title, startsAt: update.startsAt, endsAt: update.endsAt, detail: update.city || null, activity: item.activity ? { ...item.activity, title: update.title, startsAt: update.startsAt, endsAt: update.endsAt, city: update.city || null, notes: update.notes || null } : item.activity };
+    const updated: ScheduleItem = { ...item, title: update.title, startsAt: update.startsAt, endsAt: update.endsAt, detail: update.city || null, activity: item.activity ? { ...item.activity, title: update.title, startsAt: update.startsAt, endsAt: update.endsAt, city: update.city || null, notes: update.notes || null, mapsUrl: update.mapsUrl || null, websiteUrl: update.websiteUrl || null } : item.activity };
     setPreviewItems((items) => items.map((candidate) => candidate.id === item.id && candidate.source === item.source ? updated : candidate));
     setSelectedItem(updated);
   };
