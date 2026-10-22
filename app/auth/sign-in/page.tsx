@@ -1,4 +1,3 @@
-import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { SignInForm } from './SignInForm';
 
 type SignInPageProps = {
@@ -11,19 +10,13 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     params.next?.startsWith('/') && !params.next.startsWith('//') ? params.next : '/';
 
   return (
-    <section className="auth-panel">
-      <div className="eyebrow">Private trip workspace</div>
-      <h2>Sign in to Trip Hub</h2>
-      <p>We’ll email you a magic link—no password to remember.</p>
-      {params.error && <p className="auth-error" role="alert">{params.error}</p>}
-      {!isSupabaseConfigured ? (
-        <div className="auth-error" role="alert">
-          Supabase is not configured yet. Copy <code>.env.example</code> to{' '}
-          <code>.env.local</code>, add the project URL and anon key, then restart the app.
-        </div>
-      ) : (
+    <section className="login-screen">
+      <div className="login-card">
+        <img className="login-logo" src="/trip-hub-icon.svg" alt="" width="72" height="72" />
+        <div className="login-heading"><h1>Trip Hub</h1><p>Your trip, all in one place.</p></div>
+        {params.error && <p className="login-error" role="alert">{params.error}</p>}
         <SignInForm nextPath={nextPath} />
-      )}
+      </div>
     </section>
   );
 }

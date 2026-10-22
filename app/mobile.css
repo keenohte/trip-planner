@@ -289,6 +289,21 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .skeleton-card { height: 84px; }
 .error-state, .empty-state, .auth-panel { margin: 80px 20px 0; padding: 22px; border-radius: var(--radius-lg); background: var(--paper); }
 
+.login-screen { display: grid; min-height: 100dvh; place-items: center; padding: calc(28px + var(--safe-area-top)) 24px calc(28px + env(safe-area-inset-bottom)); background: var(--canvas); }
+.login-card { display: grid; width: 100%; max-width: 360px; justify-items: center; gap: 28px; }
+.login-logo { display: block; width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 14px 34px rgb(23 24 22 / 0.16); }
+.login-heading { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.login-heading h1 { margin: 0; color: var(--ink); font-size: 34px; font-weight: 680; letter-spacing: -0.045em; line-height: 1; }
+.login-heading p { margin: 0; color: var(--muted); font-size: 14px; }
+.login-form { display: grid; width: 100%; gap: 12px; }
+.login-password { display: flex; min-height: 56px; align-items: center; gap: 12px; padding: 0 17px; border: 1px solid var(--line); border-radius: 18px; background: var(--white); color: var(--faint); box-shadow: 0 5px 18px rgb(23 24 22 / 0.06); }
+.login-password:focus-within { border-color: rgb(0 140 255 / 0.42); box-shadow: 0 0 0 3px rgb(0 140 255 / 0.10), 0 5px 18px rgb(23 24 22 / 0.06); }
+.login-password input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 16px; }
+.login-password input::placeholder { color: var(--faint); }
+.login-submit { min-height: 54px; border: 0; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 15px; font-weight: 650; cursor: pointer; box-shadow: 0 9px 22px rgb(23 24 22 / 0.16); }
+.login-submit:disabled { cursor: wait; opacity: 0.58; }
+.login-error { width: 100%; margin: 0; padding: 11px 13px; border-radius: 12px; background: #f7e9e6; color: var(--danger); font-size: 12px; line-height: 1.4; text-align: left; }
+
 @media (min-width: 481px) {
   html, body { background: #e9e9ec; }
   .app-viewport { margin-top: 18px; margin-bottom: 18px; min-height: calc(100svh - 36px); border-radius: 34px; }
