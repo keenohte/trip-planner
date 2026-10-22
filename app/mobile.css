@@ -138,7 +138,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .map-place-card__actions a, .map-place-card__actions button { display: grid; width: 36px; height: 36px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: #f0f1f3; color: var(--ink); cursor: pointer; text-decoration: none; }
 .map-place-card__actions a:first-child { background: var(--blue); color: var(--white); }
 
-.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); --drawer-keyboard-inset: 0px; --drawer-viewport-top: 0px; position: fixed; z-index: 100; inset: 0; height: 100dvh; overflow: hidden; overscroll-behavior: none; background: transparent; pointer-events: none; isolation: isolate; touch-action: none; }
+.new-sheet-layer { --drawer-safe-top: env(safe-area-inset-top, 0px); --drawer-safe-bottom: env(safe-area-inset-bottom, 0px); --drawer-keyboard-inset: 0px; --drawer-keyboard-space: 0px; --drawer-viewport-top: 0px; position: fixed; z-index: 100; inset: 0; height: 100dvh; overflow: hidden; overscroll-behavior: none; background: transparent; pointer-events: none; isolation: isolate; touch-action: none; }
 .new-sheet { position: absolute; inset: 0; display: flex; width: 100%; height: 100%; min-height: 0; max-height: none; flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 0; background: var(--white); box-shadow: none; transform: translateY(100%); transition: transform 360ms cubic-bezier(.22, 1, .36, 1); pointer-events: auto; touch-action: none; }
 .new-sheet[data-open="true"] { transform: translateY(var(--drawer-drag-y, 0px)); }
 .new-sheet.is-dragging { transition: none; }
@@ -202,6 +202,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-inline-field.is-empty > button { color: #8b8b8b; font-size: 17px; font-weight: 600; }
 .new-inline-field > textarea { min-height: 38px; resize: none; }
 .new-inline-field > a { position: absolute; right: 16px; bottom: 18px; display: grid; width: 24px; height: 24px; place-items: center; color: var(--ink); }
+.new-inline-field.has-action > button, .new-inline-field.has-action > input,
 .new-inline-field.is-last > button, .new-inline-field.is-last > input { padding-right: 30px; }
 .new-inline-time { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .new-inline-time span { color: #777; }
@@ -276,11 +277,11 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 
 .new-sheet-layer[data-keyboard-open="true"] .new-composer-body,
 .new-sheet-layer[data-keyboard-open="true"] .new-note-drawer__content { overflow-y: hidden; }
-.new-sheet-layer[data-keyboard-open="true"] .new-event-sheet { overflow-y: auto; padding-bottom: calc(18px + var(--drawer-keyboard-inset)); }
+.new-sheet-layer[data-keyboard-open="true"] .new-event-sheet { overflow-y: auto; padding-bottom: calc(30px + var(--drawer-keyboard-space)); }
 .new-sheet-layer[data-keyboard-open="true"],
 .new-sheet-layer:has(input:focus, textarea:focus, select:focus) { background: var(--white); }
 .new-sheet-layer[data-keyboard-open="true"] .new-composer-footer { padding-bottom: 4px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
-.new-sheet-layer[data-keyboard-open="true"][data-focus-region="comment"] .new-comment-composer { padding-bottom: 4px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
+.new-sheet-layer[data-keyboard-open="true"][data-focus-region="comment"] .new-comment-composer { padding-top: 14px; padding-bottom: 8px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
 .new-sheet-layer[data-keyboard-open="true"] .new-note-drawer__save { margin-bottom: 4px; transform: translateY(calc(-1 * var(--drawer-keyboard-inset))); transition: transform 180ms cubic-bezier(.22, 1, .36, 1); }
 
 .loading-state { display: grid; gap: 12px; padding: calc(20px + var(--safe-area-top)) 20px 20px; }

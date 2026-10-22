@@ -80,8 +80,10 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       const top = visualViewport?.offsetTop ?? 0;
       // Keep the drawer full-height. Counter iOS viewport panning separately from
       // the keyboard inset so focusing a field can never resize the drawer.
+      const keyboardSpace = Math.max(0, baselineViewportHeight.current - height);
       const keyboardInset = Math.max(0, layer.getBoundingClientRect().height - height);
       layer.style.setProperty('--drawer-keyboard-inset', `${keyboardInset}px`);
+      layer.style.setProperty('--drawer-keyboard-space', `${keyboardSpace}px`);
       layer.style.setProperty('--drawer-viewport-top', `${top}px`);
       const keyboardOpen = height < baselineViewportHeight.current - 80;
       layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
@@ -90,13 +92,15 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         const scrollArea = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-event-sheet[data-drawer-scroll]') : null;
         const activeRow = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-inline-field') ?? active : null;
         if (scrollArea && activeRow) {
-          window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
             const rowRect = activeRow.getBoundingClientRect();
+            const commentTop = sheetRef.current?.querySelector<HTMLElement>('.new-comment-composer')?.getBoundingClientRect().top;
             const visibleTop = top + 12;
-            const visibleBottom = top + height - 12;
-            if (rowRect.bottom > visibleBottom) scrollArea.scrollBy({ top: rowRect.bottom - visibleBottom, behavior: 'smooth' });
-            else if (rowRect.top < visibleTop) scrollArea.scrollBy({ top: rowRect.top - visibleTop, behavior: 'smooth' });
-          });
+            const keyboardTop = top + height;
+            const visibleBottom = Math.min(keyboardTop, commentTop ?? keyboardTop) - 12;
+            if (rowRect.bottom > visibleBottom) scrollArea.scrollTo({ top: scrollArea.scrollTop + rowRect.bottom - visibleBottom, behavior: 'smooth' });
+            else if (rowRect.top < visibleTop) scrollArea.scrollTo({ top: Math.max(0, scrollArea.scrollTop + rowRect.top - visibleTop), behavior: 'smooth' });
+          }));
         }
       }
     };
@@ -178,11 +182,11 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         app.style.left = previous.appLeft;
         app.inert = previous.inert;
       }
-      window.scrollTo(0, scrollY);
-      if (viewportLocked) {
-        window.requestAnimationFrame(() => window.scrollTo(0, 0));
-        window.setTimeout(() => window.scrollTo(0, 0), 260);
-      }
+      const restoreScroll = () => window.scrollTo(0, viewportLocked ? 0 : scrollY);
+      restoreScroll();
+      window.requestAnimationFrame(restoreScroll);
+      window.setTimeout(restoreScroll, 260);
+      window.setTimeout(restoreScroll, 520);
     };
   }, [mounted]);
 
