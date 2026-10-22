@@ -22,42 +22,29 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
 }) {
   const [notes, setNotes] = useState(initialNotes);
   const [selected, setSelected] = useState<NoteItem | null | undefined>(undefined);
-  const [navOffset, setNavOffset] = useState(0);
-  const stableViewport = useRef({ width: 0, bottom: 0 });
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const stableViewport = useRef({ width: 0, height: 0 });
   const [, startTransition] = useTransition();
   const router = useRouter();
 
   useEffect(() => setNotes(initialNotes), [initialNotes]);
   useEffect(() => {
-    let syncFrame = 0;
-    const syncNavViewport = () => {
-      const viewport = window.visualViewport;
+    const syncStableViewport = () => {
       const width = window.innerWidth;
-      const currentBottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight);
+      const height = window.innerHeight;
       const previous = stableViewport.current;
       const widthChanged = Math.abs(width - previous.width) > 80;
+      const heightRecovered = height >= previous.height - 1;
 
-      if (!previous.bottom || widthChanged || currentBottom >= previous.bottom - 1) {
-        stableViewport.current = { width, bottom: currentBottom };
+      if (!previous.height || widthChanged || heightRecovered) {
+        stableViewport.current = { width, height };
+        setViewportHeight(height);
       }
-      setNavOffset(Math.max(0, stableViewport.current.bottom - currentBottom));
-    };
-    const queueNavViewportSync = () => {
-      syncNavViewport();
-      window.cancelAnimationFrame(syncFrame);
-      syncFrame = window.requestAnimationFrame(syncNavViewport);
     };
 
-    syncNavViewport();
-    window.visualViewport?.addEventListener('resize', queueNavViewportSync);
-    window.visualViewport?.addEventListener('scroll', queueNavViewportSync);
-    window.addEventListener('resize', queueNavViewportSync);
-    return () => {
-      window.cancelAnimationFrame(syncFrame);
-      window.visualViewport?.removeEventListener('resize', queueNavViewportSync);
-      window.visualViewport?.removeEventListener('scroll', queueNavViewportSync);
-      window.removeEventListener('resize', queueNavViewportSync);
-    };
+    syncStableViewport();
+    window.addEventListener('resize', syncStableViewport);
+    return () => window.removeEventListener('resize', syncStableViewport);
   }, []);
 
   const savePreview = ({ note, title, body }: PreviewNoteInput) => {
@@ -103,12 +90,14 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
   const unpinned = notes.filter((note) => !note.pinned);
   const dateRange = tripStart && tripEnd ? `${formatTripDate(tripStart)} – ${formatTripDate(tripEnd)}` : 'Trip dates';
 
-  const pageStyle = { '--notes-nav-offset': `${navOffset}px` } as CSSProperties;
+  const pageStyle = viewportHeight ? { '--notes-page-height': `${viewportHeight}px` } as CSSProperties : undefined;
 
   return <div className="new-app new-notes-page" style={pageStyle}>
     <header className="new-app-header"><p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p><h1>Your trip notes</h1></header>
-    {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
-    <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
+    <div className="new-notes-page__content">
+      {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
+      <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
+    </div>
     <NewBottomNav active="notes" addLabel="Add note" onAdd={() => setSelected(null)} />
     {selected !== undefined && <NoteDrawer key={selected?.id ?? 'new'} note={selected} preview={preview} onPreviewSave={savePreview} onClose={() => setSelected(undefined)} />}
   </div>;
