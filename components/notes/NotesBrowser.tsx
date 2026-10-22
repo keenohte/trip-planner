@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { type CSSProperties, useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pin } from 'lucide-react';
 import { deleteNoteFromDrawer, toggleNotePinned } from '@/app/notes/actions';
@@ -22,10 +22,43 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
 }) {
   const [notes, setNotes] = useState(initialNotes);
   const [selected, setSelected] = useState<NoteItem | null | undefined>(undefined);
+  const [navOffset, setNavOffset] = useState(0);
+  const stableViewport = useRef({ width: 0, bottom: 0 });
   const [, startTransition] = useTransition();
   const router = useRouter();
 
   useEffect(() => setNotes(initialNotes), [initialNotes]);
+  useEffect(() => {
+    let syncFrame = 0;
+    const syncNavViewport = () => {
+      const viewport = window.visualViewport;
+      const width = window.innerWidth;
+      const currentBottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight);
+      const previous = stableViewport.current;
+      const widthChanged = Math.abs(width - previous.width) > 80;
+
+      if (!previous.bottom || widthChanged || currentBottom >= previous.bottom - 1) {
+        stableViewport.current = { width, bottom: currentBottom };
+      }
+      setNavOffset(Math.max(0, stableViewport.current.bottom - currentBottom));
+    };
+    const queueNavViewportSync = () => {
+      syncNavViewport();
+      window.cancelAnimationFrame(syncFrame);
+      syncFrame = window.requestAnimationFrame(syncNavViewport);
+    };
+
+    syncNavViewport();
+    window.visualViewport?.addEventListener('resize', queueNavViewportSync);
+    window.visualViewport?.addEventListener('scroll', queueNavViewportSync);
+    window.addEventListener('resize', queueNavViewportSync);
+    return () => {
+      window.cancelAnimationFrame(syncFrame);
+      window.visualViewport?.removeEventListener('resize', queueNavViewportSync);
+      window.visualViewport?.removeEventListener('scroll', queueNavViewportSync);
+      window.removeEventListener('resize', queueNavViewportSync);
+    };
+  }, []);
 
   const savePreview = ({ note, title, body }: PreviewNoteInput) => {
     if (note) setNotes((items) => items.map((item) => item.id === note.id ? { ...item, title, body: body || null, updatedAt: new Date().toISOString() } : item));
@@ -70,7 +103,9 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
   const unpinned = notes.filter((note) => !note.pinned);
   const dateRange = tripStart && tripEnd ? `${formatTripDate(tripStart)} – ${formatTripDate(tripEnd)}` : 'Trip dates';
 
-  return <div className="new-app new-notes-page">
+  const pageStyle = { '--notes-nav-offset': `${navOffset}px` } as CSSProperties;
+
+  return <div className="new-app new-notes-page" style={pageStyle}>
     <header className="new-app-header"><p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p><h1>Your trip notes</h1></header>
     {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
     <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
