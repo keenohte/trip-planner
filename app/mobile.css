@@ -244,9 +244,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-form__warning svg { flex: 0 0 auto; margin-top: 1px; }
 .new-form__warning span { display: grid; gap: 2px; }
 
-.new-notes-page { position: relative; display: flex; height: var(--notes-page-height, 100dvh); min-height: 0; overflow: hidden; flex-direction: column; padding-bottom: calc(94px + env(safe-area-inset-bottom)); }
-.new-notes-page__content { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-.new-notes-page .new-bottom-controls { position: absolute; }
+.new-notes-page .new-bottom-controls { top: calc(var(--notes-viewport-height, 100dvh) - 78px - env(safe-area-inset-bottom)); bottom: auto; }
 .new-notes-section { margin: 0 0 22px; }
 .new-notes-section > h2 { margin: 0 0 8px; padding: 0 12px; color: #858585; font-size: 16px; font-weight: 600; }
 .new-notes-list { display: grid; gap: 10px; }

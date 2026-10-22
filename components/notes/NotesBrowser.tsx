@@ -90,14 +90,12 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
   const unpinned = notes.filter((note) => !note.pinned);
   const dateRange = tripStart && tripEnd ? `${formatTripDate(tripStart)} – ${formatTripDate(tripEnd)}` : 'Trip dates';
 
-  const pageStyle = viewportHeight ? { '--notes-page-height': `${viewportHeight}px` } as CSSProperties : undefined;
+  const pageStyle = viewportHeight ? { '--notes-viewport-height': `${viewportHeight}px` } as CSSProperties : undefined;
 
   return <div className="new-app new-notes-page" style={pageStyle}>
     <header className="new-app-header"><p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p><h1>Your trip notes</h1></header>
-    <div className="new-notes-page__content">
-      {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
-      <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
-    </div>
+    {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
+    <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
     <NewBottomNav active="notes" addLabel="Add note" onAdd={() => setSelected(null)} />
     {selected !== undefined && <NoteDrawer key={selected?.id ?? 'new'} note={selected} preview={preview} onPreviewSave={savePreview} onClose={() => setSelected(undefined)} />}
   </div>;
