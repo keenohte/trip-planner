@@ -78,10 +78,13 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
   const [weekStart, setWeekStart] = useState(firstDate);
   const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
   const [composer, setComposer] = useState<ComposerState | null>(null);
+  const [dateStripOffset, setDateStripOffset] = useState(0);
+  const [dateStripAnimating, setDateStripAnimating] = useState(false);
   const [previewItems, setPreviewItems] = useState<ScheduleItem[]>(() => groups.flatMap((group) => group.items));
   const dayRefs = useRef(new Map<string, HTMLElement>());
   const stickyRef = useRef<HTMLDivElement>(null);
   const swipeStartX = useRef<number | null>(null);
+  const swipeWidth = useRef(0);
   const dateStripSwiped = useRef(false);
   const routeComposerOpened = useRef(false);
   const [, startTransition] = useTransition();
@@ -96,6 +99,7 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     return result;
   }, [allItems]);
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
+  const visibleStripDates = useMemo(() => Array.from({ length: 21 }, (_, index) => addDays(weekStart, index - 7)), [weekStart]);
   const periods: Period[] = ['Morning', 'Afternoon', 'Evening'];
 
   useEffect(() => {
@@ -109,7 +113,8 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     const card = dayRefs.current.get(key);
     const sticky = stickyRef.current;
     if (!card || !sticky) return;
-    const anchor = sticky.offsetHeight + 16;
+    const stickyTop = Number.parseFloat(window.getComputedStyle(sticky).top) || 0;
+    const anchor = stickyTop + sticky.offsetHeight + 16;
     const top = Math.max(0, window.scrollY + card.getBoundingClientRect().top - anchor);
     window.scrollTo({ top, behavior });
   };
@@ -147,6 +152,15 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
     setWeekStart(next);
     setSelectedDate(next);
     window.setTimeout(() => scrollToDay(next), 40);
+  };
+  const finishDateStripSwipe = (direction: -1 | 1) => {
+    setDateStripAnimating(true);
+    setDateStripOffset(-direction * swipeWidth.current);
+    window.setTimeout(() => {
+      setDateStripAnimating(false);
+      setDateStripOffset(0);
+      moveWeek(direction);
+    }, 180);
   };
   const selectDate = (key: string) => {
     if (dateStripSwiped.current) { dateStripSwiped.current = false; return; }
@@ -209,10 +223,14 @@ export function ScheduleBrowser({ groups, timezone, tripStart, tripEnd, preview 
       <nav
         className="new-date-strip"
         aria-label={`${formatDate(weekStart, { month: 'short', day: 'numeric' })} to ${formatDate(addDays(weekStart, 6), { month: 'short', day: 'numeric' })}`}
-        onPointerDown={(event) => { swipeStartX.current = event.clientX; dateStripSwiped.current = false; }}
-        onPointerUp={(event) => { if (swipeStartX.current === null) return; const distance = event.clientX - swipeStartX.current; swipeStartX.current = null; if (Math.abs(distance) > 48) { dateStripSwiped.current = true; moveWeek(distance < 0 ? 1 : -1); window.setTimeout(() => { dateStripSwiped.current = false; }, 0); } }}
-        onPointerCancel={() => { swipeStartX.current = null; }}
-      >{weekDates.map((key) => <button className={`${key === selectedDate ? 'is-active' : ''}${key === current ? ' is-today' : ''}`} type="button" onClick={() => selectDate(key)} key={key}><span>{formatDate(key, { weekday: 'narrow' })}</span><strong>{formatDate(key, { day: 'numeric' })}</strong></button>)}</nav>
+        onPointerDown={(event) => { swipeStartX.current = event.clientX; swipeWidth.current = event.currentTarget.clientWidth; dateStripSwiped.current = false; setDateStripAnimating(false); if (event.target instanceof Element) event.target.setPointerCapture(event.pointerId); }}
+        onPointerMove={(event) => { if (swipeStartX.current === null) return; const distance = event.clientX - swipeStartX.current; setDateStripOffset(Math.max(-swipeWidth.current, Math.min(swipeWidth.current, distance))); }}
+        onPointerUp={(event) => { if (swipeStartX.current === null) return; const distance = event.clientX - swipeStartX.current; swipeStartX.current = null; if (Math.abs(distance) > 48) { dateStripSwiped.current = true; finishDateStripSwipe(distance < 0 ? 1 : -1); window.setTimeout(() => { dateStripSwiped.current = false; }, 220); } else { setDateStripAnimating(true); setDateStripOffset(0); } }}
+        onPointerCancel={() => { swipeStartX.current = null; setDateStripAnimating(true); setDateStripOffset(0); }}
+      ><div className={`new-date-strip__track${dateStripAnimating ? ' is-animating' : ''}`} style={{ transform: `translateX(calc(-33.333333% + ${dateStripOffset}px))` }}>{visibleStripDates.map((key) => {
+        const outsideTrip = Boolean(tripStart && (key < tripStart || (tripEnd && key > tripEnd)));
+        return <button className={`${key === selectedDate ? 'is-active' : ''}${key === current ? ' is-today' : ''}${outsideTrip ? ' is-outside-trip' : ''}`} type="button" onClick={() => selectDate(key)} key={key}><span>{formatDate(key, { weekday: 'narrow' })}</span><strong>{formatDate(key, { day: 'numeric' })}</strong></button>;
+      })}</div></nav>
     </div>
 
     {view === 'week' ? <div className="new-week-list">{weekDates.map((key) => {

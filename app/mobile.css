@@ -51,12 +51,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .new-week-controls button { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
 .new-week-controls button:hover { background: var(--white); color: var(--ink); }
 
-.new-date-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin: 0; touch-action: pan-y; }
+.new-date-strip { overflow: hidden; margin: 0; touch-action: pan-y; }
+.new-date-strip__track { display: grid; width: 300%; grid-template-columns: repeat(21, minmax(0, 1fr)); gap: 0; will-change: transform; }
+.new-date-strip__track.is-animating { transition: transform 180ms ease-out; }
 .new-date-strip button { display: grid; min-width: 0; height: 62px; place-items: center; align-content: center; gap: 4px; padding: 12px 0; border: 0; border-radius: 8px; background: transparent; color: #8f8f8f; cursor: pointer; }
 .new-date-strip button span { font-size: 12px; font-weight: 650; text-transform: uppercase; }
 .new-date-strip button strong { font-size: 16px; font-weight: 650; }
 .new-date-strip button.is-today { background: var(--lavender-soft); color: #235a86; }
 .new-date-strip button.is-active { border-radius: 16px; background: var(--blue); color: var(--white); box-shadow: 0 7px 18px rgb(0 140 255 / 0.22); }
+.new-date-strip button.is-outside-trip { background: transparent; color: #d4d4d4; box-shadow: none; }
 
 .new-week-list { display: grid; gap: 16px; padding-top: 34px; padding-bottom: clamp(240px, calc(100dvh - 430px), 480px); }
 .new-week-day { overflow: hidden; padding: 12px; scroll-margin-top: calc(166px + var(--safe-area-top)); border: 0; border-radius: 20px; background: var(--paper); box-shadow: 0 0 9.1px rgb(0 0 0 / 0.18); }
