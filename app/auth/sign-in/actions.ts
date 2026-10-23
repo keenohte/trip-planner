@@ -1,27 +1,11 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 
 export type PasswordSignInState = { error: string | null };
 export type PasswordResetRequestState = { error: string | null; sent: boolean };
-
-async function appOrigin() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
-  if (configured) return configured;
-
-  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (vercelUrl) return `https://${vercelUrl}`;
-
-  const requestHeaders = await headers();
-  const origin = requestHeaders.get('origin');
-  if (origin) return origin;
-
-  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const protocol = requestHeaders.get('x-forwarded-proto') ?? 'http';
-  return host ? `${protocol}://${host}` : null;
-}
+export type PasswordResetCodeState = { error: string | null };
 
 export async function signInWithPassword(
   _previousState: PasswordSignInState,
@@ -48,12 +32,8 @@ export async function requestPasswordReset(
   const email = process.env.TRIP_LOGIN_EMAIL;
   if (!email) return { error: 'Password recovery is not configured yet.', sent: false };
 
-  const origin = await appOrigin();
-  if (!origin) return { error: 'Could not create a secure recovery link. Try again.', sent: false };
-
   const supabase = await createClient();
-  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent('/auth/update-password')}`;
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
 
   if (error) {
     const rateLimited = error.status === 429 || error.code === 'over_email_send_rate_limit' || /rate limit/i.test(error.message);
@@ -65,4 +45,28 @@ export async function requestPasswordReset(
     };
   }
   return { error: null, sent: true };
+}
+
+export async function resetPasswordWithCode(
+  _previousState: PasswordResetCodeState,
+  formData: FormData,
+): Promise<PasswordResetCodeState> {
+  const email = process.env.TRIP_LOGIN_EMAIL;
+  const code = String(formData.get('code') ?? '').replace(/\s/g, '');
+  const password = String(formData.get('password') ?? '');
+  const confirmation = String(formData.get('confirmation') ?? '');
+
+  if (!email) return { error: 'Password recovery is not configured yet.' };
+  if (!code) return { error: 'Enter the recovery code from the email.' };
+  if (password.length < 8) return { error: 'Use at least 8 characters.' };
+  if (password !== confirmation) return { error: 'The passwords do not match.' };
+
+  const supabase = await createClient();
+  const { error: verificationError } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
+  if (verificationError) return { error: 'That recovery code is invalid or expired. Request a new code.' };
+
+  const { error: updateError } = await supabase.auth.updateUser({ password });
+  if (updateError) return { error: 'The code worked, but the password could not be updated. Try again.' };
+
+  redirect('/');
 }
