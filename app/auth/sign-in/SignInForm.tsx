@@ -1,18 +1,25 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { LockKeyhole } from 'lucide-react';
 import { requestPasswordReset, resetPasswordWithCode, signInWithPassword } from './actions';
 
 export function SignInForm({ nextPath = '/' }: { nextPath?: string }) {
-  const [state, action, pending] = useActionState(signInWithPassword, { error: null });
+  const router = useRouter();
+  const [state, action, pending] = useActionState(signInWithPassword, { error: null, signedIn: false });
   const [resetState, resetAction, resetPending] = useActionState(requestPasswordReset, { error: null, sent: false });
   const [codeState, codeAction, codePending] = useActionState(resetPasswordWithCode, { error: null });
+
+  useEffect(() => {
+    if (!state.signedIn) return;
+    router.replace(nextPath);
+    router.refresh();
+  }, [nextPath, router, state.signedIn]);
 
   return (
     <div className="login-actions">
       <form className="login-form" action={action}>
-        <input name="next" type="hidden" value={nextPath} />
         <label className="login-password" htmlFor="password">
           <LockKeyhole aria-hidden="true" size={20} strokeWidth={1.8} />
           <input aria-label="Password" id="password" name="password" type="password" autoComplete="current-password" placeholder="Password" required autoFocus />
