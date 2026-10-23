@@ -166,6 +166,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-sheet--composer { height: 100%; min-height: 0; max-height: none; }
 .new-sheet--composer .new-sheet__form { height: 100%; }
 .new-composer-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 20px; -webkit-overflow-scrolling: touch; }
+.new-sheet-layer[data-focus-region='field'] .new-composer-body { padding-bottom: calc(180px + var(--drawer-keyboard-space)); }
 .new-composer-body h2 { margin: 0 0 22px; font-size: 27px; font-weight: 400; letter-spacing: -0.025em; }
 .new-composer-fields { display: grid; gap: 4px; }
 .new-composer-fields > input, .new-composer-field { width: 100%; min-height: 58px; padding: 0 16px; border: 0; border-radius: 4px; outline: 0; background: var(--item-surface); color: #1d1d1d; font-size: 17px; font-weight: 600; }
@@ -196,6 +197,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 
 .new-sheet--event { height: 100%; min-height: 0; max-height: none; }
 .new-event-sheet { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px 18px; -webkit-overflow-scrolling: touch; }
+.new-sheet-layer[data-focus-region='field'] .new-event-sheet { padding-bottom: calc(180px + var(--drawer-keyboard-space)); }
 .new-event-sheet__title-row { display: flex; min-height: 49px; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .new-inline-title-view, .new-inline-title { min-width: 0; flex: 1 1 auto; margin: 0; padding: 0; border: 0; background: transparent; color: #1d1d1d; font-size: 24px; font-weight: 400; letter-spacing: -0.025em; line-height: 1.2; text-align: left; }
 .new-inline-title-view { cursor: text; }
@@ -280,6 +282,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-sheet--note { height: 100%; min-height: 0; max-height: none; }
 .new-note-drawer { display: flex; min-height: 0; flex: 1; flex-direction: column; overflow: hidden; }
 .new-note-drawer__content { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px; -webkit-overflow-scrolling: touch; }
+.new-sheet-layer[data-focus-region='field'] .new-note-drawer__content { padding-bottom: calc(180px + var(--drawer-keyboard-space)); }
 .new-note-drawer__field { display: grid; width: 100%; min-width: 0; }
 .new-note-drawer__field::after { grid-area: 1 / 1; width: 100%; visibility: hidden; white-space: pre-wrap; overflow-wrap: anywhere; content: attr(data-value) ' '; }
 .new-note-drawer__field--title { min-height: 30px; margin: 0 0 16px; color: var(--ink); font-family: inherit; font-size: 25px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.2; }

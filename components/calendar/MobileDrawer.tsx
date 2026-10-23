@@ -58,7 +58,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       appLeft: app?.style.left ?? '',
       inert: app?.inert ?? false,
     };
-    let focusAlignmentTimer = 0;
+    let focusAlignmentTimers: number[] = [];
 
     root.classList.add('has-open-drawer');
     body.classList.add('has-open-drawer');
@@ -90,26 +90,26 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
       layer.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
       if (keyboardOpen || layer.dataset.focusRegion === 'field') {
         const active = document.activeElement;
-        const scrollArea = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-event-sheet[data-drawer-scroll]') : null;
-        const activeRow = active instanceof HTMLElement ? active.closest<HTMLElement>('.new-inline-field') ?? active : null;
+        const scrollArea = active instanceof HTMLElement ? active.closest<HTMLElement>('[data-drawer-scroll]') : null;
+        const activeRow = active instanceof HTMLElement ? active.closest<HTMLElement>('[data-focus-row], .new-inline-field, .new-composer-field') ?? active : null;
         if (scrollArea && activeRow) {
           const alignActiveRow = () => {
             const rowRect = activeRow.getBoundingClientRect();
-            const commentTop = sheetRef.current?.querySelector<HTMLElement>('.new-comment-composer')?.getBoundingClientRect().top;
+            const controlsTop = sheetRef.current?.querySelector<HTMLElement>('.new-comment-composer, .new-composer-footer')?.getBoundingClientRect().top;
             const visibleTop = top + 12;
             const keyboardTop = top + height;
             // Some iOS modes do not reduce visualViewport when the keyboard
             // opens. Cap the target to a known-safe part of the full viewport,
             // while still clearing the QuickType/accessory strip when it does.
-            const reportedKeyboardLimit = Math.min(keyboardTop, commentTop ?? keyboardTop) - 94;
+            const reportedKeyboardLimit = Math.min(keyboardTop, controlsTop ?? keyboardTop) - 20;
             const fallbackKeyboardLimit = top + baselineViewportHeight.current * 0.58;
             const visibleBottom = Math.min(reportedKeyboardLimit, fallbackKeyboardLimit);
-            if (rowRect.bottom > visibleBottom) scrollArea.scrollTop += rowRect.bottom - visibleBottom;
+            if (rowRect.bottom > visibleBottom) scrollArea.scrollTop += rowRect.bottom - visibleBottom + 8;
             else if (rowRect.top < visibleTop) scrollArea.scrollTop = Math.max(0, scrollArea.scrollTop + rowRect.top - visibleTop);
           };
           window.requestAnimationFrame(() => window.requestAnimationFrame(alignActiveRow));
-          window.clearTimeout(focusAlignmentTimer);
-          focusAlignmentTimer = window.setTimeout(alignActiveRow, 180);
+          focusAlignmentTimers.forEach((timer) => window.clearTimeout(timer));
+          focusAlignmentTimers = [120, 320, 560].map((delay) => window.setTimeout(alignActiveRow, delay));
         }
       }
     };
@@ -120,7 +120,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
         if (layer) layer.dataset.focusRegion = 'none';
         return;
       }
-      layer.dataset.focusRegion = active.closest('.new-comment-composer') ? 'comment' : active.matches('input, textarea, select') ? 'field' : 'none';
+      layer.dataset.focusRegion = active.closest('.new-comment-composer') ? 'comment' : active.matches('input, textarea, select, [contenteditable="true"]') ? 'field' : 'none';
       syncVisualViewport();
     };
     syncVisualViewport();
@@ -167,7 +167,7 @@ export function MobileDrawer({ children, labelledBy, onClose, className = '' }: 
     return () => {
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
-      window.clearTimeout(focusAlignmentTimer);
+      focusAlignmentTimers.forEach((timer) => window.clearTimeout(timer));
       if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
       document.removeEventListener('keydown', keydown);
       document.removeEventListener('touchstart', touchStart, true);
