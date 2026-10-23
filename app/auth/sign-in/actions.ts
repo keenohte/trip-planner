@@ -55,6 +55,14 @@ export async function requestPasswordReset(
   const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent('/auth/update-password')}`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
-  if (error) return { error: 'Could not send the recovery email. Try again shortly.', sent: false };
+  if (error) {
+    const rateLimited = error.status === 429 || error.code === 'over_email_send_rate_limit' || /rate limit/i.test(error.message);
+    return {
+      error: rateLimited
+        ? 'Too many recovery emails were requested. Wait about an hour, then try again.'
+        : 'Could not send the recovery email. Try again shortly.',
+      sent: false,
+    };
+  }
   return { error: null, sent: true };
 }
