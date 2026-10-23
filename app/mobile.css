@@ -308,6 +308,7 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .login-password input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 16px; }
 .login-password input::placeholder { color: var(--faint); }
 .login-submit { min-height: 54px; border: 0; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 15px; font-weight: 650; cursor: pointer; box-shadow: 0 9px 22px rgb(23 24 22 / 0.16); }
+.login-submit--link { display: grid; width: 100%; place-items: center; text-decoration: none; }
 .login-submit:disabled { cursor: wait; opacity: 0.58; }
 .login-forgot { display: block; margin: 0 auto; padding: 5px 8px; border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
 .login-forgot:disabled { cursor: wait; opacity: 0.58; }
