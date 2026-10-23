@@ -36,10 +36,13 @@ export async function requestPasswordReset(
   const { error } = await supabase.auth.resetPasswordForEmail(email);
 
   if (error) {
-    const rateLimited = error.status === 429 || error.code === 'over_email_send_rate_limit' || /rate limit/i.test(error.message);
+    const emailQuotaReached = error.code === 'over_email_send_rate_limit';
+    const temporarilyLimited = error.status === 429 || /rate limit/i.test(error.message);
     return {
-      error: rateLimited
-        ? 'Too many recovery emails were requested. Wait about an hour, then try again.'
+      error: emailQuotaReached
+        ? 'The project email limit was reached. Check Supabase email rate limits, then try again.'
+        : temporarilyLimited
+          ? 'Please wait 60 seconds before requesting another recovery code.'
         : 'Could not send the recovery email. Try again shortly.',
       sent: false,
     };
