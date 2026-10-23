@@ -2,7 +2,7 @@
 
 import { type FocusEvent, type FormEvent, useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import { createScheduleActivity, updateScheduleItem, type ActivityFormState } from '@/app/schedule/actions';
 import { MobileDrawer } from '@/components/calendar/MobileDrawer';
 import { formatDateTimeInput, localDateTimeToIso } from '@/lib/datetime';
@@ -35,7 +35,7 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
   const initialEnd = item?.endsAt ? formatDateTimeInput(item.endsAt, timezone) : '';
   const [startsAt, setStartsAt] = useState(initialStart);
   const [endsAt, setEndsAt] = useState(initialEnd);
-  const [activeField, setActiveField] = useState<'date' | 'time' | null>(null);
+  const [activeField, setActiveField] = useState<'date' | 'startTime' | 'endTime' | null>(null);
   const [overlapAccepted, setOverlapAccepted] = useState(false);
   const [overlapTitle, setOverlapTitle] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -108,7 +108,8 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
         <div className="new-composer-fields">
           <input ref={titleRef} className="is-first" name="title" required maxLength={160} placeholder="What are you doing?" defaultValue={item?.title ?? ''} onFocus={(event) => event.currentTarget.select()} />
           <div className="new-composer-field">{activeField === 'date' ? <input aria-label="Date" type="date" value={date} autoFocus onChange={(event) => changeDate(event.target.value)} onBlur={() => setActiveField(null)} /> : <button type="button" onClick={() => setActiveField('date')}>{friendlyDate(date)}</button>}</div>
-          <div className="new-composer-field">{activeField === 'time' ? <div className="new-composer-time" onBlur={finishTimeEdit}><input aria-label="Start time" type="time" value={startTime} autoFocus onChange={(event) => changeStartTime(event.target.value)} /><span>–</span><input aria-label="End time (optional)" type="time" value={endTime} onChange={(event) => changeEndTime(event.target.value)} />{endTime && <button className="new-time-clear" type="button" onClick={() => changeEndTime('')}>Clear end</button>}</div> : <button type="button" onClick={() => setActiveField('time')}>{friendlyTime(startTime)}{endTime ? ` – ${friendlyTime(endTime)}` : ''}</button>}</div>
+          <div className="new-composer-field has-label"><span className="new-composer-field__label">Start time</span>{activeField === 'startTime' ? <div className="new-time-entry" onBlur={finishTimeEdit}><input aria-label="Start time" type="time" value={startTime} autoFocus onChange={(event) => changeStartTime(event.target.value)} /></div> : <button type="button" onClick={() => setActiveField('startTime')}>{friendlyTime(startTime)}</button>}</div>
+          <div className={`new-composer-field has-label${endTime ? '' : ' is-empty'}`}><span className="new-composer-field__label">End time</span>{activeField === 'endTime' ? <div className="new-time-entry" onBlur={finishTimeEdit}><input aria-label="End time (optional)" type="time" value={endTime} autoFocus onChange={(event) => changeEndTime(event.target.value)} />{endTime && <button className="new-time-clear" type="button" aria-label="Clear end time" onClick={() => changeEndTime('')}><X size={18} aria-hidden="true" /></button>}</div> : <div className="new-time-entry"><button className="new-time-value" type="button" onClick={() => setActiveField('endTime')}>{endTime ? friendlyTime(endTime) : 'Add end time'}</button>{endTime && <button className="new-time-clear" type="button" aria-label="Clear end time" onClick={() => changeEndTime('')}><X size={18} aria-hidden="true" /></button>}</div>}</div>
           <input name="city" placeholder="Where is it?" defaultValue={city} />
           <input name="mapsUrl" type="url" inputMode="url" placeholder="Google Maps link" defaultValue={mapsUrl} />
           <input className="is-last" name="websiteUrl" type="url" inputMode="url" placeholder="Website" defaultValue={websiteUrl} />
