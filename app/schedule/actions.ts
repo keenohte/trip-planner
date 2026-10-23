@@ -38,8 +38,8 @@ async function parse(data:FormData,timezone:string) {
   const startInput=text(data,'startsAt'); const endInput=text(data,'endsAt');
   const startsAt=startInput ? localDateTimeToIso(startInput,timezone) : null; const endsAt=endInput ? localDateTimeToIso(endInput,timezone) : null;
   if (!startsAt) return {error:`Choose a valid start date and time in ${timezone}.`} as const;
-  if (!endsAt) return {error:`Choose a valid end date and time in ${timezone}.`} as const;
-  if (endsAt<=startsAt) return {error:'The end time must be after the start time.'} as const;
+  if (endInput && !endsAt) return {error:`Choose a valid end date and time in ${timezone}.`} as const;
+  if (endsAt && endsAt<=startsAt) return {error:'The end time must be after the start time.'} as const;
   const imageUrl=parseUrl(data,'imageUrl','image'); if (imageUrl.error) return {error:imageUrl.error} as const;
   const mapsUrl=parseUrl(data,'mapsUrl','Google Maps'); if (mapsUrl.error) return {error:mapsUrl.error} as const;
   if (mapsUrl.value && !isGoogleMapsUrl(mapsUrl.value)) return {error:'Enter a Google Maps link.'} as const;

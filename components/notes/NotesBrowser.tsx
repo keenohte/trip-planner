@@ -1,8 +1,8 @@
 'use client';
 
-import { type CSSProperties, useEffect, useRef, useState, useTransition } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pin } from 'lucide-react';
+import { Pin, Search } from 'lucide-react';
 import { deleteNoteFromDrawer, toggleNotePinned } from '@/app/notes/actions';
 import { SwipeReveal } from '@/components/calendar/SwipeReveal';
 import { NoteDrawer, type NoteItem, type PreviewNoteInput } from '@/components/notes/NoteDrawer';
@@ -21,6 +21,7 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
   preview?: boolean;
 }) {
   const [notes, setNotes] = useState(initialNotes);
+  const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<NoteItem | null | undefined>(undefined);
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const stableViewport = useRef({ width: 0, height: 0 });
@@ -86,16 +87,25 @@ export function NotesBrowser({ initialNotes, timezone, tripStart, tripEnd, previ
     </button>
   </SwipeReveal>;
 
-  const pinned = notes.filter((note) => note.pinned);
-  const unpinned = notes.filter((note) => !note.pinned);
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const filteredNotes = useMemo(() => normalizedQuery
+    ? notes.filter((note) => `${note.title} ${note.body ?? ''}`.toLocaleLowerCase().includes(normalizedQuery))
+    : notes, [normalizedQuery, notes]);
+  const pinned = filteredNotes.filter((note) => note.pinned);
+  const unpinned = filteredNotes.filter((note) => !note.pinned);
   const dateRange = tripStart && tripEnd ? `${formatTripDate(tripStart)} – ${formatTripDate(tripEnd)}` : 'Trip dates';
 
   const pageStyle = viewportHeight ? { '--notes-viewport-height': `${viewportHeight}px` } as CSSProperties : undefined;
 
   return <div className="new-app new-notes-page" style={pageStyle}>
     <header className="new-app-header"><p className="new-trip-range">{dateRange}{preview && <span className="new-preview-label">Preview</span>}</p><h1>Your trip notes</h1></header>
+    <label className="new-notes-search">
+      <Search size={18} strokeWidth={2} aria-hidden="true" />
+      <input type="search" aria-label="Search notes" placeholder="Search notes" value={query} onChange={(event) => setQuery(event.target.value)} />
+    </label>
     {pinned.length > 0 && <section className="new-notes-section"><h2>Pinned</h2><div className="new-notes-list">{pinned.map(noteCard)}</div></section>}
-    <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>
+    {(unpinned.length > 0 || !normalizedQuery) && <section className="new-notes-section"><h2>All notes</h2><div className="new-notes-list">{unpinned.length ? unpinned.map(noteCard) : <p className="new-notes-empty">No other notes yet.</p>}</div></section>}
+    {normalizedQuery && filteredNotes.length === 0 && <p className="new-notes-empty new-notes-empty--search">No notes found.</p>}
     <NewBottomNav active="notes" addLabel="Add note" onAdd={() => setSelected(null)} />
     {selected !== undefined && <NoteDrawer key={selected?.id ?? 'new'} note={selected} preview={preview} onPreviewSave={savePreview} onClose={() => setSelected(undefined)} />}
   </div>;

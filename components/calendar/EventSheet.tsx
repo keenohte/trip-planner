@@ -10,7 +10,7 @@ import { formatDateTimeInput, localDateTimeToIso } from '@/lib/datetime';
 import type { ScheduleComment } from '@/lib/schedule-comments';
 import type { ScheduleItem } from '@/lib/schedule';
 
-export type InlineEventUpdate = { title: string; startsAt: string; endsAt: string; city: string; notes: string; mapsUrl: string; websiteUrl: string };
+export type InlineEventUpdate = { title: string; startsAt: string; endsAt: string | null; city: string; notes: string; mapsUrl: string; websiteUrl: string };
 
 function commentTime(value: string) {
   const age = Date.now() - Date.parse(value);
@@ -40,7 +40,7 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
   onClose: () => void;
 }) {
   const initialStart = formatDateTimeInput(item.startsAt, item.timezone);
-  const initialEnd = formatDateTimeInput(item.endsAt ?? item.startsAt, item.timezone);
+  const initialEnd = formatDateTimeInput(item.endsAt, item.timezone);
   const initialCity = item.activity?.city ?? item.idea?.city ?? item.booking?.cityRoute ?? item.detail?.split(/[·,]/)[0]?.trim() ?? '';
   const initialNotes = item.activity?.notes ?? item.idea?.notes ?? item.booking?.notes ?? '';
   const initialMapsUrl = item.activity?.mapsUrl ?? item.idea?.mapsUrl ?? item.booking?.mapsUrl ?? '';
@@ -84,9 +84,9 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
     if (draftKey === lastSavedRef.current) return;
     if (savingRef.current) { queuedSaveRef.current = true; return; }
     const startsAt = localDateTimeToIso(`${draft.date}T${draft.startTime}`, item.timezone);
-    const endsAt = localDateTimeToIso(`${draft.date}T${draft.endTime}`, item.timezone);
+    const endsAt = draft.endTime ? localDateTimeToIso(`${draft.date}T${draft.endTime}`, item.timezone) : null;
     const linkError = validateLink(draft.mapsUrl, 'Google Maps', true) ?? validateLink(draft.websiteUrl, 'website');
-    if (!draft.title.trim() || !startsAt || !endsAt || endsAt <= startsAt) { setError('Check the title and make sure the end time is after the start time.'); setSaveStatus('error'); return; }
+    if (!draft.title.trim() || !startsAt || (endsAt && endsAt <= startsAt)) { setError('Check the title and make sure the end time is after the start time.'); setSaveStatus('error'); return; }
     if (linkError) { setError(linkError); setSaveStatus('error'); return; }
     const update = { title: draft.title.trim(), startsAt, endsAt, city: draft.city.trim(), notes: initialNotes, mapsUrl: draft.mapsUrl.trim(), websiteUrl: draft.websiteUrl.trim() };
     savingRef.current = true;
@@ -119,6 +119,16 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
   };
 
   const markEditing = () => { setSaveStatus('idle'); setError(null); };
+  const changeStartTime = (value: string) => {
+    markEditing();
+    draftRef.current = { ...draftRef.current, startTime: value };
+    setStartTime(value);
+  };
+  const changeEndTime = (value: string) => {
+    markEditing();
+    draftRef.current = { ...draftRef.current, endTime: value };
+    setEndTime(value);
+  };
 
   const addComment = (event: FormEvent) => {
     event.preventDefault();
@@ -147,7 +157,7 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
 
       <div className="new-inline-fields">
         <div className="new-inline-field is-first"><span>Date</span>{active === 'date' ? <input type="date" aria-label="Date" value={date} autoFocus onChange={(event) => { markEditing(); setDate(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('date')}>{friendlyDate}</button>}</div>
-        <div className="new-inline-field"><span>Time</span>{active === 'time' ? <div className="new-inline-time" onBlur={finishTimeEdit}><input type="time" aria-label="Start time" value={startTime} autoFocus onChange={(event) => { markEditing(); setStartTime(event.target.value); }} /><span>–</span><input type="time" aria-label="End time" value={endTime} onChange={(event) => { markEditing(); setEndTime(event.target.value); }} /></div> : <button type="button" onClick={() => setActive('time')}>{friendlyTime(startTime)} – {friendlyTime(endTime)}</button>}</div>
+        <div className="new-inline-field"><span>Time</span>{active === 'time' ? <div className="new-inline-time" onBlur={finishTimeEdit}><input type="time" aria-label="Start time" value={startTime} autoFocus onChange={(event) => changeStartTime(event.target.value)} /><span>–</span><input type="time" aria-label="End time (optional)" value={endTime} onChange={(event) => changeEndTime(event.target.value)} />{endTime && <button className="new-time-clear" type="button" onClick={() => changeEndTime('')}>Clear end</button>}</div> : <button type="button" onClick={() => setActive('time')}>{friendlyTime(startTime)}{endTime ? ` – ${friendlyTime(endTime)}` : ''}</button>}</div>
         <div className="new-inline-field"><span>Location</span>{active === 'city' ? <input aria-label="Location" value={city} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setCity(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('city')}>{city || 'Add a location'}</button>}</div>
         <div className={`new-inline-field${mapsUrl ? ' has-action' : ' is-empty'}`}>{mapsUrl && <span>Google Maps link</span>}{active === 'mapsUrl' ? <input aria-label="Google Maps link" inputMode="url" placeholder="Google Maps link" value={mapsUrl} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setMapsUrl(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('mapsUrl')}>{mapsUrl || 'Google Maps link'}</button>}{mapsUrl && <a aria-label="Open location in Google Maps" href={mapsUrl} target="_blank" rel="noreferrer"><ExternalLink size={18} /></a>}</div>
         <div className={`new-inline-field is-last${websiteUrl ? '' : ' is-empty'}`}>{websiteUrl && <span>Website</span>}{active === 'websiteUrl' ? <input aria-label="Website" inputMode="url" placeholder="Website" value={websiteUrl} autoFocus onFocus={(event) => event.currentTarget.select()} onChange={(event) => { markEditing(); setWebsiteUrl(event.target.value); }} onBlur={finishEdit} /> : <button type="button" onClick={() => setActive('websiteUrl')}>{websiteUrl || 'Website'}</button>}{websiteUrl && <a aria-label="Open website" href={websiteUrl} target="_blank" rel="noreferrer"><ExternalLink size={18} /></a>}</div>
