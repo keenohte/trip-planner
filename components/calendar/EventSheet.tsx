@@ -100,7 +100,7 @@ export function EventSheet({ item, preview = false, onPreviewSave, onPreviewComm
       return;
     }
     const data = new FormData();
-    data.set('itemId', item.id); data.set('source', item.source); data.set('title', update.title); data.set('startsAt', `${draft.date}T${draft.startTime}`); data.set('endsAt', `${draft.date}T${draft.endTime}`); data.set('city', update.city); data.set('notes', update.notes); data.set('mapsUrl', update.mapsUrl); data.set('websiteUrl', update.websiteUrl);
+    data.set('itemId', item.id); data.set('source', item.source); data.set('title', update.title); data.set('startsAt', `${draft.date}T${draft.startTime}`); data.set('endsAt', draft.endTime ? `${draft.date}T${draft.endTime}` : ''); data.set('city', update.city); data.set('notes', update.notes); data.set('mapsUrl', update.mapsUrl); data.set('websiteUrl', update.websiteUrl);
     const result = await updateScheduleItem({ error: null }, data);
     savingRef.current = false;
     if (result.error) { setError(result.error); setSaveStatus('error'); }

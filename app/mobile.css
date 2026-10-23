@@ -179,6 +179,9 @@ html.has-open-drawer, html.has-open-drawer body { height: 100%; overflow: hidden
 .new-composer-field__label { color: #777; font-size: 12px; font-weight: 500; line-height: 1.2; }
 .new-time-entry { display: flex; width: 100%; min-width: 0; align-items: center; gap: 12px; }
 .new-time-entry > input, .new-time-value { width: 100%; min-width: 0; overflow: hidden; padding: 0; border: 0; outline: 0; background: transparent; color: #1d1d1d; font: inherit; font-size: 16px; font-weight: 650; line-height: 1.2; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.new-composer-field input[type='date'], .new-composer-field input[type='time'], .new-inline-field input[type='date'], .new-inline-field input[type='time'] { direction: ltr; text-align: left; text-align-last: left; }
+.new-composer-field input[type='date']::-webkit-date-and-time-value, .new-composer-field input[type='time']::-webkit-date-and-time-value, .new-inline-field input[type='date']::-webkit-date-and-time-value, .new-inline-field input[type='time']::-webkit-date-and-time-value { width: 100%; text-align: left; }
+.new-composer-field input[type='date']::-webkit-datetime-edit, .new-composer-field input[type='time']::-webkit-datetime-edit, .new-inline-field input[type='date']::-webkit-datetime-edit, .new-inline-field input[type='time']::-webkit-datetime-edit { display: block; text-align: left; }
 .new-composer-field .new-time-entry > input, .new-composer-field .new-time-value { color: #6f6f6f; font-size: 17px; font-weight: 600; }
 .new-time-value { cursor: text; }
 .new-composer-field.is-empty .new-time-value, .new-inline-field.is-empty .new-time-value { color: #8b8b8b; font-size: 17px; font-weight: 600; }
