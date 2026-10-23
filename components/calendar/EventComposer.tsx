@@ -40,7 +40,7 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
   const [overlapTitle, setOverlapTitle] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const city = item?.activity?.city ?? item?.idea?.city ?? item?.booking?.cityRoute ?? item?.detail?.split(/[·,]/)[0]?.trim() ?? '';
+  const city = item?.activity ? item.activity.city ?? '' : item?.idea ? item.idea.city ?? '' : item?.booking ? item.booking.cityRoute ?? '' : item?.detail?.split(/[·,]/)[0]?.trim() ?? '';
   const notes = item?.activity?.notes ?? item?.idea?.notes ?? item?.booking?.notes ?? '';
   const mapsUrl = item?.activity?.mapsUrl ?? item?.idea?.mapsUrl ?? item?.booking?.mapsUrl ?? '';
   const websiteUrl = item?.activity?.websiteUrl ?? item?.idea?.websiteUrl ?? item?.booking?.websiteUrl ?? '';
@@ -102,7 +102,7 @@ export function EventComposer({ initialStartsAt, timezone, items, item = null, p
   return <MobileDrawer labelledBy="composer-title" onClose={onClose} className="new-sheet--composer">
     <form className="new-sheet__form" action={action} onSubmit={submit}>
       {item && <><input name="itemId" type="hidden" value={item.id} /><input name="source" type="hidden" value={item.source} /></>}
-      <input name="startsAt" type="hidden" value={startsAt} /><input name="endsAt" type="hidden" value={endsAt} /><input name="notes" type="hidden" value={item ? notes : ''} />
+      <input name="startsAt" type="hidden" value={startsAt} /><input name="endsAt" type="hidden" value={endsAt} /><input name="notes" type="hidden" value={item ? notes : ''} />{item && city && <input name="clearCity" type="hidden" value="true" />}
       <div className="new-sheet__body new-composer-body" data-drawer-scroll>
         <h2 id="composer-title">{item ? 'Update your plan' : 'Add to your day'}</h2>
         <div className="new-composer-fields">

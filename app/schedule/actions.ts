@@ -45,7 +45,8 @@ async function parse(data:FormData,timezone:string) {
   if (mapsUrl.value && !isGoogleMapsUrl(mapsUrl.value)) return {error:'Enter a Google Maps link.'} as const;
   const websiteUrl=parseUrl(data,'websiteUrl','website'); if (websiteUrl.error) return {error:websiteUrl.error} as const;
   const place=await resolveGoogleMapsPlace(mapsUrl.value);
-  return {error:null,values:{title,country:optional(data,'country')??place.country,city:optional(data,'city')??place.city,neighborhood:optional(data,'neighborhood')??place.neighborhood,starts_at:startsAt,ends_at:endsAt,image_url:imageUrl.value,notes:optional(data,'notes'),maps_url:mapsUrl.value,location_address:place.address,latitude:place.latitude,longitude:place.longitude,website_url:websiteUrl.value}} as const;
+  const city=optional(data,'city')??(text(data,'clearCity')==='true'?null:place.city);
+  return {error:null,values:{title,country:optional(data,'country')??place.country,city,neighborhood:optional(data,'neighborhood')??place.neighborhood,starts_at:startsAt,ends_at:endsAt,image_url:imageUrl.value,notes:optional(data,'notes'),maps_url:mapsUrl.value,location_address:place.address,latitude:place.latitude,longitude:place.longitude,website_url:websiteUrl.value}} as const;
 }
 
 function refresh(id?:string){ revalidatePath('/');revalidatePath('/schedule');if(id)revalidatePath(`/schedule/${id}`); }

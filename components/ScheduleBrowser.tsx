@@ -62,7 +62,7 @@ function eventPresentation(item: ScheduleItem) {
 
 function AgendaCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => void }) {
   const { Icon, tone } = eventPresentation(item);
-  const place = item.detail?.split(/[·,]/)[0]?.trim();
+  const place = item.activity ? item.activity.city : item.idea ? item.idea.city : item.booking ? item.booking.cityRoute : null;
   return <button className="new-event-card" type="button" onClick={onOpen}>
     <span className={`new-event-card__icon is-${tone}`}><Icon size={22} strokeWidth={2.2} /></span>
     <span className="new-event-card__content"><span className="new-event-card__title">{item.title}</span><span className="new-event-card__meta">{timeRange(item)}{place ? ` · ${place}` : ''}</span></span>
